@@ -1,0 +1,115 @@
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+import { getCurrentUser, getUserProfile } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-11-20.acacia',
+});
+
+// Price IDs from Stripe Dashboard
+const PRICE_IDS = {
+  pro: process.env.STRIPE_PRO_PRICE_ID!,
+  premium: process.env.STRIPE_PREMIUM_PRICE_ID!,
+};
+
+interface CreateCheckoutRequest {
+  tier: 'pro' | 'premium';
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Please sign in to continue' },
+        { status: 401 }
+      );
+    }
+
+    const body: CreateCheckoutRequest = await request.json();
+    const { tier } = body;
+
+    if (!tier || !['pro', 'premium'].includes(tier)) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Invalid subscription tier' },
+        { status: 400 }
+      );
+    }
+
+    const priceId = PRICE_IDS[tier];
+    if (!priceId) {
+      return NextResponse.json(
+        { error: 'Configuration error', message: 'Price ID not configured' },
+        { status: 500 }
+      );
+    }
+
+    const profile = await getUserProfile();
+    const supabase = await createClient();
+
+    let customerId = profile?.stripe_customer_id;
+
+    // Create Stripe customer if doesn't exist
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          supabase_user_id: user.id,
+        },
+      });
+
+      customerId = customer.id;
+
+      // Save customer ID to profile
+      await supabase
+        .from('profiles')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', user.id);
+    }
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?tab=billing&success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?tab=billing&canceled=true`,
+      metadata: {
+        user_id: user.id,
+        tier,
+      },
+      subscription_data: {
+        metadata: {
+          user_id: user.id,
+          tier,
+        },
+      },
+      allow_promotion_codes: true,
+    });
+
+    return NextResponse.json({ url: session.url });
+
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    
+    if (error instanceof Stripe.errors.StripeError) {
+      return NextResponse.json(
+        { error: 'Stripe error', message: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Server error', message: 'An unexpected error occurred' },
+      { status: 500 }
+    );
+  }
+}

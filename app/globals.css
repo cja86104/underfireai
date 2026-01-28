@@ -1,0 +1,824 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   🔥 UNDERFIREAI - FIRE LIGHT MODE
+   Design: Warm cream backgrounds, fire palette
+   Animations: GSAP + Lenis smooth scroll
+   ======================================== */
+
+/* ========================================
+   CSS VARIABLES - FIRE PALETTE
+   ======================================== */
+
+:root {
+  /* Fire Colors */
+  --fire-50: #fff7ed;
+  --fire-100: #ffedd5;
+  --fire-200: #fed7aa;
+  --fire-300: #fdba74;
+  --fire-400: #fb923c;
+  --fire-500: #f97316;
+  --fire-600: #ea580c;
+  --fire-700: #c2410c;
+  --fire-800: #9a3412;
+  --fire-900: #7c2d12;
+  
+  /* Background - Warm Cream */
+  --bg-cream: #FFFBF5;
+  --bg-warm: #FFF7ED;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FFFAF5;
+  
+  /* Text - Charcoal */
+  --text-primary: #1C1917;
+  --text-secondary: #44403C;
+  --text-muted: #78716C;
+  --text-light: #A8A29E;
+  
+  /* Borders */
+  --border-light: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.1);
+  --border-fire: rgba(249, 115, 22, 0.3);
+  
+  /* Accents */
+  --accent-orange: #f97316;
+  --accent-red: #ef4444;
+  --accent-blue: #3b82f6;
+  --accent-amber: #f59e0b;
+  
+  /* Glows */
+  --glow-fire: rgba(249, 115, 22, 0.25);
+  --glow-fire-strong: rgba(249, 115, 22, 0.4);
+  --glow-red: rgba(239, 68, 68, 0.25);
+  --glow-blue: rgba(59, 130, 246, 0.25);
+  
+  /* Radius */
+  --radius: 0.75rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-fire: 0 8px 30px rgba(249, 115, 22, 0.15);
+  --shadow-fire-lg: 0 20px 50px rgba(249, 115, 22, 0.25);
+}
+
+/* ========================================
+   BASE STYLES - LIGHT MODE
+   ======================================== */
+
+html {
+  scroll-behavior: auto !important; /* Lenis handles smooth scroll */
+}
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-cream);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar - Fire themed */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-warm);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--fire-400), var(--fire-500));
+  border-radius: 5px;
+  border: 2px solid var(--bg-warm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--fire-500), var(--fire-600));
+}
+
+/* Text selection - Fire */
+::selection {
+  background: rgba(249, 115, 22, 0.2);
+  color: var(--fire-900);
+}
+
+/* ========================================
+   ANIMATED BACKGROUND - LIGHT FIRE
+   ======================================== */
+
+.gradient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: 
+    radial-gradient(ellipse 100% 100% at 0% 0%, rgba(249, 115, 22, 0.08), transparent 50%),
+    radial-gradient(ellipse 80% 80% at 100% 0%, rgba(239, 68, 68, 0.06), transparent 50%),
+    radial-gradient(ellipse 60% 60% at 100% 100%, rgba(59, 130, 246, 0.06), transparent 50%),
+    radial-gradient(ellipse 80% 80% at 0% 100%, rgba(245, 158, 11, 0.06), transparent 50%),
+    var(--bg-cream);
+}
+
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.6;
+  animation: float 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.gradient-orb-1 {
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+  top: -300px;
+  left: -200px;
+  animation-delay: 0s;
+}
+
+.gradient-orb-2 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.12) 0%, transparent 70%);
+  top: 30%;
+  right: -200px;
+  animation-delay: -5s;
+  animation-duration: 25s;
+}
+
+.gradient-orb-3 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+  bottom: -150px;
+  left: 40%;
+  animation-delay: -10s;
+  animation-duration: 30s;
+}
+
+.gradient-orb-4 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+  top: 50%;
+  left: -100px;
+  animation-delay: -15s;
+  animation-duration: 22s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(40px, -40px) rotate(3deg);
+  }
+  50% {
+    transform: translate(0, -80px) rotate(0deg);
+  }
+  75% {
+    transform: translate(-40px, -40px) rotate(-3deg);
+  }
+}
+
+/* Grid background pattern - Light */
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* Noise texture overlay - Subtle */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* ========================================
+   CARDS - LIGHT MODE WITH FIRE GLOW
+   ======================================== */
+
+.fire-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fire-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.fire-card:hover {
+  border-color: var(--border-fire);
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-fire);
+}
+
+.fire-card:hover::before {
+  opacity: 1;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.glass-card-hover {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--border-fire);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 0 40px var(--glow-fire),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  transform: translateY(-4px);
+}
+
+/* ========================================
+   GRADIENT TEXT & EFFECTS
+   ======================================== */
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--fire-600) 0%, var(--fire-500) 50%, var(--accent-amber) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-fire {
+  background: linear-gradient(135deg, var(--fire-500) 0%, var(--accent-red) 50%, var(--fire-600) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-animated {
+  background: linear-gradient(
+    90deg,
+    var(--fire-600) 0%,
+    var(--fire-500) 25%,
+    var(--accent-red) 50%,
+    var(--fire-500) 75%,
+    var(--fire-600) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 6s linear infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--fire-500), var(--accent-red), var(--accent-blue));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ========================================
+   GLOW EFFECTS - FIRE
+   ======================================== */
+
+.glow-fire {
+  box-shadow: 
+    0 0 20px var(--glow-fire),
+    0 0 40px rgba(249, 115, 22, 0.15),
+    0 0 60px rgba(249, 115, 22, 0.08);
+}
+
+.glow-fire-hover:hover {
+  box-shadow: 
+    0 0 30px var(--glow-fire-strong),
+    0 0 60px var(--glow-fire),
+    0 0 90px rgba(249, 115, 22, 0.15);
+}
+
+.glow-red {
+  box-shadow: 
+    0 0 20px var(--glow-red),
+    0 0 40px rgba(239, 68, 68, 0.15);
+}
+
+.glow-blue {
+  box-shadow: 
+    0 0 20px var(--glow-blue),
+    0 0 40px rgba(59, 130, 246, 0.15);
+}
+
+.text-glow-fire {
+  text-shadow: 
+    0 0 20px var(--glow-fire),
+    0 0 40px rgba(249, 115, 22, 0.2);
+}
+
+.icon-glow-fire {
+  filter: drop-shadow(0 0 10px var(--glow-fire));
+}
+
+/* ========================================
+   BUTTONS - FIRE STYLE
+   ======================================== */
+
+.btn-fire {
+  @apply relative overflow-hidden rounded-2xl px-8 py-4 font-semibold text-white;
+  background: linear-gradient(135deg, var(--fire-500) 0%, var(--fire-600) 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px var(--glow-fire);
+}
+
+.btn-fire::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn-fire:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-fire-lg);
+}
+
+.btn-fire:hover::before {
+  opacity: 1;
+}
+
+.btn-fire:active {
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  @apply relative rounded-2xl px-8 py-4 font-semibold;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary:hover {
+  border-color: var(--fire-500);
+  color: var(--fire-600);
+  background: rgba(249, 115, 22, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.1);
+}
+
+.btn-ghost {
+  @apply rounded-xl px-6 py-3 font-medium;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  color: var(--fire-600);
+  background: rgba(249, 115, 22, 0.08);
+}
+
+/* ========================================
+   CARD 3D EFFECTS
+   ======================================== */
+
+.card-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.card-3d-inner {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-3d:hover .card-3d-inner {
+  transform: rotateX(5deg) rotateY(-5deg) translateZ(20px);
+}
+
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-shine::after {
+  content: '';
+  position: absolute;
+  inset: -100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%) rotate(25deg);
+  transition: transform 0.8s;
+}
+
+.card-shine:hover::after {
+  transform: translateX(100%) rotate(25deg);
+}
+
+/* ========================================
+   GSAP ANIMATION STATES
+   ======================================== */
+
+/* Initial states for GSAP animations */
+.gsap-fade-up {
+  opacity: 0;
+  transform: translateY(60px);
+}
+
+.gsap-fade-left {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+.gsap-fade-right {
+  opacity: 0;
+  transform: translateX(60px);
+}
+
+.gsap-fade-scale {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.gsap-stagger-item {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+/* Hero text reveal */
+.hero-line {
+  overflow: hidden;
+}
+
+.hero-line-inner {
+  display: inline-block;
+}
+
+/* Section labels */
+.section-label {
+  font-family: 'Space Grotesk', 'Inter', monospace;
+  font-size: 0.85rem;
+  color: var(--fire-600);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Section titles */
+.section-title {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+/* ========================================
+   ANIMATED ELEMENTS
+   ======================================== */
+
+.animate-pulse-slow {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-spin-slow {
+  animation: spin 20s linear infinite;
+}
+
+@keyframes pulse-fire {
+  0%, 100% { 
+    box-shadow: 0 0 20px var(--glow-fire);
+    opacity: 1;
+  }
+  50% { 
+    box-shadow: 0 0 40px var(--glow-fire-strong);
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-fire {
+  animation: pulse-fire 2s ease-in-out infinite;
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+/* Scroll line animation */
+.scroll-line {
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(to bottom, var(--fire-500), transparent);
+  animation: scrollLine 2s infinite;
+}
+
+@keyframes scrollLine {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  50.1% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ========================================
+   TYPOGRAPHY - LIGHT MODE
+   ======================================== */
+
+.display-text {
+  @apply font-bold tracking-tight;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.hero-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.body-text {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.muted-text {
+  color: var(--text-muted);
+}
+
+/* ========================================
+   FORM INPUTS - FIRE STYLE
+   ======================================== */
+
+.input-fire {
+  @apply w-full rounded-xl px-4 py-3;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.input-fire::placeholder {
+  color: var(--text-light);
+}
+
+.input-fire:focus {
+  outline: none;
+  border-color: var(--fire-500);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* ========================================
+   STATUS INDICATORS - LIGHT MODE
+   ======================================== */
+
+.status-in-progress {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.status-completed {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-abandoned {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-paused {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* ========================================
+   SCORE COLORS
+   ======================================== */
+
+.score-excellent { color: #16a34a; }
+.score-good { color: #65a30d; }
+.score-average { color: #ca8a04; }
+.score-poor { color: #ea580c; }
+.score-critical { color: #dc2626; }
+
+.score-bg-excellent { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); }
+.score-bg-good { background: rgba(132, 204, 22, 0.1); border-color: rgba(132, 204, 22, 0.3); }
+.score-bg-average { background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3); }
+.score-bg-poor { background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.3); }
+.score-bg-critical { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Counter with tabular nums */
+.counter {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================
+   SPOTLIGHT CURSOR EFFECT
+   ======================================== */
+
+.spotlight {
+  position: relative;
+}
+
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(249, 115, 22, 0.08),
+    transparent 40%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* ========================================
+   INTERVIEW-SPECIFIC STYLES
+   ======================================== */
+
+.interviewer-avatar {
+  @apply rounded-full;
+  border: 3px solid var(--fire-500);
+  box-shadow: 0 0 20px var(--glow-fire);
+}
+
+.message-interviewer {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border-left: 3px solid var(--fire-500);
+}
+
+.message-candidate {
+  background: rgba(59, 130, 246, 0.06);
+  border-left: 3px solid var(--accent-blue);
+}
+
+.timer-warning {
+  color: var(--accent-amber);
+  animation: pulse-fire 1s ease-in-out infinite;
+}
+
+.timer-danger {
+  color: var(--accent-red);
+  animation: pulse-fire 0.5s ease-in-out infinite;
+}
+
+/* ========================================
+   FEATURE CARDS
+   ======================================== */
+
+.feature-icon {
+  @apply rounded-2xl p-4;
+  background: linear-gradient(135deg, var(--fire-500) 0%, var(--fire-600) 100%);
+  box-shadow: 0 8px 24px var(--glow-fire);
+}
+
+.feature-icon svg {
+  color: white;
+}
+
+/* ========================================
+   PRICING SPECIAL EFFECTS
+   ======================================== */
+
+.pricing-popular {
+  position: relative;
+}
+
+.pricing-popular::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, var(--fire-500), var(--accent-red), var(--accent-blue), var(--fire-500));
+  background-size: 300% 300%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: gradient-rotate 4s linear infinite;
+}
+
+@keyframes gradient-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: clamp(2.5rem, 10vw, 4rem);
+  }
+  
+  .section-title {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+  
+  .fire-card {
+    border-radius: 16px;
+  }
+  
+  .btn-fire, .btn-secondary {
+    @apply px-6 py-3;
+  }
+}
