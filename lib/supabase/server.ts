@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { Database, Profile } from '@/types/database';
+import type { Database, Profile, Interviewer, UserResume, UserProgress } from '@/types/database';
 import type { CookieOptions } from '@supabase/ssr';
 
 interface CookieToSet {
@@ -121,7 +121,7 @@ export async function getUserInterviewers() {
     return [];
   }
   
-  return interviewers || [];
+  return (interviewers || []) as unknown as Interviewer[];
 }
 
 /**
@@ -226,8 +226,8 @@ export async function getUserResume() {
     console.error('Error fetching resume:', error);
     return null;
   }
-  
-  return resume;
+
+  return resume as unknown as UserResume | null;
 }
 
 /**
@@ -251,8 +251,8 @@ export async function getUserProgress() {
     console.error('Error fetching progress:', error);
     return null;
   }
-  
-  return progress;
+
+  return progress as unknown as UserProgress | null;
 }
 
 /**

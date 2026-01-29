@@ -154,6 +154,7 @@ export async function POST(
     // Save messages to database
     let userMessageId: string | null = null;
     let analysis = null;
+    const warnings: string[] = [];
 
     if (!isStarting) {
       // Analyze user response
@@ -184,6 +185,7 @@ export async function POST(
 
       if (userMsgError) {
         console.error('Error saving user message:', userMsgError);
+        warnings.push('Failed to save your message to the session history.');
       } else {
         userMessageId = userMsg.id;
       }
@@ -202,6 +204,7 @@ export async function POST(
 
     if (interviewerMsgError) {
       console.error('Error saving interviewer message:', interviewerMsgError);
+      warnings.push('Failed to save interviewer response to the session history.');
     }
 
     // Update interviewer mood based on response quality
@@ -239,6 +242,7 @@ export async function POST(
       interviewer_message_id: interviewerMsg?.id,
       analysis,
       should_end: shouldEnd,
+      ...(warnings.length > 0 ? { warnings } : {}),
     });
 
   } catch (error) {

@@ -1,15 +1,5 @@
 /**
- * UnderFireAI Type Exports
+ * UnderFireAI UI Component Exports
  */
 
-// Database types
-export * from './database';
-
-// Interview engine types
-export * from './interview';
-
-// Interviewer types
-export * from './interviewer';
-
-// Scoring types
-export * from './scoring';
+// Re-export UI components from this directory

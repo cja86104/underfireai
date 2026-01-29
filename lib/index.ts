@@ -3,7 +3,7 @@
  */
 
 // Supabase client utilities
-export { createClient, createServerClient } from './supabase/server';
+export { createClient } from './supabase/server';
 export { getClient } from './client';
 
 // AI/LLM utilities

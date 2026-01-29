@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(powershell -Command \"Get-Content types/database.ts | Select-String ''export type Database|export interface Database''\")",
+      "Bash(powershell -Command:*)",
+      "Bash(dir:*)",
+      "Bash(ls:*)",
+      "Bash(npx supabase gen types:*)",
+      "Bash(npx supabase:*)",
+      "Bash(node -e:*)",
+      "Bash(npm view:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

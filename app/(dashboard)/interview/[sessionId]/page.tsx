@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser, getUserResume } from '@/lib/supabase/server';
 import { InterviewChat } from '@/components/interview/interview-chat';
+import type { PersonalityBase, InterviewerMood, VoiceConfig, InterviewMessage, CommunicationStyle, QuestionPatterns } from '@/types/database';
 
 interface InterviewSessionPageProps {
   params: Promise<{ sessionId: string }>;
@@ -50,7 +51,8 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
     .from('interview_messages')
     .select('*')
     .eq('session_id', sessionId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .limit(100);
 
   if (messagesError) {
     console.error('Messages fetch error:', messagesError);
@@ -61,7 +63,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
 
   // Extract interviewer data
   const interviewer = session.interviewers;
-  const personality = interviewer?.interviewer_personality?.[0] || interviewer?.interviewer_personality || null;
+  const personality = interviewer?.interviewer_personality || null;
 
   // Build resume context string
   let resumeContext: string | null = null;
@@ -103,19 +105,19 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
           name: interviewer.name,
           avatarUrl: interviewer.avatar_url,
           backstory: interviewer.backstory,
-          personalityBase: interviewer.personality_base,
-          currentMood: interviewer.current_mood,
-          voiceConfig: interviewer.voice_config,
+          personalityBase: interviewer.personality_base as PersonalityBase | null,
+          currentMood: interviewer.current_mood as InterviewerMood | null,
+          voiceConfig: interviewer.voice_config as VoiceConfig | null,
         }}
         interviewerPersonality={personality ? {
-          communicationStyle: personality.communication_style,
-          questionPatterns: personality.question_patterns,
+          communicationStyle: personality.communication_style as CommunicationStyle | null,
+          questionPatterns: personality.question_patterns as QuestionPatterns | null,
           redFlags: personality.red_flags,
           greenFlags: personality.green_flags,
           petPeeves: personality.pet_peeves,
           favoriteTopics: personality.favorite_topics,
         } : null}
-        initialMessages={messages || []}
+        initialMessages={(messages || []) as unknown as InterviewMessage[]}
         resumeContext={resumeContext}
         startedAt={session.started_at}
       />

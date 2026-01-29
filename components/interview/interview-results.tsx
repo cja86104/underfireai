@@ -135,16 +135,16 @@ export function InterviewResults({
             <div
               className={cn(
                 'relative h-32 w-32 rounded-full flex items-center justify-center',
-                getScoreBgColor(scores?.overallScore)
+                getScoreBgColor(scores?.overallScore ?? null)
               )}
             >
               <div className="text-center">
-                <p className={cn('text-4xl font-bold', getScoreColor(scores?.overallScore))}>
+                <p className={cn('text-4xl font-bold', getScoreColor(scores?.overallScore ?? null))}>
                   {scores?.overallScore ?? '—'}
                 </p>
                 <p className="text-sm text-slate-400">Overall</p>
               </div>
-              {scores?.overallScore !== null && (
+              {scores?.overallScore != null && (
                 <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100">
                   <circle
                     cx="50"
@@ -225,11 +225,11 @@ export function InterviewResults({
                   <div
                     className={cn(
                       'h-full rounded-full transition-all duration-500',
-                      category.value !== null && category.value >= 80
+                      category.value != null && category.value >= 80
                         ? 'bg-green-500'
-                        : category.value !== null && category.value >= 60
+                        : category.value != null && category.value >= 60
                         ? 'bg-amber-500'
-                        : category.value !== null
+                        : category.value != null
                         ? 'bg-red-500'
                         : 'bg-slate-600'
                     )}
@@ -238,7 +238,7 @@ export function InterviewResults({
                 </div>
               </div>
               <div className="w-12 text-right">
-                <span className={cn('font-medium', getScoreColor(category.value))}>
+                <span className={cn('font-medium', getScoreColor(category.value ?? null))}>
                   {category.value ?? '—'}
                 </span>
               </div>

@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { InterviewResults } from '@/components/interview/interview-results';
+import type { InterviewMessage } from '@/types/database';
 
 interface ResultsPageProps {
   params: Promise<{ sessionId: string }>;
@@ -67,7 +68,7 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
   }
 
   const interviewer = session.interviewers;
-  const scores = session.session_scores?.[0] || session.session_scores;
+  const scores = session.session_scores;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -100,9 +101,9 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
           improvements: scores.improvements,
           aiFeedback: scores.ai_feedback,
           interviewerImpression: scores.interviewer_impression,
-          keyMoments: scores.key_moments,
+          keyMoments: scores.key_moments as { type: string; description: string }[] | null,
         } : null}
-        messages={messages || []}
+        messages={(messages || []) as unknown as InterviewMessage[]}
       />
     </div>
   );

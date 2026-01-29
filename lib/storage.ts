@@ -9,6 +9,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
 
 const RESUME_BUCKET = 'resumes';
 const RECORDINGS_BUCKET = 'session-recordings';
@@ -26,7 +27,7 @@ export interface UploadResult {
  * Upload a resume file to Supabase Storage
  */
 export async function uploadResume(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   file: File
 ): Promise<UploadResult> {
@@ -80,7 +81,7 @@ export async function uploadResume(
  * Upload a session recording
  */
 export async function uploadSessionRecording(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   sessionId: string,
   audioBlob: Blob
@@ -128,7 +129,7 @@ export async function uploadSessionRecording(
  * Delete a file from storage
  */
 export async function deleteFile(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   bucket: 'resumes' | 'session-recordings',
   filePath: string
 ): Promise<boolean> {
@@ -153,7 +154,7 @@ export async function deleteFile(
  * Get signed URL for private file access
  */
 export async function getSignedUrl(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   bucket: 'resumes' | 'session-recordings',
   filePath: string,
   expiresIn = 3600

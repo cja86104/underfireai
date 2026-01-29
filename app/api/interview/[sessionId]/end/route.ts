@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
-import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
+import { AI_MODELS, MODEL_PARAMS, SCORING_WEIGHTS } from '@/lib/ai/config';
+import type { ResponseAnalysis } from '@/types/database';
 
 interface EndInterviewRequest {
   elapsed_seconds: number;
@@ -50,8 +51,12 @@ export async function POST(
       .eq('session_id', sessionId)
       .order('created_at', { ascending: true });
 
-    if (messagesError) {
+    if (messagesError || !messages) {
       console.error('Error fetching messages:', messagesError);
+      return NextResponse.json(
+        { error: 'Database error', message: 'Failed to fetch interview messages for scoring' },
+        { status: 500 }
+      );
     }
 
     // Update session status
@@ -66,13 +71,17 @@ export async function POST(
 
     if (updateError) {
       console.error('Error updating session:', updateError);
+      return NextResponse.json(
+        { error: 'Database error', message: 'Failed to update session status' },
+        { status: 500 }
+      );
     }
 
     // Calculate scores from message analyses
-    const candidateMessages = (messages || []).filter((m) => m.role === 'candidate');
+    const candidateMessages = messages.filter((m) => m.role === 'candidate');
     const analyses = candidateMessages
-      .map((m) => m.analysis)
-      .filter((a) => a !== null);
+      .map((m) => m.analysis as ResponseAnalysis | null)
+      .filter((a): a is ResponseAnalysis => a !== null);
 
     let scores = {
       overall_score: 0,
@@ -96,20 +105,41 @@ export async function POST(
       );
 
       const count = analyses.length;
+      const avgClarity = sum.clarity / count;
+      const avgConfidence = sum.confidence / count;
+      const avgDepth = sum.depth / count;
+      const avgStar = sum.star / count;
+      const avgRelevance = sum.relevance / count;
+      const avgCommunication = (avgClarity + avgRelevance) / 2;
+
+      // Select weight set based on interview type
+      const interviewType = session.interview_type as keyof typeof SCORING_WEIGHTS;
+      const weights = SCORING_WEIGHTS[interviewType] || SCORING_WEIGHTS.overall;
+
+      const weightedOverall =
+        avgClarity * weights.clarity +
+        avgConfidence * weights.confidence +
+        avgDepth * weights.depth +
+        avgStar * weights.star_usage +
+        avgRelevance * weights.relevance +
+        avgCommunication * weights.communication;
+
+      // Apply difficulty bonus: (difficulty - 5) * 2, range: -8 to +10
+      const difficultyBonus = (session.difficulty - 5) * 2;
+      const adjustedOverall = Math.min(100, Math.max(0, Math.round(weightedOverall + difficultyBonus)));
+
       scores = {
-        clarity_score: Math.round(sum.clarity / count),
-        confidence_score: Math.round(sum.confidence / count),
-        technical_depth: Math.round(sum.depth / count),
-        star_usage_score: Math.round(sum.star / count),
-        communication_score: Math.round((sum.clarity + sum.relevance) / (count * 2)),
-        overall_score: Math.round(
-          (sum.clarity + sum.confidence + sum.depth + sum.star + sum.relevance) / (count * 5)
-        ),
+        clarity_score: Math.round(avgClarity),
+        confidence_score: Math.round(avgConfidence),
+        technical_depth: Math.round(avgDepth),
+        star_usage_score: Math.round(avgStar),
+        communication_score: Math.round(avgCommunication),
+        overall_score: adjustedOverall,
       };
     }
 
     // Generate AI feedback
-    const conversationTranscript = (messages || [])
+    const conversationTranscript = messages
       .map((m) => `${m.role === 'interviewer' ? 'Interviewer' : 'Candidate'}: ${m.content}`)
       .join('\n\n');
 
@@ -162,15 +192,45 @@ Return ONLY valid JSON, no markdown or additional text.`;
         ...MODEL_PARAMS.analysis,
       });
 
-      const content = completion.choices[0]?.message?.content || '{}';
+      let content = completion.choices[0]?.message?.content || '{}';
+
+      // Strip markdown code fences if present
+      content = content.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```\s*$/i, '');
+
       const parsed = JSON.parse(content);
 
+      // Validate and sanitize parsed result
+      const validatedStrengths = Array.isArray(parsed.strengths)
+        ? parsed.strengths.filter((s: unknown) => typeof s === 'string' && s.length > 0).slice(0, 10)
+        : feedback.strengths;
+      const validatedImprovements = Array.isArray(parsed.improvements)
+        ? parsed.improvements.filter((s: unknown) => typeof s === 'string' && s.length > 0).slice(0, 10)
+        : feedback.improvements;
+      const validatedKeyMoments = Array.isArray(parsed.key_moments)
+        ? parsed.key_moments
+            .filter(
+              (m: unknown) =>
+                typeof m === 'object' &&
+                m !== null &&
+                typeof (m as Record<string, unknown>).type === 'string' &&
+                typeof (m as Record<string, unknown>).description === 'string' &&
+                ((m as Record<string, unknown>).description as string).length > 0
+            )
+            .slice(0, 20)
+        : [];
+
       feedback = {
-        strengths: parsed.strengths || feedback.strengths,
-        improvements: parsed.improvements || feedback.improvements,
-        interviewer_impression: parsed.interviewer_impression || feedback.interviewer_impression,
-        ai_feedback: parsed.ai_feedback || feedback.ai_feedback,
-        key_moments: parsed.key_moments || [],
+        strengths: validatedStrengths.length > 0 ? validatedStrengths : feedback.strengths,
+        improvements: validatedImprovements.length > 0 ? validatedImprovements : feedback.improvements,
+        interviewer_impression:
+          typeof parsed.interviewer_impression === 'string' && parsed.interviewer_impression.length > 0
+            ? parsed.interviewer_impression
+            : feedback.interviewer_impression,
+        ai_feedback:
+          typeof parsed.ai_feedback === 'string' && parsed.ai_feedback.length > 0
+            ? parsed.ai_feedback
+            : feedback.ai_feedback,
+        key_moments: validatedKeyMoments,
       };
     } catch (aiError) {
       console.error('Error generating AI feedback:', aiError);

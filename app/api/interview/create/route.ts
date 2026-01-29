@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { INTERVIEWER_ARCHETYPES } from '@/lib/ai/config';
-import type { InterviewType, CompanyStyle, PersonalityBase } from '@/types/database';
+import type { Database, InterviewType, CompanyStyle, PersonalityBase, Json } from '@/types/database';
 
 interface CreateInterviewRequest {
   interview_type: InterviewType;
@@ -148,18 +148,18 @@ export async function POST(request: NextRequest) {
           company_style,
           role_focus: target_role,
           backstory,
-          personality_base: personality,
+          personality_base: personality as unknown as Json,
           difficulty_level: difficulty,
           current_mood: {
             current: 'neutral' as const,
             intensity: 50,
             triggers: [],
-          },
+          } as unknown as Json,
           voice_config: {
             voice_id: 'alloy',
             speed: 1.0,
             pitch: 1.0,
-          },
+          } as unknown as Json,
         })
         .select('id')
         .single();
@@ -175,34 +175,35 @@ export async function POST(request: NextRequest) {
       finalInterviewerId = newInterviewer.id;
 
       // Create interviewer personality
+      const personalityInsert: Database['public']['Tables']['interviewer_personality']['Insert'] = {
+        interviewer_id: newInterviewer.id,
+        communication_style: {
+          style: archetype === 'rapidFire' ? 'direct' :
+                 archetype === 'friendly' ? 'supportive' :
+                 archetype === 'skeptic' ? 'challenging' : 'probing',
+          formality: company_style === 'consulting' || company_style === 'government' ? 80 :
+                     company_style === 'startup' ? 30 : 50,
+          verbosity: archetype === 'silentJudge' ? 20 :
+                     archetype === 'rapidFire' ? 30 : 50,
+        } as unknown as Json,
+        question_patterns: {
+          follow_up_tendency: archetype === 'skeptic' ? 90 :
+                              archetype === 'rapidFire' ? 80 : 60,
+          depth_preference: personality.depth_preference,
+          curveball_frequency: difficulty * 8,
+        } as unknown as Json,
+        red_flags: [...archetypeData.redFlags],
+        green_flags: [...archetypeData.greenFlags],
+        pet_peeves: [
+          'Vague or generic answers',
+          'Not answering the actual question',
+          'Excessive use of buzzwords',
+        ],
+        favorite_topics: target_role ? [target_role, 'leadership', 'problem-solving'] : ['leadership', 'teamwork', 'problem-solving'],
+      };
       const { error: personalityError } = await supabase
         .from('interviewer_personality')
-        .insert({
-          interviewer_id: newInterviewer.id,
-          communication_style: {
-            style: archetype === 'rapidFire' ? 'direct' : 
-                   archetype === 'friendly' ? 'supportive' :
-                   archetype === 'skeptic' ? 'challenging' : 'probing',
-            formality: company_style === 'consulting' || company_style === 'government' ? 80 :
-                       company_style === 'startup' ? 30 : 50,
-            verbosity: archetype === 'silentJudge' ? 20 :
-                       archetype === 'rapidFire' ? 30 : 50,
-          },
-          question_patterns: {
-            follow_up_tendency: archetype === 'skeptic' ? 90 :
-                                archetype === 'rapidFire' ? 80 : 60,
-            depth_preference: personality.depth_preference,
-            curveball_frequency: difficulty * 8,
-          },
-          red_flags: archetypeData.redFlags,
-          green_flags: archetypeData.greenFlags,
-          pet_peeves: [
-            'Vague or generic answers',
-            'Not answering the actual question',
-            'Excessive use of buzzwords',
-          ],
-          favorite_topics: target_role ? [target_role, 'leadership', 'problem-solving'] : ['leadership', 'teamwork', 'problem-solving'],
-        });
+        .insert(personalityInsert);
 
       if (personalityError) {
         console.error('Error creating personality:', personalityError);
@@ -215,6 +216,31 @@ export async function POST(request: NextRequest) {
         { error: 'Validation error', message: 'No interviewer selected or generated' },
         { status: 400 }
       );
+    }
+
+    // Increment monthly interview count for free users BEFORE session creation (optimistic locking)
+    if (subscription.tier === 'free') {
+      const expectedCount = subscription.interviewsRemaining !== undefined
+        ? 3 - subscription.interviewsRemaining
+        : 0;
+
+      const { data: updatedProfile, error: incrementError } = await supabase
+        .from('profiles')
+        .update({
+          monthly_interviews_used: expectedCount + 1,
+        })
+        .eq('id', user.id)
+        .eq('monthly_interviews_used', expectedCount)
+        .select('id')
+        .single();
+
+      if (incrementError || !updatedProfile) {
+        console.error('Error incrementing interview count (possible race condition):', incrementError);
+        return NextResponse.json(
+          { error: 'Conflict', message: 'Interview count changed concurrently. Please try again.' },
+          { status: 409 }
+        );
+      }
     }
 
     // Create interview session
@@ -234,22 +260,22 @@ export async function POST(request: NextRequest) {
 
     if (sessionError || !session) {
       console.error('Error creating session:', sessionError);
+
+      // Roll back the interview count increment for free users
+      if (subscription.tier === 'free') {
+        const rollbackCount = subscription.interviewsRemaining !== undefined
+          ? 3 - subscription.interviewsRemaining
+          : 0;
+        await supabase
+          .from('profiles')
+          .update({ monthly_interviews_used: rollbackCount })
+          .eq('id', user.id);
+      }
+
       return NextResponse.json(
         { error: 'Database error', message: 'Failed to create interview session' },
         { status: 500 }
       );
-    }
-
-    // Increment monthly interview count for free users
-    if (subscription.tier === 'free') {
-      await supabase
-        .from('profiles')
-        .update({
-          monthly_interviews_used: (subscription.interviewsRemaining !== undefined 
-            ? 3 - subscription.interviewsRemaining + 1 
-            : 1),
-        })
-        .eq('id', user.id);
     }
 
     return NextResponse.json({
