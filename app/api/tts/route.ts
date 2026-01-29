@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Available voices from OpenAI TTS
-const VALID_VOICES = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'] as const;
-type Voice = typeof VALID_VOICES[number];
+import { synthesizeSpeech, VALID_VOICES, VOICE_LIST, type Voice } from '@/lib/tts/openai-tts';
 
 interface TTSRequest {
   text: string;
@@ -54,26 +47,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate voice
-    const selectedVoice: Voice = VALID_VOICES.includes(voice as Voice) ? voice : 'alloy';
+    // Generate speech using extracted helper
+    const audioBuffer = await synthesizeSpeech(text, voice, speed);
 
-    // Validate speed (0.25 to 4.0)
-    const selectedSpeed = Math.max(0.25, Math.min(4.0, speed));
-
-    // Generate speech using OpenAI TTS
-    const mp3Response = await openai.audio.speech.create({
-      model: 'tts-1',
-      voice: selectedVoice,
-      input: text,
-      speed: selectedSpeed,
-      response_format: 'mp3',
-    });
-
-    // Get the audio data as a buffer
-    const audioBuffer = Buffer.from(await mp3Response.arrayBuffer());
-
-    // Return audio as response
-    return new NextResponse(audioBuffer, {
+    // Return audio as response — use Uint8Array for NextResponse compatibility
+    const uint8 = new Uint8Array(audioBuffer);
+    return new NextResponse(uint8, {
       status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
@@ -102,14 +81,7 @@ export async function POST(request: NextRequest) {
 // GET endpoint to list available voices
 export async function GET() {
   return NextResponse.json({
-    voices: [
-      { id: 'alloy', name: 'Alloy', description: 'Neutral, balanced' },
-      { id: 'echo', name: 'Echo', description: 'Warm, conversational' },
-      { id: 'fable', name: 'Fable', description: 'Expressive, British accent' },
-      { id: 'onyx', name: 'Onyx', description: 'Deep, authoritative' },
-      { id: 'nova', name: 'Nova', description: 'Friendly, energetic' },
-      { id: 'shimmer', name: 'Shimmer', description: 'Clear, professional' },
-    ],
+    voices: VOICE_LIST,
     defaultVoice: 'alloy',
     speedRange: { min: 0.25, max: 4.0, default: 1.0 },
   });

@@ -11,7 +11,13 @@
       "Bash(node -e:*)",
       "Bash(npm view:*)",
       "Bash(npm ls:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git -C \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\" status --short)",
+      "Bash(git -C \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\" log --oneline -10)",
+      "Bash(git -C \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\" diff --name-only)",
+      "Bash(git -C \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\" diff --name-only --cached)",
+      "Bash(git -C \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\" show:*)",
+      "Bash(find:*)"
     ]
   }
 }

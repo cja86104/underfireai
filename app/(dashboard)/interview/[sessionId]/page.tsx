@@ -120,6 +120,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
         initialMessages={(messages || []) as unknown as InterviewMessage[]}
         resumeContext={resumeContext}
         startedAt={session.started_at}
+        voiceEnabled={!!(interviewer.voice_config as VoiceConfig | null)?.tts_enabled}
       />
     </div>
   );

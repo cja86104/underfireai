@@ -196,6 +196,7 @@ export function generateInterviewSystemPrompt(params: {
   petPeeves: string[] | null;
   favoriteTopics: string[] | null;
   resumeContext: string | null;
+  currentMood?: { current: string; intensity: number; triggers: string[] } | null;
 }): string {
   const {
     interviewerName,
@@ -210,6 +211,7 @@ export function generateInterviewSystemPrompt(params: {
     petPeeves,
     favoriteTopics,
     resumeContext,
+    currentMood,
   } = params;
 
   let prompt = `You are ${interviewerName}, a professional interviewer conducting a ${interviewType} interview`;
@@ -264,6 +266,15 @@ export function generateInterviewSystemPrompt(params: {
   if (favoriteTopics && favoriteTopics.length > 0) {
     prompt += `## Favorite Topics (you like to dig into these)\n`;
     prompt += favoriteTopics.map(t => `- ${t}`).join('\n') + '\n\n';
+  }
+
+  if (currentMood) {
+    prompt += `## Current Mood (hidden from candidate)\n`;
+    prompt += `You are currently feeling: ${currentMood.current} (intensity: ${currentMood.intensity}/100)\n`;
+    if (currentMood.triggers.length > 0) {
+      prompt += `Recent things that affected your mood: ${currentMood.triggers.join(', ')}\n`;
+    }
+    prompt += `Adjust your tone and follow-up style based on this mood.\n\n`;
   }
 
   if (resumeContext) {

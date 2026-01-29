@@ -7,6 +7,7 @@ import {
   analyzeResponse,
   type ChatMessage,
 } from '@/lib/ai/chat-client';
+import { detectMoodTriggers, calculateMoodUpdate } from '@/lib/ai/mood-engine';
 import type {
   InterviewMessage,
   PersonalityBase,
@@ -14,6 +15,7 @@ import type {
   VoiceConfig,
   CommunicationStyle,
   QuestionPatterns,
+  Json,
 } from '@/types/database';
 
 interface ChatRequestBody {
@@ -111,6 +113,7 @@ export async function POST(
       petPeeves: interviewerPersonality?.petPeeves || null,
       favoriteTopics: interviewerPersonality?.favoriteTopics || null,
       resumeContext,
+      currentMood: interviewer.currentMood,
     });
 
     // Build message history for AI
@@ -207,31 +210,23 @@ export async function POST(
       warnings.push('Failed to save interviewer response to the session history.');
     }
 
-    // Update interviewer mood based on response quality
+    // Update interviewer mood based on trigger detection
     if (analysis && interviewer.currentMood) {
-      const avgScore = (
-        analysis.star_score +
-        analysis.clarity_score +
-        analysis.confidence_score +
-        analysis.relevance_score +
-        analysis.depth_score
-      ) / 5;
+      const triggers = detectMoodTriggers({
+        analysis,
+        redFlags: interviewerPersonality?.redFlags || [],
+        greenFlags: interviewerPersonality?.greenFlags || [],
+        petPeeves: interviewerPersonality?.petPeeves || [],
+        favoriteTopics: interviewerPersonality?.favoriteTopics || [],
+        candidateMessage: message,
+      });
 
-      let newMood: InterviewerMood['current'] = 'neutral';
-      if (avgScore >= 80) newMood = 'impressed';
-      else if (avgScore >= 60) newMood = 'engaged';
-      else if (avgScore >= 40) newMood = 'neutral';
-      else if (avgScore >= 20) newMood = 'skeptical';
-      else newMood = 'critical';
+      const updatedMood = calculateMoodUpdate(interviewer.currentMood, triggers);
 
       await supabase
         .from('interviewers')
         .update({
-          current_mood: {
-            current: newMood,
-            intensity: Math.min(100, interviewer.currentMood.intensity + (avgScore > 50 ? 5 : -5)),
-            triggers: analysis.key_points.slice(0, 3),
-          },
+          current_mood: updatedMood as unknown as Json,
         })
         .eq('id', interviewer.id);
     }

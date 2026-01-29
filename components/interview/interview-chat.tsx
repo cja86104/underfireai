@@ -12,10 +12,13 @@ import {
   MoreVertical,
   MessageSquare,
   AlertCircle,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
 import { formatDistanceToNow } from 'date-fns';
+import { VoiceMode } from './voice-mode';
 import type {
   InterviewMessage,
   SessionStatus,
@@ -54,6 +57,7 @@ interface InterviewChatProps {
   initialMessages: InterviewMessage[];
   resumeContext: string | null;
   startedAt: string;
+  voiceEnabled: boolean;
 }
 
 export function InterviewChat({
@@ -68,6 +72,7 @@ export function InterviewChat({
   initialMessages,
   resumeContext,
   startedAt,
+  voiceEnabled: initialVoiceEnabled,
 }: InterviewChatProps) {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -80,6 +85,8 @@ export function InterviewChat({
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(initialStatus);
   const [showActions, setShowActions] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [voiceEnabled, setVoiceEnabled] = useState(initialVoiceEnabled);
+  const [lastInterviewerMessage, setLastInterviewerMessage] = useState<string | null>(null);
 
   // Calculate elapsed time
   useEffect(() => {
@@ -105,11 +112,12 @@ export function InterviewChat({
     }
   }, []);
 
-  // Track response time
+  // Track response time and last interviewer message
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === 'interviewer' && !isLoading) {
       responseStartTimeRef.current = Date.now();
+      setLastInterviewerMessage(lastMessage.content);
     }
   }, [messages, isLoading]);
 
@@ -118,6 +126,44 @@ export function InterviewChat({
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const handleSpeakText = useCallback(async (text: string) => {
+    try {
+      const voiceId = interviewer.voiceConfig?.voice_id || 'alloy';
+      const speed = interviewer.voiceConfig?.speed || 1.0;
+
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice: voiceId, speed }),
+      });
+
+      if (!response.ok) {
+        throw new Error('TTS request failed');
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      await audio.play();
+
+      // Clean up object URL after playback
+      audio.addEventListener('ended', () => {
+        URL.revokeObjectURL(audioUrl);
+      });
+    } catch (error) {
+      console.error('TTS playback error:', error);
+    }
+  }, [interviewer.voiceConfig]);
+
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    setInputValue(transcript);
+    // Auto-send after short delay to let state update
+    setTimeout(() => {
+      sendMessageWithText(transcript);
+    }, 100);
+  }, []);
 
   const startInterview = async () => {
     setIsLoading(true);
@@ -141,8 +187,8 @@ export function InterviewChat({
       }
 
       const data = await response.json();
-      
-      setMessages([{
+
+      const firstMessage: InterviewMessage = {
         id: data.message_id,
         session_id: sessionId,
         role: 'interviewer',
@@ -151,7 +197,8 @@ export function InterviewChat({
         response_time_seconds: null,
         analysis: null,
         created_at: new Date().toISOString(),
-      }]);
+      };
+      setMessages([firstMessage]);
     } catch (error) {
       toast.error('Failed to start interview. Please try again.');
       console.error('Start interview error:', error);
@@ -160,10 +207,10 @@ export function InterviewChat({
     }
   };
 
-  const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading || sessionStatus !== 'in_progress') return;
+  const sendMessageWithText = async (text: string) => {
+    if (!text.trim() || isLoading || sessionStatus !== 'in_progress') return;
 
-    const userMessage = inputValue.trim();
+    const userMessage = text.trim();
     setInputValue('');
     setIsLoading(true);
 
@@ -245,6 +292,10 @@ export function InterviewChat({
     }
   };
 
+  const sendMessage = async () => {
+    await sendMessageWithText(inputValue);
+  };
+
   const endInterview = async () => {
     try {
       const response = await fetch(`/api/interview/${sessionId}/end`, {
@@ -259,7 +310,7 @@ export function InterviewChat({
 
       setSessionStatus('completed');
       toast.success('Interview completed! Generating your feedback...');
-      
+
       // Redirect to results after a brief delay
       setTimeout(() => {
         router.push(`/interview/${sessionId}/results`);
@@ -328,6 +379,22 @@ export function InterviewChat({
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Voice Toggle */}
+          {initialVoiceEnabled && (
+            <button
+              onClick={() => setVoiceEnabled(!voiceEnabled)}
+              className={cn(
+                'rounded-lg p-2 transition-colors',
+                voiceEnabled
+                  ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+              )}
+              aria-label={voiceEnabled ? 'Disable voice mode' : 'Enable voice mode'}
+            >
+              {voiceEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+            </button>
+          )}
+
           {/* Timer */}
           <div className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5">
             <Clock className="h-4 w-4 text-slate-400" />
@@ -485,6 +552,21 @@ export function InterviewChat({
             {sessionStatus === 'completed' && 'Interview completed. Generating feedback...'}
             {sessionStatus === 'abandoned' && 'Interview was abandoned.'}
           </span>
+        </div>
+      )}
+
+      {/* Voice Mode Panel */}
+      {sessionStatus === 'in_progress' && voiceEnabled && (
+        <div className="px-4 pt-4 border-t border-slate-800">
+          <VoiceMode
+            sessionId={sessionId}
+            isActive={sessionStatus === 'in_progress' && !isLoading}
+            isLoading={isLoading}
+            voiceConfig={interviewer.voiceConfig}
+            onTranscript={handleVoiceTranscript}
+            onSpeakText={handleSpeakText}
+            lastInterviewerMessage={lastInterviewerMessage}
+          />
         </div>
       )}
 
