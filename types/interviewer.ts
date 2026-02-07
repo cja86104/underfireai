@@ -67,7 +67,7 @@ export const INTERVIEWER_ARCHETYPES: Record<InterviewerArchetype, ArchetypeDefin
     defaultGreenFlags: ['specific data', 'concrete examples', 'honest limitations', 'measurable outcomes'],
     defaultPetPeeves: ['hand-waving', 'saying "we" when meaning "I"', 'avoiding direct answers'],
     favoriteTopics: ['metrics', 'failures', 'specific technical decisions'],
-    suggestedVoices: ['onyx', 'echo'],
+    suggestedVoices: ['leo', 'kiefer'],
     difficultyModifier: 1,
   },
   griller: {
@@ -96,7 +96,7 @@ export const INTERVIEWER_ARCHETYPES: Record<InterviewerArchetype, ArchetypeDefin
     defaultGreenFlags: ['deep understanding', 'admits gaps', 'thinks through problems aloud'],
     defaultPetPeeves: ['pretending to know', 'changing subjects', 'vague technical explanations'],
     favoriteTopics: ['architecture decisions', 'tradeoffs', 'debugging approaches', 'system design'],
-    suggestedVoices: ['fable', 'onyx'],
+    suggestedVoices: ['kiefer', 'leo'],
     difficultyModifier: 2,
   },
   friendly: {
@@ -125,7 +125,7 @@ export const INTERVIEWER_ARCHETYPES: Record<InterviewerArchetype, ArchetypeDefin
     defaultGreenFlags: ['humility', 'authenticity', 'team focus', 'growth mindset'],
     defaultPetPeeves: ['talking down to others', 'taking all credit', 'being defensive'],
     favoriteTopics: ['collaboration', 'learning experiences', 'helping teammates'],
-    suggestedVoices: ['nova', 'shimmer'],
+    suggestedVoices: ['maya', 'tessa'],
     difficultyModifier: -1,
   },
   silent_judge: {
@@ -154,7 +154,7 @@ export const INTERVIEWER_ARCHETYPES: Record<InterviewerArchetype, ArchetypeDefin
     defaultGreenFlags: ['confidence', 'structured answers', 'self-sufficient thinking'],
     defaultPetPeeves: ['asking "does that make sense?"', 'fishing for approval', 'over-explaining'],
     favoriteTopics: ['decision making', 'independent judgment', 'handling ambiguity'],
-    suggestedVoices: ['onyx', 'echo'],
+    suggestedVoices: ['katie', 'kiefer'],
     difficultyModifier: 1,
   },
   rapid_fire: {
@@ -183,7 +183,7 @@ export const INTERVIEWER_ARCHETYPES: Record<InterviewerArchetype, ArchetypeDefin
     defaultGreenFlags: ['concise answers', 'quick thinking', 'structured responses'],
     defaultPetPeeves: ['unnecessary context', 'thinking out loud too much', 'repetition'],
     favoriteTopics: ['quick decisions', 'prioritization', 'time-sensitive situations'],
-    suggestedVoices: ['alloy', 'echo'],
+    suggestedVoices: ['kyle', 'kiefer'],
     difficultyModifier: 1,
   },
   culture_fit: {
@@ -212,7 +212,7 @@ export const INTERVIEWER_ARCHETYPES: Record<InterviewerArchetype, ArchetypeDefin
     defaultGreenFlags: ['collaboration stories', 'giving credit', 'conflict resolution'],
     defaultPetPeeves: ['badmouthing colleagues', 'inability to compromise', 'ego-driven decisions'],
     favoriteTopics: ['team disagreements', 'collaboration', 'feedback', 'company values'],
-    suggestedVoices: ['nova', 'shimmer'],
+    suggestedVoices: ['tessa', 'maya'],
     difficultyModifier: 0,
   },
   technical_expert: {
@@ -241,7 +241,7 @@ export const INTERVIEWER_ARCHETYPES: Record<InterviewerArchetype, ArchetypeDefin
     defaultGreenFlags: ['nuanced understanding', 'awareness of tradeoffs', 'current best practices'],
     defaultPetPeeves: ['buzzword soup', 'claiming expertise without depth', 'ignoring edge cases'],
     favoriteTopics: ['architecture', 'algorithms', 'system design', 'performance optimization'],
-    suggestedVoices: ['fable', 'onyx'],
+    suggestedVoices: ['kiefer', 'leo'],
     difficultyModifier: 2,
   },
   executive: {
@@ -270,7 +270,7 @@ export const INTERVIEWER_ARCHETYPES: Record<InterviewerArchetype, ArchetypeDefin
     defaultGreenFlags: ['strategic thinking', 'clear communication', 'business impact focus'],
     defaultPetPeeves: ['getting lost in details', 'no clear takeaway', 'passive attitude'],
     favoriteTopics: ['business impact', 'leadership', 'strategic decisions', 'stakeholder management'],
-    suggestedVoices: ['onyx', 'fable'],
+    suggestedVoices: ['leo', 'katie'],
     difficultyModifier: 1,
   },
 };
@@ -338,12 +338,13 @@ export interface MoodState {
 }
 
 // ============================================
-// VOICE OPTIONS
+// VOICE OPTIONS (Cartesia Sonic 3)
 // ============================================
-export type OpenAIVoice = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
+export type CartesiaVoice = 'katie' | 'kiefer' | 'tessa' | 'kyle' | 'leo' | 'maya';
 
 export interface VoiceOption {
-  id: OpenAIVoice;
+  id: CartesiaVoice;
+  cartesiaId: string;
   name: string;
   description: string;
   gender: 'neutral' | 'masculine' | 'feminine';
@@ -353,51 +354,57 @@ export interface VoiceOption {
 
 export const VOICE_OPTIONS: VoiceOption[] = [
   {
-    id: 'alloy',
-    name: 'Alloy',
-    description: 'Neutral and balanced',
-    gender: 'neutral',
+    id: 'katie',
+    cartesiaId: 'f786b574-daa5-4673-aa0c-cbe3e8534c02',
+    name: 'Katie',
+    description: 'Professional and clear',
+    gender: 'feminine',
     tone: 'professional',
-    suggestedFor: ['rapid_fire', 'culture_fit'],
+    suggestedFor: ['silent_judge', 'executive'],
   },
   {
-    id: 'echo',
-    name: 'Echo',
-    description: 'Clear and direct',
+    id: 'kiefer',
+    cartesiaId: '228fca29-3a0a-435c-8728-5cb483251068',
+    name: 'Kiefer',
+    description: 'Confident and direct',
     gender: 'masculine',
-    tone: 'authoritative',
-    suggestedFor: ['skeptic', 'silent_judge', 'rapid_fire'],
+    tone: 'professional',
+    suggestedFor: ['skeptic', 'griller', 'silent_judge', 'rapid_fire', 'technical_expert'],
   },
   {
-    id: 'fable',
-    name: 'Fable',
-    description: 'Expressive and engaging',
-    gender: 'neutral',
+    id: 'tessa',
+    cartesiaId: '6ccbfb76-1fc6-48f7-b71d-91ac6298247b',
+    name: 'Tessa',
+    description: 'Warm and engaging',
+    gender: 'feminine',
     tone: 'warm',
-    suggestedFor: ['griller', 'technical_expert', 'executive'],
+    suggestedFor: ['culture_fit', 'friendly'],
   },
   {
-    id: 'onyx',
-    name: 'Onyx',
+    id: 'kyle',
+    cartesiaId: 'c961b81c-a935-4c17-bfb3-ba2239de8c2f',
+    name: 'Kyle',
+    description: 'Dynamic and energetic',
+    gender: 'masculine',
+    tone: 'friendly',
+    suggestedFor: ['rapid_fire'],
+  },
+  {
+    id: 'leo',
+    cartesiaId: '040132fe-5f8f-4e9f-a315-18a5c8b8c445',
+    name: 'Leo',
     description: 'Deep and authoritative',
     gender: 'masculine',
     tone: 'authoritative',
-    suggestedFor: ['skeptic', 'griller', 'silent_judge', 'executive'],
+    suggestedFor: ['skeptic', 'griller', 'executive', 'technical_expert'],
   },
   {
-    id: 'nova',
-    name: 'Nova',
+    id: 'maya',
+    cartesiaId: 'c58c5a0c-4ed8-4c67-aec3-bb6fef4b4c02',
+    name: 'Maya',
     description: 'Friendly and approachable',
     gender: 'feminine',
     tone: 'friendly',
-    suggestedFor: ['friendly', 'culture_fit'],
-  },
-  {
-    id: 'shimmer',
-    name: 'Shimmer',
-    description: 'Warm and supportive',
-    gender: 'feminine',
-    tone: 'warm',
     suggestedFor: ['friendly', 'culture_fit'],
   },
 ];

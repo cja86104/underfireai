@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Use archetype's suggested voice
-      const voiceId = archetypeData.suggestedVoices[0] || 'alloy';
+      const voiceId = archetypeData.suggestedVoices[0] || 'katie';
 
       // Create interviewer
       const { data: newInterviewer, error: interviewerError } = await supabase

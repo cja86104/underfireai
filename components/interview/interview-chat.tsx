@@ -129,7 +129,7 @@ export function InterviewChat({
 
   const handleSpeakText = useCallback(async (text: string) => {
     try {
-      const voiceId = interviewer.voiceConfig?.voice_id || 'alloy';
+      const voiceId = interviewer.voiceConfig?.voice_id || 'katie';
       const speed = interviewer.voiceConfig?.speed || 1.0;
 
       const response = await fetch('/api/tts', {

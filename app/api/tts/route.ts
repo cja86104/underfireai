@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
-import { synthesizeSpeech, VALID_VOICES, VOICE_LIST, type Voice } from '@/lib/tts/openai-tts';
+import {
+  generateSpeech,
+  CARTESIA_VOICES,
+  type CartesiaVoiceId,
+  type TTSSpeed,
+  isCartesiaConfigured,
+} from '@/lib/tts/cartesia-tts';
 
 interface TTSRequest {
   text: string;
-  voice?: Voice;
-  speed?: number;
+  voice?: CartesiaVoiceId | string;
+  speed?: TTSSpeed;
 }
 
 export async function POST(request: NextRequest) {
@@ -20,6 +25,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if Cartesia is configured
+    if (!isCartesiaConfigured()) {
+      console.error('CARTESIA_API_KEY not configured');
+      return NextResponse.json(
+        { error: 'Configuration error', message: 'TTS service not configured' },
+        { status: 503 }
+      );
+    }
+
     // Check if user has voice mode access
     const subscription = await getSubscriptionStatus();
     if (subscription.tier === 'free') {
@@ -30,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: TTSRequest = await request.json();
-    const { text, voice = 'alloy', speed = 1.0 } = body;
+    const { text, voice = 'katie', speed = 'normal' } = body;
 
     if (!text || text.trim().length === 0) {
       return NextResponse.json(
@@ -39,35 +53,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate text length (OpenAI limit is 4096 chars)
-    if (text.length > 4096) {
+    // Validate text length (Cartesia limit is 10,000 chars)
+    if (text.length > 10000) {
       return NextResponse.json(
-        { error: 'Validation error', message: 'Text too long (max 4096 characters)' },
+        { error: 'Validation error', message: 'Text too long (max 10,000 characters)' },
         { status: 400 }
       );
     }
 
-    // Generate speech using extracted helper
-    const audioBuffer = await synthesizeSpeech(text, voice, speed);
+    // Validate speed
+    const validSpeeds: TTSSpeed[] = ['slow', 'normal', 'fast'];
+    const selectedSpeed = validSpeeds.includes(speed) ? speed : 'normal';
 
-    // Return audio as response — use Uint8Array for NextResponse compatibility
-    const uint8 = new Uint8Array(audioBuffer);
+    // Generate speech using Cartesia
+    const result = await generateSpeech({
+      text,
+      voiceId: voice,
+      speed: selectedSpeed,
+    });
+
+    // Return audio as response
+    const uint8 = new Uint8Array(result.audioBuffer);
     return new NextResponse(uint8, {
       status: 200,
       headers: {
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': audioBuffer.length.toString(),
+        'Content-Type': result.contentType,
+        'Content-Length': result.audioBuffer.byteLength.toString(),
         'Cache-Control': 'no-cache',
+        'X-Character-Count': result.characterCount.toString(),
+        'X-Estimated-Duration': result.estimatedDuration.toFixed(2),
       },
     });
 
   } catch (error) {
     console.error('TTS Error:', error);
 
-    if (error instanceof OpenAI.APIError) {
+    if (error instanceof Error) {
+      // Handle specific Cartesia errors
+      if (error.message.includes('Invalid Cartesia API key')) {
+        return NextResponse.json(
+          { error: 'Configuration error', message: 'TTS service authentication failed' },
+          { status: 503 }
+        );
+      }
+
+      if (error.message.includes('Rate limit')) {
+        return NextResponse.json(
+          { error: 'Rate limit', message: 'Too many requests. Please try again later.' },
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
         { error: 'TTS error', message: error.message },
-        { status: error.status || 500 }
+        { status: 500 }
       );
     }
 
@@ -80,9 +119,26 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint to list available voices
 export async function GET() {
+  const voiceList = Object.entries(CARTESIA_VOICES).map(([key, voice]) => ({
+    id: key,
+    cartesiaId: voice.id,
+    name: voice.name,
+    description: voice.description,
+    gender: voice.gender,
+    personality: voice.personality,
+  }));
+
   return NextResponse.json({
-    voices: VOICE_LIST,
-    defaultVoice: 'alloy',
-    speedRange: { min: 0.25, max: 4.0, default: 1.0 },
+    provider: 'cartesia',
+    model: 'sonic-3',
+    voices: voiceList,
+    defaultVoice: 'katie',
+    speedOptions: ['slow', 'normal', 'fast'],
+    maxCharacters: 10000,
+    features: {
+      streaming: true,
+      lowLatency: true,
+      timeToFirstAudio: '40-90ms',
+    },
   });
 }

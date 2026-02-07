@@ -229,17 +229,18 @@ export const INTERVIEWER_ARCHETYPES = {
   },
 } as const;
 
-// TTS Voice options (OpenAI)
+// TTS Voice options (Cartesia Sonic 3)
+// Provider: Cartesia - 40ms time-to-first-audio, streaming support
 export const TTS_VOICES = {
   male: [
-    { id: 'alloy', name: 'Alloy', description: 'Neutral, professional' },
-    { id: 'echo', name: 'Echo', description: 'Warm, conversational' },
-    { id: 'onyx', name: 'Onyx', description: 'Deep, authoritative' },
+    { id: 'kiefer', name: 'Kiefer', description: 'Professional, direct', cartesiaId: '228fca29-3a0a-435c-8728-5cb483251068' },
+    { id: 'kyle', name: 'Kyle', description: 'Dynamic, energetic', cartesiaId: 'c961b81c-a935-4c17-bfb3-ba2239de8c2f' },
+    { id: 'leo', name: 'Leo', description: 'Deep, authoritative', cartesiaId: '040132fe-5f8f-4e9f-a315-18a5c8b8c445' },
   ],
   female: [
-    { id: 'nova', name: 'Nova', description: 'Friendly, energetic' },
-    { id: 'shimmer', name: 'Shimmer', description: 'Clear, professional' },
-    { id: 'fable', name: 'Fable', description: 'Expressive, dynamic' },
+    { id: 'katie', name: 'Katie', description: 'Professional, clear', cartesiaId: 'f786b574-daa5-4673-aa0c-cbe3e8534c02' },
+    { id: 'tessa', name: 'Tessa', description: 'Warm, engaging', cartesiaId: '6ccbfb76-1fc6-48f7-b71d-91ac6298247b' },
+    { id: 'maya', name: 'Maya', description: 'Friendly, approachable', cartesiaId: 'c58c5a0c-4ed8-4c67-aec3-bb6fef4b4c02' },
   ],
 } as const;
 
