@@ -56,7 +56,7 @@ export const CARTESIA_VOICES = {
   },
   // Additional voices for variety
   leo: {
-    id: '040132fe-5f8f-4e9f-a315-18a5c8b8c445',
+    id: '0834f3df-e650-4766-a20c-5a93a43aa6e3',
     name: 'Leo',
     description: 'Deep, authoritative male voice',
     gender: 'male' as const,
@@ -64,7 +64,7 @@ export const CARTESIA_VOICES = {
     previewText: "Good morning. I'm Leo. Let's discuss your qualifications.",
   },
   maya: {
-    id: 'c58c5a0c-4ed8-4c67-aec3-bb6fef4b4c02',
+    id: 'cbaf8084-f009-4838-a096-07ee2e6612b1',
     name: 'Maya',
     description: 'Friendly, approachable female voice',
     gender: 'female' as const,
