@@ -66,7 +66,7 @@ export interface BadgeProps
   icon?: React.ReactNode;
 }
 
-function Badge({ className, variant, size, icon, children, ...props }: BadgeProps) {
+function Badge({ className, variant, size, icon, children, ...props }: BadgeProps): React.JSX.Element {
   return (
     <div className={cn(badgeVariants({ variant, size }), className)} {...props}>
       {icon && <span className="mr-1">{icon}</span>}
@@ -76,7 +76,7 @@ function Badge({ className, variant, size, icon, children, ...props }: BadgeProp
 }
 
 // Interview type badge helper
-function InterviewTypeBadge({ type }: { type: string }) {
+function InterviewTypeBadge({ type }: { type: string }): React.JSX.Element {
   const typeMap: Record<string, { label: string; variant: 'behavioral' | 'technical' | 'case' | 'hr' | 'panel' | 'phone_screen' }> = {
     behavioral: { label: 'Behavioral', variant: 'behavioral' },
     technical: { label: 'Technical', variant: 'technical' },
@@ -92,7 +92,7 @@ function InterviewTypeBadge({ type }: { type: string }) {
 }
 
 // Score badge helper
-function ScoreBadge({ score }: { score: number }) {
+function ScoreBadge({ score }: { score: number }): React.JSX.Element {
   let variant: 'success' | 'warning' | 'error' | 'default' = 'default';
   
   if (score >= 80) variant = 'success';
@@ -103,7 +103,7 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 // Difficulty badge helper
-function DifficultyBadge({ level }: { level: number }) {
+function DifficultyBadge({ level }: { level: number }): React.JSX.Element {
   let variant: 'success' | 'warning' | 'error' = 'success';
   let label = 'Easy';
   

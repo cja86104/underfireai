@@ -40,7 +40,7 @@ const LabeledSlider = React.forwardRef<
 
   return (
     <div className="w-full space-y-2">
-      {(label || showValue) && (
+      {(label != null || showValue === true) && (
         <div className="flex items-center justify-between">
           {label && <span className="text-sm font-medium">{label}</span>}
           {showValue && (
@@ -73,7 +73,7 @@ const difficultyLabels: Record<number, string> = {
   10: 'Expert',
 };
 
-function DifficultySlider({ value, onValueChange }: DifficultySliderProps) {
+function DifficultySlider({ value, onValueChange }: DifficultySliderProps): React.JSX.Element {
   return (
     <LabeledSlider
       label="Difficulty"
@@ -83,7 +83,7 @@ function DifficultySlider({ value, onValueChange }: DifficultySliderProps) {
       min={1}
       max={10}
       step={1}
-      valueFormatter={(v) => `${v}/10 - ${difficultyLabels[v] || 'Medium'}`}
+      valueFormatter={(v) => `${v}/10 - ${difficultyLabels[v] ?? 'Medium'}`}
     />
   );
 }

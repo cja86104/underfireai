@@ -1,12 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
+import type { Json } from '@/types/database';
 import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
 
-export async function POST(request: NextRequest) {
+/** Parsed resume data structure */
+interface ParsedResumeUploadData {
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  location: string | null;
+  summary: string | null;
+  experience: {
+    company: string;
+    title: string;
+    start_date?: string;
+    end_date?: string;
+    description?: string;
+    highlights?: string[];
+  }[];
+  education: {
+    institution: string;
+    degree: string;
+    field?: string;
+    graduation_date?: string;
+  }[];
+  skills: string[];
+  certifications: string[];
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 
@@ -81,7 +106,7 @@ export async function POST(request: NextRequest) {
 
         // Log any conversion warnings (optional, for debugging)
         if (result.messages.length > 0) {
-          console.log('Mammoth conversion messages:', result.messages);
+          console.warn('Mammoth conversion messages:', result.messages);
         }
       }
     } catch (parseError) {
@@ -140,28 +165,16 @@ Extract and return this JSON structure:
 
 Return ONLY the JSON object, no markdown or explanation.`;
 
-    let parsedData = {
+    let parsedData: ParsedResumeUploadData = {
       name: null,
       email: null,
       phone: null,
       location: null,
       summary: null,
-      experience: [] as Array<{
-        company: string;
-        title: string;
-        start_date?: string;
-        end_date?: string;
-        description?: string;
-        highlights?: string[];
-      }>,
-      education: [] as Array<{
-        institution: string;
-        degree: string;
-        field?: string;
-        graduation_date?: string;
-      }>,
-      skills: [] as string[],
-      certifications: [] as string[],
+      experience: [],
+      education: [],
+      skills: [],
+      certifications: [],
     };
 
     let skills: string[] = [];
@@ -186,8 +199,8 @@ Return ONLY the JSON object, no markdown or explanation.`;
         .replace(/```\n?/g, '')
         .trim();
 
-      parsedData = JSON.parse(cleanContent);
-      skills = parsedData.skills || [];
+      parsedData = JSON.parse(cleanContent) as ParsedResumeUploadData;
+      skills = parsedData.skills ?? [];
 
       // Calculate experience years
       if (parsedData.experience && parsedData.experience.length > 0) {
@@ -234,10 +247,10 @@ Return ONLY the JSON object, no markdown or explanation.`;
       .insert({
         user_id: user.id,
         raw_text: rawText.slice(0, 50000), // Limit stored text
-        parsed_data: parsedData,
+        parsed_data: parsedData as unknown as Json,
         skills,
         experience_years: experienceYears,
-        target_role: targetRole || null,
+        target_role: targetRole ?? null,
         target_company_type: null,
         file_url: null,
       })

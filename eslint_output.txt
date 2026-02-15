@@ -1,0 +1,771 @@
+
+C:\Users\cja86\Desktop\underfireai\app\(auth)\callback\route.ts
+  4:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(auth)\login\page.tsx
+  10:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(auth)\register\page.tsx
+  10:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\dashboard\page.tsx
+   26:16  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  154:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  270:1   warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\error.tsx
+  7:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\history\page.tsx
+   14:10  error    'formatDistanceToNow' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   22:16  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   47:44  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  146:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\interview\[sessionId]\page.tsx
+  19:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\interview\[sessionId]\results\page.tsx
+  19:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\interview\new\page.tsx
+  16:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\interviewers\page.tsx
+    6:3   error    'Plus' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   10:3   error    'Trash2' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   20:16  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   46:51  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  122:31  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\layout.tsx
+  6:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\loading.tsx
+  3:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\progress\page.tsx
+   15:10  error    'createClient' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   17:18  error    'subDays' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+   24:16  warning  Missing return type on function                                                 @typescript-eslint/explicit-function-return-type
+  189:27  warning  Do not use Array index in keys                                                  react/no-array-index-key
+  311:1   warning  Missing return type on function                                                 @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\resume\page.tsx
+   13:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  120:33  warning  Do not use Array index in keys   react/no-array-index-key
+  143:33  warning  Do not use Array index in keys   react/no-array-index-key
+
+C:\Users\cja86\Desktop\underfireai\app\(dashboard)\settings\page.tsx
+  15:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\[sessionId]\analyze\route.ts
+  13:8   warning  Missing return type on function      @typescript-eslint/explicit-function-return-type
+  45:11  error    Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\[sessionId]\chat\route.ts
+   47:8   warning  Missing return type on function      @typescript-eslint/explicit-function-return-type
+  119:11  error    Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\[sessionId]\end\route.ts
+   11:8   warning  Missing return type on function                                 @typescript-eslint/explicit-function-return-type
+   26:11  error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  199:13  error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  202:13  error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  202:55  error    Unsafe member access .strengths on an `any` value               @typescript-eslint/no-unsafe-member-access
+  203:11  error    Unsafe call of an `any` typed value                             @typescript-eslint/no-unsafe-call
+  203:11  error    Unsafe call of an `any` typed value                             @typescript-eslint/no-unsafe-call
+  203:18  error    Unsafe member access .strengths on an `any` value               @typescript-eslint/no-unsafe-member-access
+  203:90  error    Unsafe member access .slice on an `any` value                   @typescript-eslint/no-unsafe-member-access
+  205:13  error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  205:58  error    Unsafe member access .improvements on an `any` value            @typescript-eslint/no-unsafe-member-access
+  206:11  error    Unsafe call of an `any` typed value                             @typescript-eslint/no-unsafe-call
+  206:11  error    Unsafe call of an `any` typed value                             @typescript-eslint/no-unsafe-call
+  206:18  error    Unsafe member access .improvements on an `any` value            @typescript-eslint/no-unsafe-member-access
+  206:93  error    Unsafe member access .slice on an `any` value                   @typescript-eslint/no-unsafe-member-access
+  208:13  error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  208:56  error    Unsafe member access .key_moments on an `any` value             @typescript-eslint/no-unsafe-member-access
+  209:11  error    Unsafe call of an `any` typed value                             @typescript-eslint/no-unsafe-call
+  209:11  error    Unsafe call of an `any` typed value                             @typescript-eslint/no-unsafe-call
+  209:18  error    Unsafe member access .key_moments on an `any` value             @typescript-eslint/no-unsafe-member-access
+  218:14  error    Unsafe member access .slice on an `any` value                   @typescript-eslint/no-unsafe-member-access
+  222:9   error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  222:39  error    Unsafe member access .length on an `any` value                  @typescript-eslint/no-unsafe-member-access
+  223:9   error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  223:45  error    Unsafe member access .length on an `any` value                  @typescript-eslint/no-unsafe-member-access
+  224:9   error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  225:25  error    Unsafe member access .interviewer_impression on an `any` value  @typescript-eslint/no-unsafe-member-access
+  225:71  error    Unsafe member access .interviewer_impression on an `any` value  @typescript-eslint/no-unsafe-member-access
+  226:22  error    Unsafe member access .interviewer_impression on an `any` value  @typescript-eslint/no-unsafe-member-access
+  228:9   error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+  229:25  error    Unsafe member access .ai_feedback on an `any` value             @typescript-eslint/no-unsafe-member-access
+  229:60  error    Unsafe member access .ai_feedback on an `any` value             @typescript-eslint/no-unsafe-member-access
+  230:22  error    Unsafe member access .ai_feedback on an `any` value             @typescript-eslint/no-unsafe-member-access
+  232:9   error    Unsafe assignment of an `any` value                             @typescript-eslint/no-unsafe-assignment
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\[sessionId]\pause\route.ts
+  4:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\[sessionId]\resume\route.ts
+  4:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\[sessionId]\score\route.ts
+    5:33  error    'SessionScore' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    7:8   warning  Missing return type on function                                                 @typescript-eslint/explicit-function-return-type
+  209:13  error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  211:13  error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  211:55  error    Unsafe member access .strengths on an `any` value                               @typescript-eslint/no-unsafe-member-access
+  212:11  error    Unsafe call of an `any` typed value                                             @typescript-eslint/no-unsafe-call
+  212:11  error    Unsafe call of an `any` typed value                                             @typescript-eslint/no-unsafe-call
+  212:18  error    Unsafe member access .strengths on an `any` value                               @typescript-eslint/no-unsafe-member-access
+  212:90  error    Unsafe member access .slice on an `any` value                                   @typescript-eslint/no-unsafe-member-access
+  214:13  error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  214:58  error    Unsafe member access .improvements on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  215:11  error    Unsafe call of an `any` typed value                                             @typescript-eslint/no-unsafe-call
+  215:11  error    Unsafe call of an `any` typed value                                             @typescript-eslint/no-unsafe-call
+  215:18  error    Unsafe member access .improvements on an `any` value                            @typescript-eslint/no-unsafe-member-access
+  215:93  error    Unsafe member access .slice on an `any` value                                   @typescript-eslint/no-unsafe-member-access
+  217:13  error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  217:56  error    Unsafe member access .key_moments on an `any` value                             @typescript-eslint/no-unsafe-member-access
+  218:11  error    Unsafe call of an `any` typed value                                             @typescript-eslint/no-unsafe-call
+  218:11  error    Unsafe call of an `any` typed value                                             @typescript-eslint/no-unsafe-call
+  218:18  error    Unsafe member access .key_moments on an `any` value                             @typescript-eslint/no-unsafe-member-access
+  226:14  error    Unsafe member access .slice on an `any` value                                   @typescript-eslint/no-unsafe-member-access
+  230:9   error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  230:39  error    Unsafe member access .length on an `any` value                                  @typescript-eslint/no-unsafe-member-access
+  231:9   error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  231:45  error    Unsafe member access .length on an `any` value                                  @typescript-eslint/no-unsafe-member-access
+  232:9   error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  233:25  error    Unsafe member access .interviewer_impression on an `any` value                  @typescript-eslint/no-unsafe-member-access
+  233:71  error    Unsafe member access .interviewer_impression on an `any` value                  @typescript-eslint/no-unsafe-member-access
+  234:22  error    Unsafe member access .interviewer_impression on an `any` value                  @typescript-eslint/no-unsafe-member-access
+  236:9   error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  237:25  error    Unsafe member access .ai_feedback on an `any` value                             @typescript-eslint/no-unsafe-member-access
+  237:60  error    Unsafe member access .ai_feedback on an `any` value                             @typescript-eslint/no-unsafe-member-access
+  238:22  error    Unsafe member access .ai_feedback on an `any` value                             @typescript-eslint/no-unsafe-member-access
+  240:9   error    Unsafe assignment of an `any` value                                             @typescript-eslint/no-unsafe-assignment
+  293:8   warning  Missing return type on function                                                 @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\create\route.ts
+  37:8   warning  Missing return type on function      @typescript-eslint/explicit-function-return-type
+  57:11  error    Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\generate-interviewer\route.ts
+  45:8   warning  Missing return type on function      @typescript-eslint/explicit-function-return-type
+  56:11  error    Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+C:\Users\cja86\Desktop\underfireai\app\api\interview\generate-scene\route.ts
+   22:8   warning  Missing return type on function                      @typescript-eslint/explicit-function-return-type
+   33:11  error    Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   94:13  error    Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   97:9   error    Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   97:30  error    Unsafe member access .title on an `any` value        @typescript-eslint/no-unsafe-member-access
+   97:58  error    Unsafe member access .title on an `any` value        @typescript-eslint/no-unsafe-member-access
+   98:9   error    Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   98:36  error    Unsafe member access .description on an `any` value  @typescript-eslint/no-unsafe-member-access
+   98:70  error    Unsafe member access .description on an `any` value  @typescript-eslint/no-unsafe-member-access
+   99:9   error    Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+   99:35  error    Unsafe member access .atmosphere on an `any` value   @typescript-eslint/no-unsafe-member-access
+   99:68  error    Unsafe member access .atmosphere on an `any` value   @typescript-eslint/no-unsafe-member-access
+  100:9   error    Unsafe assignment of an `any` value                  @typescript-eslint/no-unsafe-assignment
+  100:39  error    Unsafe member access .details on an `any` value      @typescript-eslint/no-unsafe-member-access
+  101:13  error    Unsafe call of an `any` typed value                  @typescript-eslint/no-unsafe-call
+  101:13  error    Unsafe call of an `any` typed value                  @typescript-eslint/no-unsafe-call
+  101:20  error    Unsafe member access .details on an `any` value      @typescript-eslint/no-unsafe-member-access
+  101:74  error    Unsafe member access .slice on an `any` value        @typescript-eslint/no-unsafe-member-access
+
+C:\Users\cja86\Desktop\underfireai\app\api\progress\route.ts
+  23:8   warning  Missing return type on function                                          @typescript-eslint/explicit-function-return-type
+  84:66  error    'index' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\cja86\Desktop\underfireai\app\api\resume\extract\route.ts
+   12:8   warning  Missing return type on function                                                                                    @typescript-eslint/explicit-function-return-type
+   23:11  error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+   88:13  error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+   91:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+   91:26  error    Unsafe member access .name on an `any` value                                                                       @typescript-eslint/no-unsafe-member-access
+   91:50  error    Unsafe member access .name on an `any` value                                                                       @typescript-eslint/no-unsafe-member-access
+   92:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+   92:27  error    Unsafe member access .email on an `any` value                                                                      @typescript-eslint/no-unsafe-member-access
+   92:52  error    Unsafe member access .email on an `any` value                                                                      @typescript-eslint/no-unsafe-member-access
+   93:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+   93:27  error    Unsafe member access .phone on an `any` value                                                                      @typescript-eslint/no-unsafe-member-access
+   93:52  error    Unsafe member access .phone on an `any` value                                                                      @typescript-eslint/no-unsafe-member-access
+   94:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+   94:30  error    Unsafe member access .location on an `any` value                                                                   @typescript-eslint/no-unsafe-member-access
+   94:58  error    Unsafe member access .location on an `any` value                                                                   @typescript-eslint/no-unsafe-member-access
+   95:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+   95:29  error    Unsafe member access .summary on an `any` value                                                                    @typescript-eslint/no-unsafe-member-access
+   95:56  error    Unsafe member access .summary on an `any` value                                                                    @typescript-eslint/no-unsafe-member-access
+   96:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+   96:39  error    Unsafe member access .experience on an `any` value                                                                 @typescript-eslint/no-unsafe-member-access
+   97:13  error    Unsafe call of an `any` typed value                                                                                @typescript-eslint/no-unsafe-call
+   97:17  error    Unsafe member access .experience on an `any` value                                                                 @typescript-eslint/no-unsafe-member-access
+   98:31  error    'exp.company ?? ''' will use Object's default stringification format ('[object Object]') when stringified          @typescript-eslint/no-base-to-string
+   99:29  error    'exp.title ?? ''' will use Object's default stringification format ('[object Object]') when stringified            @typescript-eslint/no-base-to-string
+  100:34  error    'exp.start_date ?? ''' will use Object's default stringification format ('[object Object]') when stringified       @typescript-eslint/no-base-to-string
+  101:47  error    'exp.end_date' will use Object's default stringification format ('[object Object]') when stringified               @typescript-eslint/no-base-to-string
+  102:35  error    'exp.description ?? ''' will use Object's default stringification format ('[object Object]') when stringified      @typescript-eslint/no-base-to-string
+  108:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+  108:38  error    Unsafe member access .education on an `any` value                                                                  @typescript-eslint/no-unsafe-member-access
+  109:13  error    Unsafe call of an `any` typed value                                                                                @typescript-eslint/no-unsafe-call
+  109:17  error    Unsafe member access .education on an `any` value                                                                  @typescript-eslint/no-unsafe-member-access
+  110:35  error    'edu.institution ?? ''' will use Object's default stringification format ('[object Object]') when stringified      @typescript-eslint/no-base-to-string
+  111:30  error    'edu.degree ?? ''' will use Object's default stringification format ('[object Object]') when stringified           @typescript-eslint/no-base-to-string
+  112:29  error    'edu.field ?? ''' will use Object's default stringification format ('[object Object]') when stringified            @typescript-eslint/no-base-to-string
+  113:39  error    'edu.graduation_date ?? ''' will use Object's default stringification format ('[object Object]') when stringified  @typescript-eslint/no-base-to-string
+  116:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+  116:35  error    Unsafe member access .skills on an `any` value                                                                     @typescript-eslint/no-unsafe-member-access
+  117:13  error    Unsafe call of an `any` typed value                                                                                @typescript-eslint/no-unsafe-call
+  117:17  error    Unsafe member access .skills on an `any` value                                                                     @typescript-eslint/no-unsafe-member-access
+  119:9   error    Unsafe assignment of an `any` value                                                                                @typescript-eslint/no-unsafe-assignment
+  119:43  error    Unsafe member access .certifications on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+  120:13  error    Unsafe call of an `any` typed value                                                                                @typescript-eslint/no-unsafe-call
+  120:17  error    Unsafe member access .certifications on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+
+C:\Users\cja86\Desktop\underfireai\app\api\resume\upload\route.ts
+    8:8   warning  Missing return type on function                                                    @typescript-eslint/explicit-function-return-type
+   83:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  188:7   error    Unsafe assignment of an `any` value                                                @typescript-eslint/no-unsafe-assignment
+
+C:\Users\cja86\Desktop\underfireai\app\api\stripe\create-checkout\route.ts
+   8:26  warning  Forbidden non-null assertion         @typescript-eslint/no-non-null-assertion
+  16:8   warning  Forbidden non-null assertion         @typescript-eslint/no-non-null-assertion
+  17:12  warning  Forbidden non-null assertion         @typescript-eslint/no-non-null-assertion
+  24:8   warning  Missing return type on function      @typescript-eslint/explicit-function-return-type
+  35:11  error    Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+C:\Users\cja86\Desktop\underfireai\app\api\stripe\create-portal\route.ts
+   8:26  warning  Forbidden non-null assertion                                               @typescript-eslint/no-non-null-assertion
+  14:8   warning  Missing return type on function                                            @typescript-eslint/explicit-function-return-type
+  14:28  error    'request' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\cja86\Desktop\underfireai\app\api\stripe\webhook\route.ts
+    9:26  warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+   19:5   warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+   20:5   warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+   25:8   warning  Missing return type on function                                                    @typescript-eslint/explicit-function-return-type
+   42:7   warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+   87:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  101:1   warning  Missing return type on function                                                    @typescript-eslint/explicit-function-return-type
+  131:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  134:1   warning  Missing return type on function                                                    @typescript-eslint/explicit-function-return-type
+  180:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  183:1   warning  Missing return type on function                                                    @typescript-eslint/explicit-function-return-type
+  213:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  216:1   warning  Missing return type on function                                                    @typescript-eslint/explicit-function-return-type
+  244:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  247:1   warning  Missing return type on function                                                    @typescript-eslint/explicit-function-return-type
+  272:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+C:\Users\cja86\Desktop\underfireai\app\api\tts\route.ts
+   13:11  error    "katie" | "kiefer" | "tessa" | "kyle" | "leo" | "maya" is overridden by string in this union type  @typescript-eslint/no-redundant-type-constituents
+   17:8   warning  Missing return type on function                                                                    @typescript-eslint/explicit-function-return-type
+   46:11  error    Unsafe assignment of an `any` value                                                                @typescript-eslint/no-unsafe-assignment
+  121:8   warning  Async function 'GET' has no 'await' expression                                                     @typescript-eslint/require-await
+  121:8   warning  Missing return type on function                                                                    @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\api\voices\route.ts
+   2:54  error    'InterviewerArchetype' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  10:8   warning  Async function 'GET' has no 'await' expression                                          @typescript-eslint/require-await
+  10:8   warning  Missing return type on function                                                         @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\error.tsx
+  7:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\layout.tsx
+  72:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\not-found.tsx
+  6:16  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\app\page.tsx
+   20:16  warning  Missing return type on function              @typescript-eslint/explicit-function-return-type
+   25:45  warning  Missing return type on function              @typescript-eslint/explicit-function-return-type
+  202:21  error    Unsafe spread of an `any` value in an array  @typescript-eslint/no-unsafe-assignment
+  203:32  warning  Do not use Array index in keys               react/no-array-index-key
+  338:21  error    Unsafe spread of an `any` value in an array  @typescript-eslint/no-unsafe-assignment
+  339:32  warning  Do not use Array index in keys               react/no-array-index-key
+
+C:\Users\cja86\Desktop\underfireai\components\animation\animated-background.tsx
+   12:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   21:45  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   61:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   97:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  127:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  143:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\animation\animated-components.tsx
+   56:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  116:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  185:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  275:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  342:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  398:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  446:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\animation\gsap-provider.tsx
+   20:5   error    'Lenis' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   33:8   warning  Missing return type on function                                                                                                                                                                                                                                                                                                             @typescript-eslint/explicit-function-return-type
+   49:32  warning  Missing return type on function                                                                                                                                                                                                                                                                                                             @typescript-eslint/explicit-function-return-type
+   64:26  error    A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+   78:5   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                                                                                                          @typescript-eslint/no-floating-promises
+  111:8   warning  Missing return type on function                                                                                                                                                                                                                                                                                                             @typescript-eslint/explicit-function-return-type
+  181:8   warning  Missing return type on function                                                                                                                                                                                                                                                                                                             @typescript-eslint/explicit-function-return-type
+  239:8   warning  Missing return type on function                                                                                                                                                                                                                                                                                                             @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\auth\auth-form.tsx
+  14:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  29:51  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  58:67  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\gamification\badge-grid.tsx
+  115:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  188:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  302:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  323:43  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  377:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  431:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\gamification\score-chart.tsx
+    9:3   error    'Calendar' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   55:8   warning  Missing return type on function                                             @typescript-eslint/explicit-function-return-type
+  199:20  warning  Do not use Array index in keys                                              react/no-array-index-key
+  215:26  warning  Do not use Array index in keys                                              react/no-array-index-key
+  247:8   warning  Missing return type on function                                             @typescript-eslint/explicit-function-return-type
+  290:8   warning  Missing return type on function                                             @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\gamification\streak-display.tsx
+   92:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  140:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  187:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  314:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\interview\feedback-panel.tsx
+  114:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  170:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  218:26  warning  Do not use Array index in keys   react/no-array-index-key
+  238:26  warning  Do not use Array index in keys   react/no-array-index-key
+  254:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  296:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  371:28  warning  Do not use Array index in keys   react/no-array-index-key
+  390:28  warning  Do not use Array index in keys   react/no-array-index-key
+  411:35  warning  Do not use Array index in keys   react/no-array-index-key
+  465:42  warning  Do not use Array index in keys   react/no-array-index-key
+  477:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\interview\interview-chat.tsx
+   13:3   error    'MessageSquare' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   20:10  error    'formatDistanceToNow' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   63:8   warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   69:3   error    'difficulty' is defined but never used. Allowed unused args must match /^_/u                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  111:7   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                              @typescript-eslint/no-floating-promises
+  113:6   warning  React Hook useEffect has missing dependencies: 'messages.length', 'sessionStatus', and 'startInterview'. Either include them or remove the dependency array                                                                                                     react-hooks/exhaustive-deps
+  124:40  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  164:7   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                              @typescript-eslint/no-floating-promises
+  166:6   warning  React Hook useCallback has a missing dependency: 'sendMessageWithText'. Either include it or remove the dependency array                                                                                                                                        react-hooks/exhaustive-deps
+  168:35  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  189:13  error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  192:9   error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  192:18  error    Unsafe member access .message_id on an `any` value                                                                                                                                                                                                              @typescript-eslint/no-unsafe-member-access
+  195:9   error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  195:23  error    Unsafe member access .content on an `any` value                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+  210:52  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  256:13  error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  262:25  error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  262:34  error    Unsafe member access .user_message_id on an `any` value                                                                                                                                                                                                         @typescript-eslint/no-unsafe-member-access
+  262:51  error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  262:66  error    Unsafe member access .analysis on an `any` value                                                                                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+  268:13  error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  268:22  error    Unsafe member access .interviewer_message_id on an `any` value                                                                                                                                                                                                  @typescript-eslint/no-unsafe-member-access
+  271:13  error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  271:27  error    Unsafe member access .content on an `any` value                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+  281:16  error    Unsafe member access .should_end on an `any` value                                                                                                                                                                                                              @typescript-eslint/no-unsafe-member-access
+  295:32  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  299:33  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  325:35  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  332:14  error    'error' is defined but never used. Allowed unused caught errors must match /^_/u                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  337:36  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  344:14  error    'error' is defined but never used. Allowed unused caught errors must match /^_/u                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  349:50  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  352:7   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                              @typescript-eslint/no-floating-promises
+  363:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  437:27  error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                              @typescript-eslint/no-floating-promises
+  447:27  error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                              @typescript-eslint/no-floating-promises
+  460:25  error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                              @typescript-eslint/no-floating-promises
+
+C:\Users\cja86\Desktop\underfireai\components\interview\interview-results.tsx
+    5:3   error    'Trophy' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    8:3   error    'Clock' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   13:3   error    'AlertCircle' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   19:3   error    'Share2' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   20:3   error    'Download' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   24:10  error    'formatDistanceStrict' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   61:8   warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   69:44  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   75:48  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   82:50  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   89:9   error    'getScoreIcon' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   89:47  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  261:26  warning  Do not use Array index in keys                                                                                                                                                                                                                                  react/no-array-index-key
+  281:26  warning  Do not use Array index in keys                                                                                                                                                                                                                                  react/no-array-index-key
+  310:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  337:22  warning  Do not use Array index in keys                                                                                                                                                                                                                                  react/no-array-index-key
+
+C:\Users\cja86\Desktop\underfireai\components\interview\interview-setup-form.tsx
+   17:3   error    'Plus' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   78:8   warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  100:51  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  122:15  error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  123:25  error    Unsafe argument of type `any` assigned to a parameter of type `string | undefined`                                                                                                                                                                              @typescript-eslint/no-unsafe-argument
+  123:31  error    Unsafe member access .message on an `any` value                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+  126:13  error    Unsafe assignment of an `any` value                                                                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  392:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\cja86\Desktop\underfireai\components\interview\score-card.tsx
+  118:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  185:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  198:26  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  292:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  372:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  424:24  warning  Do not use Array index in keys   react/no-array-index-key
+  438:24  warning  Do not use Array index in keys   react/no-array-index-key
+  450:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\interview\timer-display.tsx
+  114:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  251:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  306:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\interview\voice-mode.tsx
+   63:8   warning  Missing return type on function                                                                                                                                     @typescript-eslint/explicit-function-return-type
+   80:5   error    Unsafe return of a value of type `any[]`                                                                                                                            @typescript-eslint/no-unsafe-return
+  162:9   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  190:31  warning  Missing return type on function                                                                                                                                     @typescript-eslint/explicit-function-return-type
+  237:7   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  297:28  warning  Missing return type on function                                                                                                                                     @typescript-eslint/explicit-function-return-type
+  307:5   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  381:22  warning  Do not use Array index in keys                                                                                                                                      react/no-array-index-key
+
+C:\Users\cja86\Desktop\underfireai\components\interviewer\BackgroundGenerator.tsx
+   24:8   warning  Missing return type on function                                                                @typescript-eslint/explicit-function-return-type
+   40:38  warning  Missing return type on function                                                                @typescript-eslint/explicit-function-return-type
+   61:13  error    Unsafe assignment of an `any` value                                                            @typescript-eslint/no-unsafe-assignment
+   62:13  error    Unsafe assignment of an `any` value                                                            @typescript-eslint/no-unsafe-assignment
+   62:33  error    Unsafe member access .interviewer on an `any` value                                            @typescript-eslint/no-unsafe-member-access
+   65:22  error    Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<string | null>`  @typescript-eslint/no-unsafe-argument
+   66:32  error    Unsafe argument of type `any` assigned to a parameter of type `string`                         @typescript-eslint/no-unsafe-argument
+   78:36  warning  Missing return type on function                                                                @typescript-eslint/explicit-function-return-type
+  216:26  warning  Do not use Array index in keys                                                                 react/no-array-index-key
+  227:26  warning  Do not use Array index in keys                                                                 react/no-array-index-key
+
+C:\Users\cja86\Desktop\underfireai\components\interviewer\InterviewerCard.tsx
+    4:27  error    'BarChart3' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   14:52  error    'PersonalityBase' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   26:8   warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   28:3   error    'personality' is defined but never used. Allowed unused args must match /^_/u                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   42:9   error    'archetypeId' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   50:46  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   59:33  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   67:48  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+   79:55  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  108:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  181:26  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                       @typescript-eslint/prefer-nullish-coalescing
+  228:1   warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\interviewer\PersonalityConfig.tsx
+   52:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   77:79  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   81:93  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   85:77  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   89:31  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   97:24  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  113:38  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  295:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\layout\dashboard-header.tsx
+  26:8   warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  31:34  warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  38:14  error    'error' is defined but never used. Allowed unused caught errors must match /^_/u                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  82:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\cja86\Desktop\underfireai\components\layout\sidebar.tsx
+   43:8   warning  Missing return type on function                                                                                                                                                                                                                                 @typescript-eslint/explicit-function-return-type
+  168:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\cja86\Desktop\underfireai\components\profile\skills-editor.tsx
+   62:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   91:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  115:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  156:62  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  272:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\providers.tsx
+  13:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\resume\resume-preview.tsx
+   99:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  152:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  220:26  warning  Do not use Array index in keys   react/no-array-index-key
+  236:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  256:1   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  266:18  warning  Do not use Array index in keys   react/no-array-index-key
+  301:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  414:28  warning  Do not use Array index in keys   react/no-array-index-key
+  432:41  warning  Do not use Array index in keys   react/no-array-index-key
+  446:20  warning  Forbidden non-null assertion     @typescript-eslint/no-non-null-assertion
+  448:28  warning  Do not use Array index in keys   react/no-array-index-key
+  474:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  540:20  warning  Do not use Array index in keys   react/no-array-index-key
+
+C:\Users\cja86\Desktop\underfireai\components\resume\resume-upload-form.tsx
+   13:8   warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   23:47  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   28:48  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   33:43  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   44:69  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   52:43  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   70:51  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  110:24  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\settings\settings-tabs.tsx
+   43:8   warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+   47:3   error    'onboardingCompleted' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   52:43  warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+   97:1   warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  104:51  warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  119:14  error    'error' is defined but never used. Allowed unused caught errors must match /^_/u       @typescript-eslint/no-unused-vars
+  185:1   warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  210:57  warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  223:13  error    Unsafe assignment of an `any` value                                                    @typescript-eslint/no-unsafe-assignment
+  224:7   error    Unsafe assignment of an `any` value                                                    @typescript-eslint/no-unsafe-assignment
+  225:14  error    'error' is defined but never used. Allowed unused caught errors must match /^_/u       @typescript-eslint/no-unused-vars
+  232:40  warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  243:13  error    Unsafe assignment of an `any` value                                                    @typescript-eslint/no-unsafe-assignment
+  244:7   error    Unsafe assignment of an `any` value                                                    @typescript-eslint/no-unsafe-assignment
+  245:14  error    'error' is defined but never used. Allowed unused caught errors must match /^_/u       @typescript-eslint/no-unused-vars
+  346:1   warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  353:53  warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  386:1   warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  421:1   warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  424:40  warning  Missing return type on function                                                        @typescript-eslint/explicit-function-return-type
+  435:14  error    'error' is defined but never used. Allowed unused caught errors must match /^_/u       @typescript-eslint/no-unused-vars
+
+C:\Users\cja86\Desktop\underfireai\components\ui\avatar.tsx
+   95:1  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  117:1  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\ui\badge.tsx
+   69:1  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   79:1  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   95:1  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  106:1  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\ui\button.tsx
+  94:28  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+C:\Users\cja86\Desktop\underfireai\components\ui\dialog.tsx
+  62:42  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  76:42  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\ui\dropdown-menu.tsx
+  170:43  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\ui\input.tsx
+   76:24  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  127:70  warning  Missing return type on function                                                                            @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\ui\progress.tsx
+   71:15  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  108:1   warning  Missing return type on function                                                                            @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\ui\slider.tsx
+  43:15  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  76:1   warning  Missing return type on function                                                                            @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\components\ui\tooltip.tsx
+  37:1  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\lib\ai\backstory-generator.ts
+   9:21  error  'MODEL_PARAMS' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  10:37  error  'ArchetypeDefinition' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\cja86\Desktop\underfireai\lib\ai\chat-client.ts
+   81:11  error  Unsafe assignment of an `any` value                                                       @typescript-eslint/no-unsafe-assignment
+   83:63  error  Unsafe member access .error on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+   87:3   error  Unsafe return of a value of type `Promise<any>`                                           @typescript-eslint/no-unsafe-return
+  129:11  error  Unsafe assignment of an `any` value                                                       @typescript-eslint/no-unsafe-assignment
+  131:63  error  Unsafe member access .error on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+  158:15  error  Unsafe assignment of an `any` value                                                       @typescript-eslint/no-unsafe-assignment
+  159:15  error  Unsafe assignment of an `any` value                                                       @typescript-eslint/no-unsafe-assignment
+  159:30  error  Unsafe member access .choices on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  161:22  error  Invalid operand for a '+' operation. Operands must each be a number or string. Got `any`  @typescript-eslint/restrict-plus-operands
+
+C:\Users\cja86\Desktop\underfireai\lib\ai\mood-engine.ts
+  58:43  error  'petPeeves' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\cja86\Desktop\underfireai\lib\client.ts
+    7:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+    9:5  warning  Forbidden non-null assertion                                                                                    @typescript-eslint/no-non-null-assertion
+   10:5  warning  Forbidden non-null assertion                                                                                    @typescript-eslint/no-non-null-assertion
+   19:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+   20:3  error    Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read  @typescript-eslint/prefer-nullish-coalescing
+   29:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+   43:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+   57:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+   67:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+   81:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+   98:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+  124:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+  145:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+  161:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+  177:8  warning  Missing return type on function                                                                                 @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\lib\image\segmind.ts
+  79:9   error  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  82:5   error  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  82:17  error  Unsafe member access .image on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+  83:5   error  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  83:16  error  Unsafe member access .seed on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  83:21  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  83:29  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+C:\Users\cja86\Desktop\underfireai\lib\interview\feedback-generator.ts
+  115:11  error    Unsafe assignment of an `any` value                               @typescript-eslint/no-unsafe-assignment
+  118:45  error    Unsafe member access .strengths on an `any` value                 @typescript-eslint/no-unsafe-member-access
+  119:48  error    Unsafe member access .improvements on an `any` value              @typescript-eslint/no-unsafe-member-access
+  120:7   error    Unsafe assignment of an `any` value                               @typescript-eslint/no-unsafe-assignment
+  120:44  error    Unsafe member access .interviewer_impression on an `any` value    @typescript-eslint/no-unsafe-member-access
+  121:18  error    Unsafe member access .interviewer_impression on an `any` value    @typescript-eslint/no-unsafe-member-access
+  123:7   error    Unsafe assignment of an `any` value                               @typescript-eslint/no-unsafe-assignment
+  123:33  error    Unsafe member access .ai_feedback on an `any` value               @typescript-eslint/no-unsafe-member-access
+  124:18  error    Unsafe member access .ai_feedback on an `any` value               @typescript-eslint/no-unsafe-member-access
+  126:45  error    Unsafe member access .key_moments on an `any` value               @typescript-eslint/no-unsafe-member-access
+  127:55  error    Unsafe member access .recommendations on an `any` value           @typescript-eslint/no-unsafe-member-access
+  128:57  error    Unsafe member access .detailed_feedback on an `any` value         @typescript-eslint/no-unsafe-member-access
+  139:8   warning  Async function 'generateQuickFeedback' has no 'await' expression  @typescript-eslint/require-await
+
+C:\Users\cja86\Desktop\underfireai\lib\interview\question-generator.ts
+  100:11  error  Unsafe assignment of an `any` value                                                                              @typescript-eslint/no-unsafe-assignment
+  107:24  error  'q.question || ''' will use Object's default stringification format ('[object Object]') when stringified         @typescript-eslint/no-base-to-string
+  107:35  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator        @typescript-eslint/prefer-nullish-coalescing
+  108:24  error  'q.category || 'general'' will use Object's default stringification format ('[object Object]') when stringified  @typescript-eslint/no-base-to-string
+  108:35  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator        @typescript-eslint/prefer-nullish-coalescing
+  165:3   error  'roleTarget' is defined but never used. Allowed unused args must match /^_/u                                     @typescript-eslint/no-unused-vars
+
+C:\Users\cja86\Desktop\underfireai\lib\interview\response-analyzer.ts
+   93:11  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+   96:25  error    Unsafe argument of type `any` assigned to a parameter of type `number`                                     @typescript-eslint/no-unsafe-argument
+   96:32  error    Unsafe member access .star_score on an `any` value                                                         @typescript-eslint/no-unsafe-member-access
+   96:43  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   97:28  error    Unsafe argument of type `any` assigned to a parameter of type `number`                                     @typescript-eslint/no-unsafe-argument
+   97:35  error    Unsafe member access .clarity_score on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   97:49  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   98:31  error    Unsafe argument of type `any` assigned to a parameter of type `number`                                     @typescript-eslint/no-unsafe-argument
+   98:38  error    Unsafe member access .confidence_score on an `any` value                                                   @typescript-eslint/no-unsafe-member-access
+   98:55  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   99:30  error    Unsafe argument of type `any` assigned to a parameter of type `number`                                     @typescript-eslint/no-unsafe-argument
+   99:37  error    Unsafe member access .relevance_score on an `any` value                                                    @typescript-eslint/no-unsafe-member-access
+   99:53  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  100:26  error    Unsafe argument of type `any` assigned to a parameter of type `number`                                     @typescript-eslint/no-unsafe-argument
+  100:33  error    Unsafe member access .depth_score on an `any` value                                                        @typescript-eslint/no-unsafe-member-access
+  100:45  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  102:7   error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  102:28  error    Unsafe member access .filler_words on an `any` value                                                       @typescript-eslint/no-unsafe-member-access
+  102:41  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  103:7   error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  103:26  error    Unsafe member access .key_points on an `any` value                                                         @typescript-eslint/no-unsafe-member-access
+  103:37  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  151:5   error    Unsafe return of a value of type `any`                                                                     @typescript-eslint/no-unsafe-return
+  199:5   error    Unsafe return of a value of type `any`                                                                     @typescript-eslint/no-unsafe-return
+  211:1   warning  Async function 'analyzeCommunication' has no 'await' expression                                            @typescript-eslint/require-await
+  213:3   error    'responseTimeSeconds' is defined but never used. Allowed unused args must match /^_/u                      @typescript-eslint/no-unused-vars
+  266:80  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  313:43  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+C:\Users\cja86\Desktop\underfireai\lib\interview\score-calculator.ts
+    8:33  error  'SessionScore' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+    9:31  error  'SessionScoringResult' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  178:3   error  'interviewType' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+
+C:\Users\cja86\Desktop\underfireai\lib\middleware.ts
+  11:8   warning  Missing return type on function                                                                            @typescript-eslint/explicit-function-return-type
+  17:5   warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+  18:5   warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+  74:29  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+C:\Users\cja86\Desktop\underfireai\lib\resume\parser.ts
+  123:32  error  Use 'String#startsWith' method instead                                                @typescript-eslint/prefer-string-starts-ends-with
+  219:12  error  'fullMatch' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\cja86\Desktop\underfireai\lib\resume\skill-extractor.ts
+   69:11  error  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+   72:39  error  Unsafe member access .technical on an `any` value                                                          @typescript-eslint/no-unsafe-member-access
+   73:34  error  Unsafe member access .soft on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+   74:35  error  Unsafe member access .tools on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+   75:39  error  Unsafe member access .languages on an `any` value                                                          @typescript-eslint/no-unsafe-member-access
+   76:40  error  Unsafe member access .frameworks on an `any` value                                                         @typescript-eslint/no-unsafe-member-access
+   77:39  error  Unsafe member access .databases on an `any` value                                                          @typescript-eslint/no-unsafe-member-access
+   78:35  error  Unsafe member access .cloud on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+   79:43  error  Unsafe member access .methodologies on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+   80:44  error  Unsafe member access .certifications on an `any` value                                                     @typescript-eslint/no-unsafe-member-access
+  146:11  error  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  150:7   error  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  150:31  error  Unsafe member access .experienceLevel on an `any` value                                                    @typescript-eslint/no-unsafe-member-access
+  150:47  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  151:45  error  Unsafe member access .recommendations on an `any` value                                                    @typescript-eslint/no-unsafe-member-access
+  152:34  error  Unsafe member access .gaps on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+
+C:\Users\cja86\Desktop\underfireai\lib\server.ts
+   14:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   18:5  warning  Forbidden non-null assertion     @typescript-eslint/no-non-null-assertion
+   19:5  warning  Forbidden non-null assertion     @typescript-eslint/no-non-null-assertion
+   43:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   57:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   71:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   96:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  104:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  129:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  158:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  188:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  208:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  235:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\lib\supabase\middleware.ts
+  11:8   warning  Missing return type on function                                                                            @typescript-eslint/explicit-function-return-type
+  17:5   warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+  18:5   warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+  74:29  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+C:\Users\cja86\Desktop\underfireai\lib\supabase\server.ts
+   14:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   18:5  warning  Forbidden non-null assertion     @typescript-eslint/no-non-null-assertion
+   19:5  warning  Forbidden non-null assertion     @typescript-eslint/no-non-null-assertion
+   43:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   57:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   96:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  104:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  129:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  158:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  188:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  208:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  235:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\lib\tts\cartesia-tts.ts
+   97:12  error  "katie" | "kiefer" | "tessa" | "kyle" | "leo" | "maya" is overridden by string in this union type  @typescript-eslint/no-redundant-type-constituents
+  122:35  error  "katie" | "kiefer" | "tessa" | "kyle" | "leo" | "maya" is overridden by string in this union type  @typescript-eslint/no-redundant-type-constituents
+  139:34  error  "katie" | "kiefer" | "tessa" | "kyle" | "leo" | "maya" is overridden by string in this union type  @typescript-eslint/no-redundant-type-constituents
+
+C:\Users\cja86\Desktop\underfireai\lib\utils\cn.ts
+  4:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\middleware.ts
+  4:8  warning  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\cja86\Desktop\underfireai\types\database.ts
+  578:7  error  'never' is overridden by other types in this union type  @typescript-eslint/no-redundant-type-constituents
+
+✖ 590 problems (305 errors, 285 warnings)
+

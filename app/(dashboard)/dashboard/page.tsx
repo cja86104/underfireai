@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   Flame,
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   description: 'Your UnderFireAI interview coaching dashboard.',
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage(): Promise<React.JSX.Element> {
   const [progress, sessions, subscription] = await Promise.all([
     getUserProgress(),
     getUserSessions(5),
@@ -33,14 +34,14 @@ export default async function DashboardPage() {
   const stats = [
     {
       label: 'Total Sessions',
-      value: progress?.total_sessions || 0,
+      value: progress?.total_sessions ?? 0,
       icon: MessageSquare,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
     },
     {
       label: 'Practice Hours',
-      value: `${(progress?.total_hours || 0).toFixed(1)}h`,
+      value: `${(progress?.total_hours ?? 0).toFixed(1)}h`,
       icon: Clock,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
@@ -54,7 +55,7 @@ export default async function DashboardPage() {
     },
     {
       label: 'Current Streak',
-      value: `${progress?.current_streak || 0} days`,
+      value: `${progress?.current_streak ?? 0} days`,
       icon: Zap,
       color: 'text-amber-500',
       bgColor: 'bg-amber-500/10',
@@ -149,12 +150,14 @@ export default async function DashboardPage() {
                 className="flex items-center gap-4 p-5 hover:bg-slate-800/50 transition-colors"
               >
                 {/* Interviewer Avatar */}
-                <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-lg">
+                <div className="relative h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
                   {session.interviewers?.avatar_url ? (
-                    <img
+                    <Image
                       src={session.interviewers.avatar_url}
                       alt={session.interviewers.name}
-                      className="h-full w-full rounded-full object-cover"
+                      fill
+                      className="rounded-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <span className="text-slate-400">
@@ -275,7 +278,7 @@ function QuickTipCard({
   icon: React.ReactNode;
   title: string;
   description: string;
-}) {
+}): React.JSX.Element {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
       <div className="flex items-center gap-3 mb-3">

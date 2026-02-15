@@ -25,7 +25,7 @@ export const AI_MODELS = {
 export const OPENROUTER_CONFIG = {
   baseUrl: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
-    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://underfireai.com',
+    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'https://underfireai.com',
     'X-Title': 'UnderFireAI',
   },
 } as const;

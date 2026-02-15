@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS, SCORING_WEIGHTS } from '@/lib/ai/config';
 import type { ResponseAnalysis } from '@/types/database';
@@ -9,10 +8,19 @@ interface EndInterviewRequest {
   elapsed_seconds: number;
 }
 
+/** Parsed JSON structure from AI feedback generation */
+interface ParsedEndSessionFeedback {
+  strengths?: unknown[];
+  improvements?: unknown[];
+  interviewer_impression?: string;
+  ai_feedback?: string;
+  key_moments?: unknown[];
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
-) {
+): Promise<NextResponse> {
   try {
     const { sessionId } = await params;
     const user = await getCurrentUser();
@@ -24,7 +32,7 @@ export async function POST(
       );
     }
 
-    const body: EndInterviewRequest = await request.json();
+    const body = await request.json() as EndInterviewRequest;
     const { elapsed_seconds } = body;
 
     const supabase = await createClient();
@@ -197,19 +205,19 @@ Return ONLY valid JSON, no markdown or additional text.`;
       // Strip markdown code fences if present
       content = content.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```\s*$/i, '');
 
-      const parsed = JSON.parse(content);
+      const parsed = JSON.parse(content) as ParsedEndSessionFeedback;
 
       // Validate and sanitize parsed result
-      const validatedStrengths = Array.isArray(parsed.strengths)
-        ? parsed.strengths.filter((s: unknown) => typeof s === 'string' && s.length > 0).slice(0, 10)
+      const validatedStrengths: string[] = Array.isArray(parsed.strengths)
+        ? parsed.strengths.filter((s): s is string => typeof s === 'string' && s.length > 0).slice(0, 10)
         : feedback.strengths;
-      const validatedImprovements = Array.isArray(parsed.improvements)
-        ? parsed.improvements.filter((s: unknown) => typeof s === 'string' && s.length > 0).slice(0, 10)
+      const validatedImprovements: string[] = Array.isArray(parsed.improvements)
+        ? parsed.improvements.filter((s): s is string => typeof s === 'string' && s.length > 0).slice(0, 10)
         : feedback.improvements;
-      const validatedKeyMoments = Array.isArray(parsed.key_moments)
+      const validatedKeyMoments: { type: string; description: string }[] = Array.isArray(parsed.key_moments)
         ? parsed.key_moments
             .filter(
-              (m: unknown) =>
+              (m): m is { type: string; description: string } =>
                 typeof m === 'object' &&
                 m !== null &&
                 typeof (m as Record<string, unknown>).type === 'string' &&

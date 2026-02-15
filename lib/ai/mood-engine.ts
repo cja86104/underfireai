@@ -55,7 +55,7 @@ const TRIGGER_DELTAS: Record<MoodTrigger, number> = {
  * Detect mood triggers from a candidate's response analysis.
  */
 export function detectMoodTriggers(params: DetectTriggersParams): TriggerResult[] {
-  const { analysis, redFlags, greenFlags, petPeeves, favoriteTopics, candidateMessage } = params;
+  const { analysis, redFlags, greenFlags, petPeeves: _petPeeves, favoriteTopics, candidateMessage } = params;
   const triggers: TriggerResult[] = [];
   const messageLower = candidateMessage.toLowerCase();
   const keyPointsLower = analysis.key_points.map((kp) => kp.toLowerCase());

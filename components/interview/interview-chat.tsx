@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Send,
@@ -10,14 +11,12 @@ import {
   Play,
   Square,
   MoreVertical,
-  MessageSquare,
   AlertCircle,
   Mic,
   MicOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
-import { formatDistanceToNow } from 'date-fns';
 import { VoiceMode } from './voice-mode';
 import type {
   InterviewMessage,
@@ -28,7 +27,18 @@ import type {
   VoiceConfig,
   CommunicationStyle,
   QuestionPatterns,
+  ResponseAnalysis,
 } from '@/types/database';
+
+/** API response from chat endpoint */
+interface ChatApiResponse {
+  content: string;
+  message_id?: string;
+  user_message_id?: string;
+  interviewer_message_id?: string;
+  analysis?: ResponseAnalysis | null;
+  should_end?: boolean;
+}
 
 interface InterviewChatProps {
   sessionId: string;
@@ -66,14 +76,14 @@ export function InterviewChat({
   interviewType,
   targetRole,
   targetCompany,
-  difficulty,
+  difficulty: _difficulty,
   interviewer,
   interviewerPersonality,
   initialMessages,
   resumeContext,
   startedAt,
   voiceEnabled: initialVoiceEnabled,
-}: InterviewChatProps) {
+}: InterviewChatProps): React.JSX.Element {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -105,11 +115,12 @@ export function InterviewChat({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Start interview if no messages
+  // Start interview if no messages (only on initial mount)
   useEffect(() => {
     if (messages.length === 0 && sessionStatus === 'in_progress') {
-      startInterview();
+      void startInterview();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Track response time and last interviewer message
@@ -121,16 +132,16 @@ export function InterviewChat({
     }
   }, [messages, isLoading]);
 
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSpeakText = useCallback(async (text: string) => {
+  const handleSpeakText = useCallback(async (text: string): Promise<void> => {
     try {
-      const voiceId = interviewer.voiceConfig?.voice_id || 'katie';
-      const speed = interviewer.voiceConfig?.speed || 1.0;
+      const voiceId = interviewer.voiceConfig?.voice_id ?? 'katie';
+      const speed = interviewer.voiceConfig?.speed ?? 1.0;
 
       const response = await fetch('/api/tts', {
         method: 'POST',
@@ -157,15 +168,16 @@ export function InterviewChat({
     }
   }, [interviewer.voiceConfig]);
 
-  const handleVoiceTranscript = useCallback((transcript: string) => {
+  const handleVoiceTranscript = useCallback((transcript: string): void => {
     setInputValue(transcript);
     // Auto-send after short delay to let state update
     setTimeout(() => {
-      sendMessageWithText(transcript);
+      void sendMessageWithText(transcript);
     }, 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startInterview = async () => {
+  const startInterview = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/interview/${sessionId}/chat`, {
@@ -186,10 +198,10 @@ export function InterviewChat({
         throw new Error('Failed to start interview');
       }
 
-      const data = await response.json();
+      const data = await response.json() as ChatApiResponse;
 
       const firstMessage: InterviewMessage = {
-        id: data.message_id,
+        id: data.message_id ?? `msg-${Date.now()}`,
         session_id: sessionId,
         role: 'interviewer',
         content: data.content,
@@ -207,7 +219,7 @@ export function InterviewChat({
     }
   };
 
-  const sendMessageWithText = async (text: string) => {
+  const sendMessageWithText = async (text: string): Promise<void> => {
     if (!text.trim() || isLoading || sessionStatus !== 'in_progress') return;
 
     const userMessage = text.trim();
@@ -253,19 +265,19 @@ export function InterviewChat({
         throw new Error('Failed to send message');
       }
 
-      const data = await response.json();
+      const data = await response.json() as ChatApiResponse;
 
       // Update with actual message IDs and add interviewer response
       setMessages((prev) => {
         const updated = prev.map((msg) =>
           msg.id === tempUserMessage.id
-            ? { ...msg, id: data.user_message_id, analysis: data.analysis }
+            ? { ...msg, id: data.user_message_id ?? msg.id, analysis: data.analysis ?? null }
             : msg
         );
         return [
           ...updated,
           {
-            id: data.interviewer_message_id,
+            id: data.interviewer_message_id ?? `msg-${Date.now()}`,
             session_id: sessionId,
             role: 'interviewer' as const,
             content: data.content,
@@ -292,11 +304,11 @@ export function InterviewChat({
     }
   };
 
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<void> => {
     await sendMessageWithText(inputValue);
   };
 
-  const endInterview = async () => {
+  const endInterview = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/interview/${sessionId}/end`, {
         method: 'POST',
@@ -322,34 +334,34 @@ export function InterviewChat({
     }
   };
 
-  const pauseInterview = async () => {
+  const pauseInterview = async (): Promise<void> => {
     try {
       await fetch(`/api/interview/${sessionId}/pause`, {
         method: 'POST',
       });
       setSessionStatus('paused');
       toast.info('Interview paused');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to pause interview');
     }
   };
 
-  const resumeInterview = async () => {
+  const resumeInterview = async (): Promise<void> => {
     try {
       await fetch(`/api/interview/${sessionId}/resume`, {
         method: 'POST',
       });
       setSessionStatus('in_progress');
       toast.success('Interview resumed');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to resume interview');
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      void sendMessage();
     }
   };
 
@@ -358,12 +370,14 @@ export function InterviewChat({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
+          <div className="relative h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
             {interviewer.avatarUrl ? (
-              <img
+              <Image
                 src={interviewer.avatarUrl}
                 alt={interviewer.name}
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
               />
             ) : (
               <span className="text-slate-300">{interviewer.name[0]}</span>
@@ -434,7 +448,7 @@ export function InterviewChat({
                     <>
                       <button
                         onClick={() => {
-                          pauseInterview();
+                          void pauseInterview();
                           setShowActions(false);
                         }}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
@@ -444,7 +458,7 @@ export function InterviewChat({
                       </button>
                       <button
                         onClick={() => {
-                          endInterview();
+                          void endInterview();
                           setShowActions(false);
                         }}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-slate-700"
@@ -457,7 +471,7 @@ export function InterviewChat({
                   {sessionStatus === 'paused' && (
                     <button
                       onClick={() => {
-                        resumeInterview();
+                        void resumeInterview();
                         setShowActions(false);
                       }}
                       className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
@@ -585,7 +599,7 @@ export function InterviewChat({
               className="flex-1 resize-none rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
             />
             <button
-              onClick={sendMessage}
+              onClick={() => void sendMessage()}
               disabled={!inputValue.trim() || isLoading}
               className="self-end rounded-lg bg-orange-500 px-4 py-3 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

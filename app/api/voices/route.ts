@@ -1,0 +1,58 @@
+import { NextResponse } from 'next/server';
+import { VOICE_OPTIONS, INTERVIEWER_ARCHETYPES } from '@/types/interviewer';
+
+/**
+ * GET /api/voices
+ *
+ * Returns available TTS voices with metadata.
+ * Public endpoint - no auth required.
+ */
+export function GET(): NextResponse {
+  const voices = VOICE_OPTIONS.map((voice) => ({
+    id: voice.id,
+    cartesiaId: voice.cartesiaId,
+    name: voice.name,
+    description: voice.description,
+    gender: voice.gender,
+    tone: voice.tone,
+    suggestedFor: voice.suggestedFor,
+    suggestedForNames: voice.suggestedFor.map((archetype) =>
+      INTERVIEWER_ARCHETYPES[archetype]?.name || archetype
+    ),
+  }));
+
+  // Group voices by tone
+  const byTone = voices.reduce<Record<string, string[]>>((acc, voice) => {
+    const tone = voice.tone;
+    if (!acc[tone]) acc[tone] = [];
+    acc[tone].push(voice.id);
+    return acc;
+  }, {});
+
+  // Group voices by gender
+  const byGender = voices.reduce<Record<string, string[]>>((acc, voice) => {
+    const gender = voice.gender;
+    if (!acc[gender]) acc[gender] = [];
+    acc[gender].push(voice.id);
+    return acc;
+  }, {});
+
+  return NextResponse.json({
+    provider: 'cartesia',
+    model: 'sonic-3',
+    voices,
+    defaultVoice: 'katie',
+    groupings: {
+      byTone,
+      byGender,
+    },
+    totalVoices: voices.length,
+    features: {
+      streaming: true,
+      lowLatency: true,
+      timeToFirstAudio: '40-90ms',
+      maxCharacters: 10000,
+      supportedSpeeds: ['slow', 'normal', 'fast'],
+    },
+  });
+}

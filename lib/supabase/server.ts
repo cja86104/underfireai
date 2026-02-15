@@ -1,7 +1,8 @@
-import { createServerClient } from '@supabase/ssr';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+// Return types are intentionally inferred to match Supabase client types exactly
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database, Profile, Interviewer, UserResume, UserProgress } from '@/types/database';
-import type { CookieOptions } from '@supabase/ssr';
 
 interface CookieToSet {
   name: string;
@@ -15,9 +16,16 @@ interface CookieToSet {
 export async function createClient() {
   const cookieStore = await cookies();
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are not configured');
+  }
+
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {

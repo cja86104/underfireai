@@ -12,17 +12,16 @@ import {
   ArrowDown,
   Minus,
 } from 'lucide-react';
-import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser, getUserProgress, getUserSessions } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils/cn';
-import { format, subDays, startOfWeek, eachDayOfInterval } from 'date-fns';
+import { format, startOfWeek, eachDayOfInterval } from 'date-fns';
 
 export const metadata: Metadata = {
   title: 'Progress',
   description: 'Track your interview preparation progress over time.',
 };
 
-export default async function ProgressPage() {
+export default async function ProgressPage(): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -50,8 +49,8 @@ export default async function ProgressPage() {
       count: daySessions.length,
       avgScore: daySessions.length > 0
         ? Math.round(
-            daySessions.reduce((acc, s) => acc + (s.session_scores?.overall_score || 0), 0) /
-            daySessions.filter((s) => s.session_scores?.overall_score).length || 1
+            daySessions.reduce((acc, s) => acc + (s.session_scores?.overall_score ?? 0), 0) /
+            (daySessions.filter((s) => s.session_scores?.overall_score).length || 1)
           )
         : 0,
     };
@@ -65,7 +64,7 @@ export default async function ProgressPage() {
 
   const scoreTrend = completedSessions.map((s, idx) => ({
     session: idx + 1,
-    score: s.session_scores?.overall_score || 0,
+    score: s.session_scores?.overall_score ?? 0,
     date: format(new Date(s.started_at), 'MMM d'),
   }));
 
@@ -73,15 +72,15 @@ export default async function ProgressPage() {
   const recentScores = completedSessions.slice(-5);
   const olderScores = completedSessions.slice(0, 5);
   const recentAvg = recentScores.length > 0
-    ? recentScores.reduce((acc, s) => acc + (s.session_scores?.overall_score || 0), 0) / recentScores.length
+    ? recentScores.reduce((acc, s) => acc + (s.session_scores?.overall_score ?? 0), 0) / recentScores.length
     : 0;
   const olderAvg = olderScores.length > 0
-    ? olderScores.reduce((acc, s) => acc + (s.session_scores?.overall_score || 0), 0) / olderScores.length
+    ? olderScores.reduce((acc, s) => acc + (s.session_scores?.overall_score ?? 0), 0) / olderScores.length
     : 0;
   const scoreChange = recentAvg - olderAvg;
 
   // Interview type breakdown
-  const typeBreakdown = sessions.reduce((acc, s) => {
+  const typeBreakdown = sessions.reduce<Record<string, { count: number; totalScore: number; scoredCount: number }>>((acc, s) => {
     const type = s.interview_type;
     if (!acc[type]) {
       acc[type] = { count: 0, totalScore: 0, scoredCount: 0 };
@@ -92,7 +91,7 @@ export default async function ProgressPage() {
       acc[type].scoredCount++;
     }
     return acc;
-  }, {} as Record<string, { count: number; totalScore: number; scoredCount: number }>);
+  }, {});
 
   const typeStats = Object.entries(typeBreakdown).map(([type, data]) => ({
     type,
@@ -102,7 +101,7 @@ export default async function ProgressPage() {
   })).sort((a, b) => b.count - a.count);
 
   // Badges
-  const badges = progress?.badges || [];
+  const badges = progress?.badges ?? [];
 
   return (
     <div className="space-y-6">
@@ -119,13 +118,13 @@ export default async function ProgressPage() {
         <StatCard
           icon={<Target className="h-5 w-5" />}
           label="Total Sessions"
-          value={progress?.total_sessions || 0}
+          value={progress?.total_sessions ?? 0}
           color="blue"
         />
         <StatCard
           icon={<Clock className="h-5 w-5" />}
           label="Practice Hours"
-          value={`${(progress?.total_hours || 0).toFixed(1)}h`}
+          value={`${(progress?.total_hours ?? 0).toFixed(1)}h`}
           color="purple"
         />
         <StatCard
@@ -138,8 +137,8 @@ export default async function ProgressPage() {
         <StatCard
           icon={<Zap className="h-5 w-5" />}
           label="Current Streak"
-          value={`${progress?.current_streak || 0} days`}
-          subtext={`Best: ${progress?.longest_streak || 0} days`}
+          value={`${progress?.current_streak ?? 0} days`}
+          subtext={`Best: ${progress?.longest_streak ?? 0} days`}
           color="amber"
         />
       </div>
@@ -186,8 +185,8 @@ export default async function ProgressPage() {
           </div>
           {scoreTrend.length > 0 ? (
             <div className="space-y-3">
-              {scoreTrend.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3">
+              {scoreTrend.map((item) => (
+                <div key={item.date} className="flex items-center gap-3">
                   <span className="text-xs text-slate-500 w-16">{item.date}</span>
                   <div className="flex-1 h-6 bg-slate-800 rounded-full overflow-hidden">
                     <div
@@ -323,7 +322,7 @@ function StatCard({
   change?: number;
   subtext?: string;
   color: 'blue' | 'purple' | 'green' | 'amber';
-}) {
+}): React.JSX.Element {
   const colorClasses = {
     blue: 'bg-blue-500/10 text-blue-500',
     purple: 'bg-purple-500/10 text-purple-500',

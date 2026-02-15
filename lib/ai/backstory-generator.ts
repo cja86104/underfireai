@@ -6,8 +6,8 @@
  */
 
 import { createChatCompletion } from './chat-client';
-import { AI_MODELS, MODEL_PARAMS } from './config';
-import type { InterviewerArchetype, ArchetypeDefinition } from '@/types/interviewer';
+import { AI_MODELS } from './config';
+import type { InterviewerArchetype } from '@/types/interviewer';
 
 interface BackstoryParams {
   archetypeId: InterviewerArchetype;

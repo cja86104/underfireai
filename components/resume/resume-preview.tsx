@@ -96,7 +96,7 @@ function calculateDuration(startDate: string, endDate: string | null): string {
   return `${years} yr${years !== 1 ? 's' : ''} ${remainingMonths} mo${remainingMonths !== 1 ? 's' : ''}`;
 }
 
-function ResumeHeader({ parsedData, targetRole, experienceYears }: ResumeHeaderProps) {
+function ResumeHeader({ parsedData, targetRole, experienceYears }: ResumeHeaderProps): React.JSX.Element {
   return (
     <div className="space-y-4">
       {/* Name and Contact */}
@@ -149,7 +149,7 @@ function ResumeHeader({ parsedData, targetRole, experienceYears }: ResumeHeaderP
   );
 }
 
-function ExperienceCard({ experience, isLast }: ExperienceCardProps) {
+function ExperienceCard({ experience, isLast }: ExperienceCardProps): React.JSX.Element {
   const [isExpanded, setIsExpanded] = useState(false);
   const hasHighlights = experience.highlights && experience.highlights.length > 0;
   const duration = calculateDuration(experience.start_date, experience.end_date);
@@ -215,9 +215,9 @@ function ExperienceCard({ experience, isLast }: ExperienceCardProps) {
 
             {isExpanded && (
               <ul className="space-y-1.5 mt-2">
-                {experience.highlights.map((highlight, i) => (
+                {experience.highlights.map((highlight) => (
                   <li
-                    key={i}
+                    key={highlight}
                     className="text-sm text-charcoal-500 flex items-start gap-2"
                   >
                     <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -233,7 +233,7 @@ function ExperienceCard({ experience, isLast }: ExperienceCardProps) {
   );
 }
 
-function EducationCard({ education }: EducationCardProps) {
+function EducationCard({ education }: EducationCardProps): React.JSX.Element {
   return (
     <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
       <div className="rounded-full bg-blue-100 p-2">
@@ -253,7 +253,7 @@ function EducationCard({ education }: EducationCardProps) {
   );
 }
 
-function SkillsList({ skills, maxVisible = 12, editable = false }: SkillsListProps) {
+function SkillsList({ skills, maxVisible = 12, editable = false }: SkillsListProps): React.JSX.Element {
   const [showAll, setShowAll] = useState(false);
   const visibleSkills = showAll ? skills : skills.slice(0, maxVisible);
   const hiddenCount = skills.length - maxVisible;
@@ -261,9 +261,9 @@ function SkillsList({ skills, maxVisible = 12, editable = false }: SkillsListPro
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        {visibleSkills.map((skill, i) => (
+        {visibleSkills.map((skill) => (
           <span
-            key={i}
+            key={skill}
             className={cn(
               'px-2.5 py-1 text-xs rounded-full border',
               'bg-stone-50 border-stone-200 text-charcoal-700',
@@ -304,7 +304,7 @@ export function ResumePreview({
   editable = false,
   onEdit,
   className,
-}: ResumePreviewProps) {
+}: ResumePreviewProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'parsed' | 'raw'>('parsed');
   const parsedData = resume.parsed_data;
 
@@ -411,7 +411,7 @@ export function ResumePreview({
                 <div>
                   {parsedData.experience.map((exp, i) => (
                     <ExperienceCard
-                      key={i}
+                      key={`${exp.title}-${exp.company}`}
                       experience={exp}
                       isLast={i === parsedData.experience.length - 1}
                     />
@@ -428,8 +428,8 @@ export function ResumePreview({
                   Education
                 </h3>
                 <div className="space-y-2">
-                  {parsedData.education.map((edu, i) => (
-                    <EducationCard key={i} education={edu} />
+                  {parsedData.education.map((edu) => (
+                    <EducationCard key={`${edu.degree}-${edu.institution}`} education={edu} />
                   ))}
                 </div>
               </div>
@@ -443,9 +443,9 @@ export function ResumePreview({
                   Certifications
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {parsedData.certifications!.map((cert, i) => (
+                  {parsedData.certifications?.map((cert) => (
                     <span
-                      key={i}
+                      key={cert}
                       className="px-3 py-1.5 text-xs rounded-lg bg-amber-50 border border-amber-200 text-amber-700"
                     >
                       {cert}
@@ -481,7 +481,7 @@ export function ResumeCard({
   selected?: boolean;
   onSelect?: () => void;
   className?: string;
-}) {
+}): React.JSX.Element {
   const parsedData = resume.parsed_data;
 
   return (
@@ -515,7 +515,7 @@ export function ResumeCard({
           </div>
           <div>
             <h4 className="font-medium text-charcoal-900">
-              {parsedData?.name || 'Unnamed Resume'}
+              {parsedData?.name ?? 'Unnamed Resume'}
             </h4>
             {resume.target_role && (
               <p className="text-xs text-charcoal-500">{resume.target_role}</p>
@@ -535,9 +535,9 @@ export function ResumeCard({
 
       {resume.skills && resume.skills.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1">
-          {resume.skills.slice(0, 5).map((skill, i) => (
+          {resume.skills.slice(0, 5).map((skill) => (
             <span
-              key={i}
+              key={skill}
               className="px-2 py-0.5 text-xs rounded bg-stone-100 text-charcoal-600"
             >
               {skill}

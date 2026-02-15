@@ -12,7 +12,7 @@ interface SettingsPageProps {
   searchParams: Promise<{ tab?: string; reason?: string }>;
 }
 
-export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+export default async function SettingsPage({ searchParams }: SettingsPageProps): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -25,7 +25,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   ]);
 
   const params = await searchParams;
-  const activeTab = params.tab || 'profile';
+  const activeTab = params.tab ?? 'profile';
   const reason = params.reason;
 
   return (
@@ -52,17 +52,17 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         activeTab={activeTab}
         user={{
           id: user.id,
-          email: user.email || '',
-          fullName: profile?.full_name || null,
-          avatarUrl: profile?.avatar_url || null,
+          email: user.email ?? '',
+          fullName: profile?.full_name ?? null,
+          avatarUrl: profile?.avatar_url ?? null,
         }}
         subscription={{
           tier: subscription.tier,
           status: subscription.status,
-          periodEnd: subscription.periodEnd || null,
+          periodEnd: subscription.periodEnd ?? null,
           interviewsRemaining: subscription.interviewsRemaining,
         }}
-        onboardingCompleted={profile?.onboarding_completed || false}
+        onboardingCompleted={profile?.onboarding_completed ?? false}
       />
     </div>
   );

@@ -94,7 +94,7 @@ export function StreakBadge({
   size = 'md',
   showLabel = true,
   animated = true,
-}: StreakBadgeProps) {
+}: StreakBadgeProps): React.JSX.Element {
   const level = getStreakLevel(streak);
 
   const sizeClasses = {
@@ -141,7 +141,7 @@ export function WeeklyProgress({
   current,
   goal,
   className,
-}: WeeklyProgressProps) {
+}: WeeklyProgressProps): React.JSX.Element {
   const percentage = Math.min((current / goal) * 100, 100);
   const isComplete = current >= goal;
 
@@ -192,7 +192,7 @@ export function StreakDisplay({
   weeklyGoal = 5,
   sessionsThisWeek = 0,
   className,
-}: StreakDisplayProps) {
+}: StreakDisplayProps): React.JSX.Element {
   const level = useMemo(() => getStreakLevel(currentStreak), [currentStreak]);
   const daysSinceLast = getDaysSinceLastSession(lastSessionDate ?? null);
 
@@ -317,7 +317,7 @@ export function StreakIndicator({
 }: {
   streak: number;
   className?: string;
-}) {
+}): React.JSX.Element | null {
   if (streak === 0) return null;
 
   return (

@@ -59,7 +59,7 @@ const DEFAULT_SUGGESTIONS = [
   'C++',
 ];
 
-function SkillTag({ skill, onRemove, disabled, draggable }: SkillTagProps) {
+function SkillTag({ skill, onRemove, disabled, draggable }: SkillTagProps): React.JSX.Element {
   return (
     <div
       className={cn(
@@ -88,7 +88,7 @@ function SkillTag({ skill, onRemove, disabled, draggable }: SkillTagProps) {
   );
 }
 
-function SkillSuggestion({ skill, onAdd, isAdded }: SkillSuggestionProps) {
+function SkillSuggestion({ skill, onAdd, isAdded }: SkillSuggestionProps): React.JSX.Element {
   return (
     <button
       type="button"
@@ -120,7 +120,7 @@ export function SkillsEditor({
   placeholder = 'Add a skill...',
   disabled = false,
   className,
-}: SkillsEditorProps) {
+}: SkillsEditorProps): React.JSX.Element {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -153,7 +153,7 @@ export function SkillsEditor({
     [skills, onChange]
   );
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddSkill(inputValue);
@@ -279,7 +279,7 @@ export function SkillsDisplay({
   maxVisible?: number;
   size?: 'sm' | 'md';
   className?: string;
-}) {
+}): React.JSX.Element {
   const [showAll, setShowAll] = useState(false);
   const visibleSkills = showAll ? skills : skills.slice(0, maxVisible);
   const hiddenCount = skills.length - maxVisible;

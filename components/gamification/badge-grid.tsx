@@ -112,7 +112,7 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function BadgeCard({ badge, onClick }: BadgeCardProps) {
+function BadgeCard({ badge, onClick }: BadgeCardProps): React.JSX.Element {
   const isEarned = !!badge.earnedAt;
   const tier = TIER_CONFIG[badge.tier];
   const Icon = ICON_MAP[badge.icon] || Trophy;
@@ -185,7 +185,7 @@ function BadgeCard({ badge, onClick }: BadgeCardProps) {
   );
 }
 
-function BadgeDetailModal({ badge, onClose }: BadgeDetailModalProps) {
+function BadgeDetailModal({ badge, onClose }: BadgeDetailModalProps): React.JSX.Element | null {
   if (!badge) return null;
 
   const isEarned = !!badge.earnedAt;
@@ -305,7 +305,7 @@ export function BadgeGrid({
   columns = 4,
   onBadgeClick,
   className,
-}: BadgeGridProps) {
+}: BadgeGridProps): React.JSX.Element {
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
 
   const filteredBadges = showLocked
@@ -320,7 +320,7 @@ export function BadgeGrid({
     5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
   };
 
-  const handleBadgeClick = (badge: Badge) => {
+  const handleBadgeClick = (badge: Badge): void => {
     if (onBadgeClick) {
       onBadgeClick(badge);
     } else {
@@ -382,7 +382,7 @@ export function BadgeShowcase({
   badges: Badge[];
   maxVisible?: number;
   className?: string;
-}) {
+}): React.JSX.Element {
   const earnedBadges = badges.filter((b) => b.earnedAt);
   const visibleBadges = earnedBadges.slice(0, maxVisible);
   const hiddenCount = Math.max(0, earnedBadges.length - maxVisible);
@@ -438,7 +438,7 @@ export function BadgeDisplay({
   size?: 'sm' | 'md' | 'lg';
   showName?: boolean;
   className?: string;
-}) {
+}): React.JSX.Element {
   const isEarned = !!badge.earnedAt;
   const tier = TIER_CONFIG[badge.tier];
   const Icon = ICON_MAP[badge.icon] || Trophy;

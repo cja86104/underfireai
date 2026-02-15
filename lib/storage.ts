@@ -8,7 +8,7 @@
  * 2. "session-recordings" - for interview audio recordings
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import { type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
 const RESUME_BUCKET = 'resumes';
@@ -43,7 +43,7 @@ export async function uploadResume(
   }
 
   const timestamp = Date.now();
-  const ext = file.name.split('.').pop() || 'pdf';
+  const ext = file.name.split('.').pop() ?? 'pdf';
   const filePath = `${userId}/${timestamp}-resume.${ext}`;
 
   try {
@@ -180,7 +180,7 @@ export async function getSignedUrl(
  * Get file type category
  */
 export function getFileType(filename: string): 'resume' | 'audio' | 'other' {
-  const ext = filename.toLowerCase().split('.').pop() || '';
+  const ext = filename.toLowerCase().split('.').pop() ?? '';
   
   const resumeExts = ['pdf', 'doc', 'docx', 'txt'];
   const audioExts = ['webm', 'mp3', 'wav', 'm4a', 'ogg'];

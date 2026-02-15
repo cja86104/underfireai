@@ -6,7 +6,6 @@ import {
   TrendingDown,
   Minus,
   BarChart3,
-  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
@@ -58,7 +57,7 @@ export function ScoreChart({
   showTrend = true,
   showLabels = true,
   className,
-}: ScoreChartProps) {
+}: ScoreChartProps): React.JSX.Element {
   const chartData = useMemo(() => {
     if (data.length === 0) return { points: [], min: 0, max: 100, avg: 0, trend: 0 };
 
@@ -194,9 +193,9 @@ export function ScoreChart({
           />
 
           {/* Data points */}
-          {chartData.points.map((point, i) => (
+          {chartData.points.map((point) => (
             <circle
-              key={i}
+              key={`${point.x}-${point.y}`}
               cx={`${point.x}%`}
               cy={point.y}
               r="4"
@@ -211,8 +210,8 @@ export function ScoreChart({
         {/* X-axis labels */}
         {showLabels && data.length <= 10 && (
           <div className="flex justify-between mt-2 text-xs text-charcoal-400">
-            {data.map((d, i) => (
-              <span key={i}>{formatDate(d.date)}</span>
+            {data.map((d) => (
+              <span key={d.date}>{formatDate(d.date)}</span>
             ))}
           </div>
         )}
@@ -250,7 +249,7 @@ export function ScoreSparkline({
   height = 24,
   color = '#f97316',
   className,
-}: ScoreSparklineProps) {
+}: ScoreSparklineProps): React.JSX.Element | null {
   if (data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -292,7 +291,7 @@ export function ScoreTrend({
   previous,
   period = 'vs last session',
   className,
-}: ScoreTrendProps) {
+}: ScoreTrendProps): React.JSX.Element {
   const diff = current - previous;
   const percentage = previous ? ((diff / previous) * 100).toFixed(1) : '0';
 

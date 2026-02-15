@@ -1,19 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-});
+// Lazy initialization to avoid build-time errors
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+    }
+    _stripe = new Stripe(secretKey, {
+      apiVersion: '2025-02-24.acacia',
+    });
+  }
+  return _stripe;
+}
 
-// Use service role for webhook (bypasses RLS)
-const supabaseAdmin = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization for Supabase admin client
+let _supabaseAdmin: ReturnType<typeof createClient<Database>> | null = null;
+function getSupabaseAdmin(): ReturnType<typeof createClient<Database>> {
+  if (!_supabaseAdmin) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Supabase environment variables are not set');
+    }
+    _supabaseAdmin = createClient<Database>(supabaseUrl, serviceRoleKey);
+  }
+  return _supabaseAdmin;
+}
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
 
@@ -26,11 +45,20 @@ export async function POST(request: NextRequest) {
 
   let event: Stripe.Event;
 
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error('STRIPE_WEBHOOK_SECRET is not set');
+    return NextResponse.json(
+      { error: 'Server configuration error' },
+      { status: 500 }
+    );
+  }
+
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      webhookSecret
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
@@ -44,38 +72,38 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object;
         await handleCheckoutCompleted(session);
         break;
       }
 
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object;
         await handleSubscriptionUpdate(subscription);
         break;
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object;
         await handleSubscriptionCanceled(subscription);
         break;
       }
 
       case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object;
         await handlePaymentSucceeded(invoice);
         break;
       }
 
       case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object;
         await handlePaymentFailed(invoice);
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.warn(`Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
@@ -89,7 +117,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
   const userId = session.metadata?.user_id;
   const tier = session.metadata?.tier as 'pro' | 'premium';
 
@@ -101,9 +129,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const subscriptionId = session.subscription as string;
 
   // Fetch subscription details
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
 
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseAdmin()
     .from('profiles')
     .update({
       subscription_tier: tier,
@@ -119,14 +147,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     throw error;
   }
 
-  console.log(`User ${userId} upgraded to ${tier}`);
+  // User upgraded successfully
 }
 
-async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdate(subscription: Stripe.Subscription): Promise<void> {
   const customerId = subscription.customer as string;
 
   // Find user by customer ID
-  const { data: profile, error: findError } = await supabaseAdmin
+  const { data: profile, error: findError } = await getSupabaseAdmin()
     .from('profiles')
     .select('id')
     .eq('stripe_customer_id', customerId)
@@ -153,7 +181,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   else if (subscription.status === 'canceled') status = 'canceled';
   else if (subscription.status === 'trialing') status = 'trialing';
 
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseAdmin()
     .from('profiles')
     .update({
       subscription_tier: tier,
@@ -168,14 +196,14 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     throw error;
   }
 
-  console.log(`Updated subscription for user ${profile.id}: ${tier} (${status})`);
+  // Subscription updated successfully
 }
 
-async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
+async function handleSubscriptionCanceled(subscription: Stripe.Subscription): Promise<void> {
   const customerId = subscription.customer as string;
 
   // Find user by customer ID
-  const { data: profile, error: findError } = await supabaseAdmin
+  const { data: profile, error: findError } = await getSupabaseAdmin()
     .from('profiles')
     .select('id')
     .eq('stripe_customer_id', customerId)
@@ -186,7 +214,7 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
     return;
   }
 
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseAdmin()
     .from('profiles')
     .update({
       subscription_tier: 'free',
@@ -201,14 +229,14 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
     throw error;
   }
 
-  console.log(`Canceled subscription for user ${profile.id}`);
+  // Subscription canceled successfully
 }
 
-async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
+async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
   const customerId = invoice.customer as string;
 
   // Find user by customer ID
-  const { data: profile, error: findError } = await supabaseAdmin
+  const { data: profile, error: findError } = await getSupabaseAdmin()
     .from('profiles')
     .select('id')
     .eq('stripe_customer_id', customerId)
@@ -220,7 +248,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   }
 
   // Reset monthly interview count on successful renewal
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseAdmin()
     .from('profiles')
     .update({
       subscription_status: 'active',
@@ -232,14 +260,14 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     console.error('Error updating after payment:', error);
   }
 
-  console.log(`Payment succeeded for user ${profile.id}`);
+  // Payment succeeded
 }
 
-async function handlePaymentFailed(invoice: Stripe.Invoice) {
+async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const customerId = invoice.customer as string;
 
   // Find user by customer ID
-  const { data: profile, error: findError } = await supabaseAdmin
+  const { data: profile, error: findError } = await getSupabaseAdmin()
     .from('profiles')
     .select('id')
     .eq('stripe_customer_id', customerId)
@@ -249,7 +277,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     return;
   }
 
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseAdmin()
     .from('profiles')
     .update({
       subscription_status: 'past_due',
@@ -260,5 +288,5 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     console.error('Error updating after failed payment:', error);
   }
 
-  console.log(`Payment failed for user ${profile.id}`);
+  console.warn(`Payment failed for user ${profile.id}`);
 }

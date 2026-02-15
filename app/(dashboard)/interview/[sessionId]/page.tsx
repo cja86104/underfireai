@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser, getUserResume } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getUserResume } from '@/lib/supabase/server';
 import { InterviewChat } from '@/components/interview/interview-chat';
 import type { PersonalityBase, InterviewerMood, VoiceConfig, InterviewMessage, CommunicationStyle, QuestionPatterns } from '@/types/database';
 
@@ -17,7 +16,7 @@ export async function generateMetadata({ params }: InterviewSessionPageProps): P
   };
 }
 
-export default async function InterviewSessionPage({ params }: InterviewSessionPageProps) {
+export default async function InterviewSessionPage({ params }: InterviewSessionPageProps): Promise<React.JSX.Element> {
   const { sessionId } = await params;
   const user = await getCurrentUser();
 
@@ -63,7 +62,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
 
   // Extract interviewer data
   const interviewer = session.interviewers;
-  const personality = interviewer?.interviewer_personality || null;
+  const personality = interviewer?.interviewer_personality ?? null;
 
   // Build resume context string
   let resumeContext: string | null = null;
@@ -117,7 +116,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
           petPeeves: personality.pet_peeves,
           favoriteTopics: personality.favorite_topics,
         } : null}
-        initialMessages={(messages || []) as unknown as InterviewMessage[]}
+        initialMessages={(messages ?? []) as unknown as InterviewMessage[]}
         resumeContext={resumeContext}
         startedAt={session.started_at}
         voiceEnabled={!!(interviewer.voice_config as VoiceConfig | null)?.tts_enabled}

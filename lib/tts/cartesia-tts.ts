@@ -94,7 +94,7 @@ export interface VoiceConfig {
  */
 export interface GenerateSpeechOptions {
   text: string;
-  voiceId: CartesiaVoiceId | string;
+  voiceId: string;
   speed?: TTSSpeed;
   language?: string;
 }
@@ -119,7 +119,7 @@ export function isCartesiaConfigured(): boolean {
 /**
  * Get voice by ID (either key name or raw ID)
  */
-export function getVoice(voiceId: CartesiaVoiceId | string): typeof CARTESIA_VOICES[CartesiaVoiceId] | null {
+export function getVoice(voiceId: string): typeof CARTESIA_VOICES[CartesiaVoiceId] | null {
   // Check if it's a key name
   if (voiceId in CARTESIA_VOICES) {
     return CARTESIA_VOICES[voiceId as CartesiaVoiceId];
@@ -136,7 +136,7 @@ export function getVoice(voiceId: CartesiaVoiceId | string): typeof CARTESIA_VOI
 /**
  * Get the raw Cartesia voice ID from either a key name or raw ID
  */
-function resolveVoiceId(voiceId: CartesiaVoiceId | string): string {
+function resolveVoiceId(voiceId: string): string {
   // If it's a known key, get the ID
   if (voiceId in CARTESIA_VOICES) {
     return CARTESIA_VOICES[voiceId as CartesiaVoiceId].id;
@@ -336,7 +336,7 @@ export function isValidVoiceConfig(config: unknown): config is VoiceConfig {
   }
 
   // Validate voice ID exists
-  const voice = getVoice(c.voiceId as string);
+  const voice = getVoice(c.voiceId);
   if (!voice) {
     return false;
   }

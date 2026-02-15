@@ -39,6 +39,13 @@ export interface ChatCompletionResponse {
   };
 }
 
+/** API error response structure */
+interface APIErrorResponse {
+  error?: {
+    message?: string;
+  };
+}
+
 /**
  * Create a chat completion using OpenRouter
  */
@@ -52,7 +59,7 @@ export async function createChatCompletion(
     throw new Error('OPENROUTER_API_KEY is not configured');
   }
 
-  const model = options.model || AI_MODELS.INTERVIEW;
+  const model = options.model ?? AI_MODELS.INTERVIEW;
   const params = {
     ...MODEL_PARAMS.interview,
     ...options,
@@ -78,13 +85,13 @@ export async function createChatCompletion(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as APIErrorResponse;
     throw new Error(
-      `OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`
+      `OpenRouter API error: ${response.status} - ${errorData.error?.message ?? response.statusText}`
     );
   }
 
-  return response.json();
+  return response.json() as Promise<ChatCompletionResponse>;
 }
 
 /**
@@ -100,7 +107,7 @@ export async function createStreamingChatCompletion(
     throw new Error('OPENROUTER_API_KEY is not configured');
   }
 
-  const model = options.model || AI_MODELS.INTERVIEW;
+  const model = options.model ?? AI_MODELS.INTERVIEW;
   const params = {
     ...MODEL_PARAMS.interview,
     ...options,
@@ -126,9 +133,9 @@ export async function createStreamingChatCompletion(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as APIErrorResponse;
     throw new Error(
-      `OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`
+      `OpenRouter API error: ${response.status} - ${errorData.error?.message ?? response.statusText}`
     );
   }
 
@@ -137,6 +144,15 @@ export async function createStreamingChatCompletion(
   }
 
   return response.body;
+}
+
+/** SSE stream chunk structure */
+interface SSEStreamChunk {
+  choices?: {
+    delta?: {
+      content?: string;
+    };
+  }[];
 }
 
 /**
@@ -155,7 +171,7 @@ export function parseSSEChunk(chunk: string): string {
       }
 
       try {
-        const parsed = JSON.parse(data);
+        const parsed = JSON.parse(data) as SSEStreamChunk;
         const delta = parsed.choices?.[0]?.delta?.content;
         if (delta) {
           content += delta;
@@ -357,18 +373,18 @@ Analyze this response and return JSON:
       }
     );
 
-    const content = completion.choices[0]?.message?.content || '{}';
-    const parsed = JSON.parse(content);
+    const content = completion.choices[0]?.message?.content ?? '{}';
+    const parsed = JSON.parse(content) as Record<string, unknown>;
 
     return {
-      star_score: Math.min(100, Math.max(0, parsed.star_score || 0)),
-      clarity_score: Math.min(100, Math.max(0, parsed.clarity_score || 0)),
-      confidence_score: Math.min(100, Math.max(0, parsed.confidence_score || 0)),
-      relevance_score: Math.min(100, Math.max(0, parsed.relevance_score || 0)),
-      depth_score: Math.min(100, Math.max(0, parsed.depth_score || 0)),
+      star_score: Math.min(100, Math.max(0, (parsed.star_score as number) ?? 0)),
+      clarity_score: Math.min(100, Math.max(0, (parsed.clarity_score as number) ?? 0)),
+      confidence_score: Math.min(100, Math.max(0, (parsed.confidence_score as number) ?? 0)),
+      relevance_score: Math.min(100, Math.max(0, (parsed.relevance_score as number) ?? 0)),
+      depth_score: Math.min(100, Math.max(0, (parsed.depth_score as number) ?? 0)),
       word_count: response.split(/\s+/).length,
-      filler_words: parsed.filler_words || [],
-      key_points: parsed.key_points || [],
+      filler_words: (parsed.filler_words as string[]) ?? [],
+      key_points: (parsed.key_points as string[]) ?? [],
     };
   } catch (error) {
     console.error('Error analyzing response:', error);

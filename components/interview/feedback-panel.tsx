@@ -111,7 +111,7 @@ const PRIORITY_CONFIG: Record<
   },
 };
 
-function KeyMomentCard({ moment, index }: KeyMomentCardProps) {
+function KeyMomentCard({ moment, index }: KeyMomentCardProps): React.JSX.Element {
   const config = MOMENT_CONFIG[moment.type];
   const Icon = config.icon;
 
@@ -172,7 +172,7 @@ function FeedbackSectionCard({
   section,
   icon: Icon,
   defaultExpanded = false,
-}: FeedbackSectionCardProps) {
+}: FeedbackSectionCardProps): React.JSX.Element {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const benchmark = getScoreBenchmark(section.score);
 
@@ -213,9 +213,9 @@ function FeedbackSectionCard({
                 Highlights
               </h4>
               <ul className="space-y-1">
-                {section.highlights.map((highlight, i) => (
+                {section.highlights.map((highlight) => (
                   <li
-                    key={i}
+                    key={highlight}
                     className="text-sm text-charcoal-500 flex items-start gap-2"
                   >
                     <span className="text-green-500 mt-1">•</span>
@@ -233,9 +233,9 @@ function FeedbackSectionCard({
                 Areas for Improvement
               </h4>
               <ul className="space-y-1">
-                {section.improvements.map((improvement, i) => (
+                {section.improvements.map((improvement) => (
                   <li
-                    key={i}
+                    key={improvement}
                     className="text-sm text-charcoal-500 flex items-start gap-2"
                   >
                     <span className="text-amber-500 mt-1">•</span>
@@ -251,7 +251,7 @@ function FeedbackSectionCard({
   );
 }
 
-function RecommendationCard({ recommendation }: RecommendationCardProps) {
+function RecommendationCard({ recommendation }: RecommendationCardProps): React.JSX.Element {
   const [showExercise, setShowExercise] = useState(false);
   const config = PRIORITY_CONFIG[recommendation.priority];
 
@@ -302,7 +302,7 @@ export function FeedbackPanel({
   detailedFeedback,
   recommendations,
   className,
-}: FeedbackPanelProps) {
+}: FeedbackPanelProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'overview' | 'moments' | 'detailed' | 'recommendations'>('overview');
 
   const tabs = [
@@ -366,9 +366,9 @@ export function FeedbackPanel({
                   What You Did Well
                 </h3>
                 <ul className="space-y-2">
-                  {strengths.map((strength, i) => (
+                  {strengths.map((strength) => (
                     <li
-                      key={i}
+                      key={strength}
                       className="text-sm text-charcoal-700 flex items-start gap-2"
                     >
                       <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
@@ -385,9 +385,9 @@ export function FeedbackPanel({
                   Areas to Develop
                 </h3>
                 <ul className="space-y-2">
-                  {improvements.map((improvement, i) => (
+                  {improvements.map((improvement) => (
                     <li
-                      key={i}
+                      key={improvement}
                       className="text-sm text-charcoal-700 flex items-start gap-2"
                     >
                       <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
@@ -407,8 +407,8 @@ export function FeedbackPanel({
               <Clock className="h-4 w-4" />
               <span>{keyMoments.length} key moments identified</span>
             </div>
-            {keyMoments.map((moment, i) => (
-              <KeyMomentCard key={i} moment={moment} index={moment.messageIndex} />
+            {keyMoments.map((moment) => (
+              <KeyMomentCard key={moment.messageIndex} moment={moment} index={moment.messageIndex} />
             ))}
           </div>
         )}
@@ -461,8 +461,8 @@ export function FeedbackPanel({
                 const order = { high: 0, medium: 1, low: 2 };
                 return order[a.priority] - order[b.priority];
               })
-              .map((rec, i) => (
-                <RecommendationCard key={i} recommendation={rec} />
+              .map((rec) => (
+                <RecommendationCard key={rec.recommendation} recommendation={rec} />
               ))}
           </div>
         )}
@@ -484,7 +484,7 @@ export function FeedbackSummary({
   strengths: string[];
   improvements: string[];
   className?: string;
-}) {
+}): React.JSX.Element {
   return (
     <div className={cn('space-y-4', className)}>
       <p className="text-sm text-charcoal-600 italic">

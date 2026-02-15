@@ -1,23 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getCurrentUser, getUserProfile } from '@/lib/supabase/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getUserProfile } from '@/lib/supabase/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-});
+// Lazy initialization to avoid build-time errors
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+    }
+    _stripe = new Stripe(secretKey, {
+      apiVersion: '2025-02-24.acacia',
+    });
+  }
+  return _stripe;
+}
 
 // Price IDs from Stripe Dashboard
-const PRICE_IDS = {
-  pro: process.env.STRIPE_PRO_PRICE_ID!,
-  premium: process.env.STRIPE_PREMIUM_PRICE_ID!,
-};
+function getPriceId(tier: 'pro' | 'premium'): string {
+  const priceId = tier === 'pro'
+    ? process.env.STRIPE_PRO_PRICE_ID
+    : process.env.STRIPE_PREMIUM_PRICE_ID;
+  if (!priceId) {
+    throw new Error(`STRIPE_${tier.toUpperCase()}_PRICE_ID environment variable is not set`);
+  }
+  return priceId;
+}
 
 interface CreateCheckoutRequest {
   tier: 'pro' | 'premium';
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 
@@ -28,7 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body: CreateCheckoutRequest = await request.json();
+    const body = await request.json() as CreateCheckoutRequest;
     const { tier } = body;
 
     if (!tier || !['pro', 'premium'].includes(tier)) {
@@ -38,13 +53,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const priceId = PRICE_IDS[tier];
-    if (!priceId) {
-      return NextResponse.json(
-        { error: 'Configuration error', message: 'Price ID not configured' },
-        { status: 500 }
-      );
-    }
+    const priceId = getPriceId(tier);
 
     const profile = await getUserProfile();
     const supabase = await createClient();
@@ -53,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     // Create Stripe customer if doesn't exist
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email: user.email,
         metadata: {
           supabase_user_id: user.id,
@@ -70,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],

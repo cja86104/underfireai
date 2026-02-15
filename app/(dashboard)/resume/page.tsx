@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Upload and manage your resume for personalized interview questions.',
 };
 
-export default async function ResumePage() {
+export default async function ResumePage(): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -73,7 +73,7 @@ export default async function ResumePage() {
 
             <div className="p-5 space-y-6">
               {/* Target Info */}
-              {(resume.target_role || resume.experience_years) && (
+              {(resume.target_role != null || resume.experience_years != null) && (
                 <div>
                   <h3 className="text-sm font-medium text-slate-400 mb-2">Target</h3>
                   <div className="flex flex-wrap gap-2">
@@ -116,13 +116,13 @@ export default async function ResumePage() {
                     Experience
                   </h3>
                   <div className="space-y-3">
-                    {resume.parsed_data.experience.slice(0, 3).map((exp, idx) => (
-                      <div key={idx} className="rounded-lg bg-slate-800/50 p-3">
+                    {resume.parsed_data.experience.slice(0, 3).map((exp) => (
+                      <div key={`${exp.title}-${exp.company}`} className="rounded-lg bg-slate-800/50 p-3">
                         <p className="font-medium text-white">{exp.title}</p>
                         <p className="text-sm text-slate-400">{exp.company}</p>
                         {exp.start_date && (
                           <p className="text-xs text-slate-500 mt-1">
-                            {exp.start_date} — {exp.end_date || 'Present'}
+                            {exp.start_date} — {exp.end_date ?? 'Present'}
                           </p>
                         )}
                       </div>
@@ -139,8 +139,8 @@ export default async function ResumePage() {
                     Education
                   </h3>
                   <div className="space-y-3">
-                    {resume.parsed_data.education.map((edu, idx) => (
-                      <div key={idx} className="rounded-lg bg-slate-800/50 p-3">
+                    {resume.parsed_data.education.map((edu) => (
+                      <div key={`${edu.degree}-${edu.institution}`} className="rounded-lg bg-slate-800/50 p-3">
                         <p className="font-medium text-white">{edu.degree} in {edu.field}</p>
                         <p className="text-sm text-slate-400">{edu.institution}</p>
                         {edu.graduation_date && (

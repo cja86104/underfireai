@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { InterviewResults } from '@/components/interview/interview-results';
 import type { InterviewMessage } from '@/types/database';
 
@@ -17,7 +16,7 @@ export async function generateMetadata({ params }: ResultsPageProps): Promise<Me
   };
 }
 
-export default async function InterviewResultsPage({ params }: ResultsPageProps) {
+export default async function InterviewResultsPage({ params }: ResultsPageProps): Promise<React.JSX.Element> {
   const { sessionId } = await params;
   const user = await getCurrentUser();
 
@@ -103,7 +102,7 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
           interviewerImpression: scores.interviewer_impression,
           keyMoments: scores.key_moments as { type: string; description: string }[] | null,
         } : null}
-        messages={(messages || []) as unknown as InterviewMessage[]}
+        messages={(messages ?? []) as unknown as InterviewMessage[]}
       />
     </div>
   );

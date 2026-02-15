@@ -63,7 +63,7 @@ export function AnimatedSection({
   as: Component = 'div',
   className,
   ...props
-}: AnimatedSectionProps) {
+}: AnimatedSectionProps): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export function AnimatedCard({
   start = 'top 85%',
   className,
   ...props
-}: AnimatedCardProps) {
+}: AnimatedCardProps): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -192,7 +192,7 @@ export function AnimatedText({
   start = 'top 85%',
   className,
   ...props
-}: AnimatedTextProps) {
+}: AnimatedTextProps): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -281,7 +281,7 @@ export function AnimatedStagger({
   start = 'top 85%',
   className,
   ...props
-}: AnimatedStaggerProps) {
+}: AnimatedStaggerProps): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -348,7 +348,7 @@ export function AnimatedCounter({
   start = 'top 85%',
   className,
   ...props
-}: AnimatedCounterProps) {
+}: AnimatedCounterProps): React.JSX.Element {
   const ref = useRef<HTMLSpanElement>(null);
   const hasAnimated = useRef(false);
 
@@ -401,7 +401,7 @@ export function Parallax({
   direction = 'up',
   className,
   ...props
-}: ParallaxProps) {
+}: ParallaxProps): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -449,7 +449,7 @@ export function Reveal({
   delay = 0,
   className,
   ...props
-}: RevealProps) {
+}: RevealProps): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

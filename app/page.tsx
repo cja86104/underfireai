@@ -17,12 +17,12 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
-export default function LandingPage() {
+export default function LandingPage(): React.JSX.Element {
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       setMousePos({
         x: (e.clientX / window.innerWidth) * 100,
         y: (e.clientY / window.innerHeight) * 100,
@@ -199,7 +199,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex">
-                  {[...Array(5)].map((_, i) => (
+                  {Array.from({ length: 5 }, (_, i) => (
                     <Star key={i} className="h-4 w-4 fill-orange-400 text-orange-400" />
                   ))}
                 </div>
@@ -335,7 +335,7 @@ export default function LandingPage() {
                 className="p-8 rounded-2xl bg-zinc-900/50 border border-white/5 hover:border-white/10 transition-colors"
               >
                 <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => (
+                  {Array.from({ length: 5 }, (_, i) => (
                     <Star key={i} className="h-5 w-5 fill-orange-400 text-orange-400" />
                   ))}
                 </div>

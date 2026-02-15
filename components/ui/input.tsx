@@ -73,7 +73,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             inputVariants({ variant: actualVariant, inputSize }),
             leftIcon && 'pl-10',
-            (rightIcon || isPassword || clearable) && 'pr-10',
+            (rightIcon != null || isPassword || clearable === true) && 'pr-10',
             className
           )}
           ref={ref}
@@ -124,7 +124,7 @@ export interface SearchInputProps extends Omit<InputProps, 'leftIcon' | 'type'> 
 
 const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
   ({ onSearch, onKeyDown, ...props }, ref) => {
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
       if (e.key === 'Enter' && onSearch) {
         onSearch((e.target as HTMLInputElement).value);
       }

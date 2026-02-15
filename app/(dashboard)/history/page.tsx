@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import {
@@ -11,7 +12,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { getCurrentUser, getUserSessions } from '@/lib/supabase/server';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils/cn';
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   description: 'View your past interview sessions and scores.',
 };
 
-export default async function HistoryPage() {
+export default async function HistoryPage(): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -31,20 +32,20 @@ export default async function HistoryPage() {
   // Calculate stats
   const completedSessions = sessions.filter((s) => s.status === 'completed');
   const totalDuration = completedSessions.reduce(
-    (acc, s) => acc + (s.duration_seconds || 0),
+    (acc, s) => acc + (s.duration_seconds ?? 0),
     0
   );
   const avgScore =
     completedSessions.length > 0
       ? Math.round(
           completedSessions.reduce(
-            (acc, s) => acc + (s.session_scores?.overall_score || 0),
+            (acc, s) => acc + (s.session_scores?.overall_score ?? 0),
             0
-          ) / completedSessions.filter((s) => s.session_scores?.overall_score).length || 1
+          ) / (completedSessions.filter((s) => s.session_scores?.overall_score).length || 1)
         )
       : 0;
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     if (hours > 0) return `${hours}h ${mins}m`;
@@ -141,12 +142,14 @@ export default async function HistoryPage() {
                 className="flex items-center gap-4 p-4 hover:bg-slate-800/50 transition-colors"
               >
                 {/* Interviewer Avatar */}
-                <div className="h-12 w-12 rounded-full bg-slate-700 flex items-center justify-center text-lg flex-shrink-0 overflow-hidden">
+                <div className="relative h-12 w-12 rounded-full bg-slate-700 flex items-center justify-center text-lg flex-shrink-0 overflow-hidden">
                   {session.interviewers?.avatar_url ? (
-                    <img
+                    <Image
                       src={session.interviewers.avatar_url}
                       alt={session.interviewers.name}
-                      className="h-full w-full object-cover"
+                      fill
+                      className="object-cover"
+                      unoptimized
                     />
                   ) : (
                     <span className="text-slate-400">

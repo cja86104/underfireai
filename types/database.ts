@@ -17,7 +17,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
@@ -72,6 +72,8 @@ export type Database = {
           id: string
           interview_type: Database["public"]["Enums"]["interview_type"]
           interviewer_id: string
+          max_user_messages: number | null
+          session_length: Database["public"]["Enums"]["session_length"] | null
           started_at: string
           status: Database["public"]["Enums"]["session_status"]
           target_company: string | null
@@ -86,6 +88,8 @@ export type Database = {
           id?: string
           interview_type: Database["public"]["Enums"]["interview_type"]
           interviewer_id: string
+          max_user_messages?: number | null
+          session_length?: Database["public"]["Enums"]["session_length"] | null
           started_at?: string
           status?: Database["public"]["Enums"]["session_status"]
           target_company?: string | null
@@ -100,6 +104,8 @@ export type Database = {
           id?: string
           interview_type?: Database["public"]["Enums"]["interview_type"]
           interviewer_id?: string
+          max_user_messages?: number | null
+          session_length?: Database["public"]["Enums"]["session_length"] | null
           started_at?: string
           status?: Database["public"]["Enums"]["session_status"]
           target_company?: string | null
@@ -438,9 +444,7 @@ export type Database = {
         ]
       }
     }
-    Views: {
-      [_ in never]: never
-    }
+    Views: Record<never, never>
     Functions: {
       reset_monthly_interviews: { Args: never; Returns: undefined }
     }
@@ -460,13 +464,12 @@ export type Database = {
         | "panel"
         | "phone_screen"
       message_role: "interviewer" | "candidate"
+      session_length: "short" | "standard" | "deep"
       session_status: "in_progress" | "completed" | "abandoned" | "paused"
       subscription_status: "active" | "canceled" | "past_due" | "trialing"
       subscription_tier: "free" | "pro" | "premium"
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    CompositeTypes: Record<never, never>
   }
 }
 
@@ -572,6 +575,7 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
@@ -607,6 +611,7 @@ export const Constants = {
         "phone_screen",
       ],
       message_role: ["interviewer", "candidate"],
+      session_length: ["short", "standard", "deep"],
       session_status: ["in_progress", "completed", "abandoned", "paused"],
       subscription_status: ["active", "canceled", "past_due", "trialing"],
       subscription_tier: ["free", "pro", "premium"],
@@ -623,6 +628,39 @@ export type SessionStatus = Database['public']['Enums']['session_status'];
 export type MessageRole = Database['public']['Enums']['message_role'];
 export type SubscriptionTier = Database['public']['Enums']['subscription_tier'];
 export type SubscriptionStatus = Database['public']['Enums']['subscription_status'];
+
+// Session length types for cost control
+export type SessionLength = Database['public']['Enums']['session_length'];
+
+export const SESSION_LENGTH_CONFIG: Record<SessionLength, {
+  label: string;
+  description: string;
+  durationMinutes: number;
+  maxUserMessages: number;
+  questionRange: [number, number];
+}> = {
+  short: {
+    label: 'Quick Practice',
+    description: 'About 15 minutes',
+    durationMinutes: 15,
+    maxUserMessages: 10,
+    questionRange: [5, 7],
+  },
+  standard: {
+    label: 'Standard Mock',
+    description: 'About 30 minutes',
+    durationMinutes: 30,
+    maxUserMessages: 20,
+    questionRange: [8, 12],
+  },
+  deep: {
+    label: 'Deep Dive',
+    description: 'About 45 minutes',
+    durationMinutes: 45,
+    maxUserMessages: 30,
+    questionRange: [12, 16],
+  },
+};
 
 // ============================================
 // ROW / INSERT / UPDATE ALIASES
@@ -811,6 +849,8 @@ export interface InterviewSession {
   ended_at: string | null;
   duration_seconds: number | null;
   voice_enabled: boolean;
+  session_length: SessionLength | null;
+  max_user_messages: number | null;
 }
 
 export interface InterviewSessionInsert {
@@ -826,6 +866,8 @@ export interface InterviewSessionInsert {
   ended_at?: string | null;
   duration_seconds?: number | null;
   voice_enabled?: boolean;
+  session_length?: SessionLength;
+  max_user_messages?: number;
 }
 
 export interface InterviewSessionUpdate {
@@ -837,6 +879,8 @@ export interface InterviewSessionUpdate {
   ended_at?: string | null;
   duration_seconds?: number | null;
   voice_enabled?: boolean;
+  session_length?: SessionLength;
+  max_user_messages?: number;
 }
 
 // -- Interview Messages --

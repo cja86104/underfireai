@@ -1,27 +1,20 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import {
-  Trophy,
   Target,
   MessageSquare,
-  Clock,
-  TrendingUp,
-  TrendingDown,
-  Minus,
   CheckCircle,
-  AlertCircle,
   Lightbulb,
   ChevronDown,
   ChevronUp,
   Play,
   ArrowRight,
-  Share2,
-  Download,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils/cn';
-import { formatDistanceStrict, format } from 'date-fns';
+import { format } from 'date-fns';
 import type { InterviewMessage, InterviewType, CompanyStyle } from '@/types/database';
 
 interface InterviewResultsProps {
@@ -63,33 +56,27 @@ export function InterviewResults({
   interviewer,
   scores,
   messages,
-}: InterviewResultsProps) {
+}: InterviewResultsProps): React.JSX.Element {
   const [showTranscript, setShowTranscript] = useState(false);
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
   };
 
-  const getScoreColor = (score: number | null) => {
+  const getScoreColor = (score: number | null): string => {
     if (score === null) return 'text-slate-400';
     if (score >= 80) return 'text-green-500';
     if (score >= 60) return 'text-amber-500';
     return 'text-red-500';
   };
 
-  const getScoreBgColor = (score: number | null) => {
+  const getScoreBgColor = (score: number | null): string => {
     if (score === null) return 'bg-slate-500/20';
     if (score >= 80) return 'bg-green-500/20';
     if (score >= 60) return 'bg-amber-500/20';
     return 'bg-red-500/20';
-  };
-
-  const getScoreIcon = (score: number | null) => {
-    if (score === null) return <Minus className="h-4 w-4" />;
-    if (score >= 60) return <TrendingUp className="h-4 w-4" />;
-    return <TrendingDown className="h-4 w-4" />;
   };
 
   const scoreCategories = [
@@ -257,8 +244,8 @@ export function InterviewResults({
           </div>
           {scores?.strengths && scores.strengths.length > 0 ? (
             <ul className="space-y-3">
-              {scores.strengths.map((strength, idx) => (
-                <li key={idx} className="flex items-start gap-3">
+              {scores.strengths.map((strength) => (
+                <li key={strength} className="flex items-start gap-3">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full bg-green-500 flex-shrink-0" />
                   <span className="text-slate-300">{strength}</span>
                 </li>
@@ -277,8 +264,8 @@ export function InterviewResults({
           </div>
           {scores?.improvements && scores.improvements.length > 0 ? (
             <ul className="space-y-3">
-              {scores.improvements.map((improvement, idx) => (
-                <li key={idx} className="flex items-start gap-3">
+              {scores.improvements.map((improvement) => (
+                <li key={improvement} className="flex items-start gap-3">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-500 flex-shrink-0" />
                   <span className="text-slate-300">{improvement}</span>
                 </li>
@@ -305,12 +292,14 @@ export function InterviewResults({
       {scores?.interviewerImpression && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+            <div className="relative h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
               {interviewer.avatarUrl ? (
-                <img
+                <Image
                   src={interviewer.avatarUrl}
                   alt={interviewer.name}
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
               ) : (
                 <span className="text-slate-300">{interviewer.name[0]}</span>
@@ -332,9 +321,9 @@ export function InterviewResults({
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Key Moments</h2>
           <div className="space-y-3">
-            {scores.keyMoments.map((moment, idx) => (
+            {scores.keyMoments.map((moment) => (
               <div
-                key={idx}
+                key={moment.description}
                 className={cn(
                   'flex items-start gap-3 rounded-lg p-3',
                   moment.type === 'strong'

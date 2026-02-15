@@ -17,7 +17,17 @@
       "Bash(git -C \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\" diff --name-only)",
       "Bash(git -C \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\" diff --name-only --cached)",
       "Bash(git -C \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\" show:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx eslint:*)",
+      "Bash(Select-String -Pattern \"prefer-nullish-coalescing\" -Context 1,0)",
+      "Bash(Select-String -Pattern \"\\\\.tsx|\\\\.ts\")",
+      "Bash(Sort-Object -Unique)",
+      "Bash(Select-String -Pattern \"prefer-nullish\" -Context 10,0)",
+      "Bash(findstr:*)",
+      "Bash(git checkout:*)",
+      "Bash(grep:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }

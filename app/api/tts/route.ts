@@ -1,20 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import {
   generateSpeech,
   CARTESIA_VOICES,
-  type CartesiaVoiceId,
   type TTSSpeed,
   isCartesiaConfigured,
 } from '@/lib/tts/cartesia-tts';
 
 interface TTSRequest {
   text: string;
-  voice?: CartesiaVoiceId | string;
+  voice?: string;
   speed?: TTSSpeed;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body: TTSRequest = await request.json();
+    const body = await request.json() as TTSRequest;
     const { text, voice = 'katie', speed = 'normal' } = body;
 
     if (!text || text.trim().length === 0) {
@@ -118,7 +117,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to list available voices
-export async function GET() {
+export function GET(): NextResponse {
   const voiceList = Object.entries(CARTESIA_VOICES).map(([key, voice]) => ({
     id: key,
     cartesiaId: voice.id,

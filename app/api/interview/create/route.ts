@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { INTERVIEWER_ARCHETYPES, type InterviewerArchetype } from '@/types/interviewer';
 import { generateBackstory } from '@/lib/ai/backstory-generator';
-import type { Database, InterviewType, CompanyStyle, PersonalityBase, Json } from '@/types/database';
+import { SESSION_LENGTH_CONFIG as lengthConfig, type Database, type InterviewType, type CompanyStyle, type PersonalityBase, type Json, type SessionLength } from '@/types/database';
 
 interface CreateInterviewRequest {
   interview_type: InterviewType;
@@ -14,6 +13,7 @@ interface CreateInterviewRequest {
   use_voice_mode: boolean;
   interviewer_id: string | null;
   generate_new_interviewer: boolean;
+  session_length: SessionLength;
 }
 
 // Generate a random interviewer name
@@ -34,7 +34,7 @@ function generateInterviewerName(): string {
   return `${firstName} ${lastName}`;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body: CreateInterviewRequest = await request.json();
+    const body = await request.json() as CreateInterviewRequest;
     const {
       interview_type,
       company_style,
@@ -63,7 +63,11 @@ export async function POST(request: NextRequest) {
       difficulty,
       interviewer_id,
       generate_new_interviewer,
+      session_length,
     } = body;
+
+    // Get session length config for message limits
+    const sessionConfig = lengthConfig[session_length] || lengthConfig.standard;
 
     // Validate required fields
     if (!interview_type) {
@@ -201,18 +205,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create interview session
+    // Create interview session with session length limits
+    // Note: session_length and max_user_messages columns added by migration 002_session_length.sql
+    const insertData = {
+      user_id: user.id,
+      interviewer_id: finalInterviewerId,
+      interview_type,
+      target_role,
+      target_company,
+      difficulty,
+      status: 'in_progress' as const,
+      session_length,
+      max_user_messages: sessionConfig.maxUserMessages,
+    };
+
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')
-      .insert({
-        user_id: user.id,
-        interviewer_id: finalInterviewerId,
-        interview_type,
-        target_role,
-        target_company,
-        difficulty,
-        status: 'in_progress',
-      })
+      .insert(insertData as Database['public']['Tables']['interview_sessions']['Insert'])
       .select('id')
       .single();
 

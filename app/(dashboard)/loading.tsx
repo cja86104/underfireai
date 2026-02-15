@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
 
-export default function Loading() {
+export default function Loading(): React.JSX.Element {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="text-center">

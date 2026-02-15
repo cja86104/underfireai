@@ -11,10 +11,10 @@ interface AuthFormProps {
   mode: 'login' | 'register';
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const redirectTo = searchParams.get('redirect') ?? '/dashboard';
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +26,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const isLogin = mode === 'login';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -55,7 +55,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
   };
 
-  const handleOAuthSignIn = async (provider: 'google' | 'github') => {
+  const handleOAuthSignIn = async (provider: 'google' | 'github'): Promise<void> => {
     setIsLoading(true);
     try {
       await signInWithOAuth(provider);

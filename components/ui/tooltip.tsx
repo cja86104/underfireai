@@ -34,7 +34,7 @@ interface SimpleTooltipProps {
   delayDuration?: number;
 }
 
-function SimpleTooltip({ content, children, side = 'top', delayDuration = 300 }: SimpleTooltipProps) {
+function SimpleTooltip({ content, children, side = 'top', delayDuration = 300 }: SimpleTooltipProps): React.JSX.Element {
   return (
     <Tooltip delayDuration={delayDuration}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>

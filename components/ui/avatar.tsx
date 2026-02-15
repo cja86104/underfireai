@@ -92,10 +92,10 @@ interface UserAvatarProps extends VariantProps<typeof avatarVariants> {
   className?: string;
 }
 
-function UserAvatar({ src, name, size, ring, className }: UserAvatarProps) {
+function UserAvatar({ src, name, size, ring, className }: UserAvatarProps): React.JSX.Element {
   return (
     <Avatar size={size} ring={ring} className={className}>
-      <AvatarImage src={src || undefined} alt={name} />
+      <AvatarImage src={src ?? undefined} alt={name} />
       <AvatarFallback>{getInitials(name)}</AvatarFallback>
     </Avatar>
   );
@@ -114,11 +114,11 @@ const moodColors = {
   engaged: 'bg-info',
 };
 
-function InterviewerAvatar({ src, name, size, mood, className }: InterviewerAvatarProps) {
+function InterviewerAvatar({ src, name, size, mood, className }: InterviewerAvatarProps): React.JSX.Element {
   return (
     <div className="relative inline-block">
       <Avatar size={size} className={className}>
-        <AvatarImage src={src || undefined} alt={name} />
+        <AvatarImage src={src ?? undefined} alt={name} />
         <AvatarFallback>{getInitials(name)}</AvatarFallback>
       </Avatar>
       {mood && (

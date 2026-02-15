@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -40,7 +41,7 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps) {
+export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps): React.JSX.Element {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -163,20 +164,22 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
 
             {/* User Info */}
             <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-              <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white overflow-hidden">
+              <div className="relative h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white overflow-hidden">
                 {user.avatarUrl ? (
-                  <img
+                  <Image
                     src={user.avatarUrl}
-                    alt={user.fullName || 'User'}
-                    className="h-full w-full object-cover"
+                    alt={user.fullName ?? 'User'}
+                    fill
+                    className="object-cover"
+                    unoptimized
                   />
                 ) : (
-                  (user.fullName?.[0] || user.email[0]).toUpperCase()
+                  (user.fullName?.[0] ?? user.email[0]).toUpperCase()
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white truncate">
-                  {user.fullName || 'User'}
+                  {user.fullName ?? 'User'}
                 </p>
                 <p className="text-xs text-slate-500 truncate">{user.email}</p>
               </div>

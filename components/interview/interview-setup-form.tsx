@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Flame,
@@ -14,11 +15,11 @@ import {
   Lock,
   ChevronRight,
   Users,
-  Plus,
+  Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
-import type { Interviewer, InterviewType, CompanyStyle } from '@/types/database';
+import { SESSION_LENGTH_CONFIG, type Interviewer, type InterviewType, type CompanyStyle, type SessionLength } from '@/types/database';
 
 interface InterviewSetupFormProps {
   interviewers: Interviewer[];
@@ -53,13 +54,34 @@ const DIFFICULTY_LEVELS = [
   { value: 9, label: 'Expert', description: 'Intense pressure' },
 ];
 
+const SESSION_LENGTHS: { value: SessionLength; label: string; description: string; questions: string }[] = [
+  {
+    value: 'short',
+    label: SESSION_LENGTH_CONFIG.short.label,
+    description: SESSION_LENGTH_CONFIG.short.description,
+    questions: `${SESSION_LENGTH_CONFIG.short.questionRange[0]}-${SESSION_LENGTH_CONFIG.short.questionRange[1]} questions`,
+  },
+  {
+    value: 'standard',
+    label: SESSION_LENGTH_CONFIG.standard.label,
+    description: SESSION_LENGTH_CONFIG.standard.description,
+    questions: `${SESSION_LENGTH_CONFIG.standard.questionRange[0]}-${SESSION_LENGTH_CONFIG.standard.questionRange[1]} questions`,
+  },
+  {
+    value: 'deep',
+    label: SESSION_LENGTH_CONFIG.deep.label,
+    description: SESSION_LENGTH_CONFIG.deep.description,
+    questions: `${SESSION_LENGTH_CONFIG.deep.questionRange[0]}-${SESSION_LENGTH_CONFIG.deep.questionRange[1]} questions`,
+  },
+];
+
 export function InterviewSetupForm({
   interviewers,
   hasResume,
   resumeSkills,
   subscriptionTier,
   voiceModeEnabled,
-}: InterviewSetupFormProps) {
+}: InterviewSetupFormProps): React.JSX.Element {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,12 +91,13 @@ export function InterviewSetupForm({
     targetRole: '',
     targetCompany: '',
     difficulty: 5,
+    sessionLength: 'standard' as SessionLength,
     useVoiceMode: false,
     selectedInterviewerId: null as string | null,
     generateNewInterviewer: true,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -88,6 +111,7 @@ export function InterviewSetupForm({
           target_role: formData.targetRole || null,
           target_company: formData.targetCompany || null,
           difficulty: formData.difficulty,
+          session_length: formData.sessionLength,
           use_voice_mode: formData.useVoiceMode,
           interviewer_id: formData.generateNewInterviewer ? null : formData.selectedInterviewerId,
           generate_new_interviewer: formData.generateNewInterviewer,
@@ -95,13 +119,13 @@ export function InterviewSetupForm({
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create interview');
+        const errorData = await response.json() as { message?: string };
+        throw new Error(errorData.message ?? 'Failed to create interview');
       }
 
-      const { session_id } = await response.json();
+      const data = await response.json() as { session_id: string };
       toast.success('Interview session created!');
-      router.push(`/interview/${session_id}`);
+      router.push(`/interview/${data.session_id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Something went wrong';
       toast.error(message);
@@ -268,6 +292,39 @@ export function InterviewSetupForm({
         </div>
       </div>
 
+      {/* Session Length */}
+      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="rounded-lg bg-emerald-500/10 p-2">
+            <Clock className="h-5 w-5 text-emerald-500" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-white">Session Length</h2>
+            <p className="text-sm text-slate-400">How long do you want to practice?</p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          {SESSION_LENGTHS.map((length) => (
+            <button
+              key={length.value}
+              type="button"
+              onClick={() => setFormData({ ...formData, sessionLength: length.value })}
+              className={cn(
+                'rounded-lg border p-4 text-left transition-colors',
+                formData.sessionLength === length.value
+                  ? 'border-emerald-500 bg-emerald-500/10'
+                  : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+              )}
+            >
+              <p className="font-medium text-white">{length.label}</p>
+              <p className="text-sm text-slate-400">{length.description}</p>
+              <p className="text-xs text-slate-500 mt-1">{length.questions}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Interviewer Selection */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -330,12 +387,14 @@ export function InterviewSetupForm({
                         : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
                     )}
                   >
-                    <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white overflow-hidden">
+                    <div className="relative h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white overflow-hidden">
                       {interviewer.avatar_url ? (
-                        <img
+                        <Image
                           src={interviewer.avatar_url}
                           alt={interviewer.name}
-                          className="h-full w-full object-cover"
+                          fill
+                          className="object-cover"
+                          unoptimized
                         />
                       ) : (
                         interviewer.name[0]

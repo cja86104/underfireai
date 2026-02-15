@@ -120,7 +120,7 @@ export function ScoreRing({
   size = 'md',
   showLabel = true,
   animated = true,
-}: ScoreRingProps) {
+}: ScoreRingProps): React.JSX.Element {
   const sizeConfig = {
     sm: { dimension: 64, strokeWidth: 4, fontSize: 'text-lg' },
     md: { dimension: 96, strokeWidth: 6, fontSize: 'text-2xl' },
@@ -191,11 +191,11 @@ export function ScoreCard({
   size = 'md',
   variant = 'default',
   className,
-}: ScoreCardProps) {
+}: ScoreCardProps): React.JSX.Element {
   const benchmark = useMemo(() => getScoreBenchmark(score), [score]);
   const scoreDiff = previousScore !== undefined ? score - previousScore : null;
 
-  const renderTrend = () => {
+  const renderTrend = (): React.JSX.Element | null => {
     if (scoreDiff === null) return null;
 
     if (scoreDiff > 0) {
@@ -294,7 +294,7 @@ export function CategoryScoreCard({
   showLabels = true,
   compact = false,
   className,
-}: CategoryScoreCardProps) {
+}: CategoryScoreCardProps): React.JSX.Element {
   const categories = Object.entries(categoryScores) as [keyof CategoryScores, number][];
 
   if (compact) {
@@ -381,7 +381,7 @@ export function ScoreSummaryCard({
   strengths: string[];
   improvements: string[];
   className?: string;
-}) {
+}): React.JSX.Element {
   const benchmark = getScoreBenchmark(overallScore);
 
   return (
@@ -420,8 +420,8 @@ export function ScoreSummaryCard({
             Strengths
           </h3>
           <ul className="space-y-2">
-            {strengths.slice(0, 3).map((strength, i) => (
-              <li key={i} className="text-sm text-charcoal-600 flex items-start gap-2">
+            {strengths.slice(0, 3).map((strength) => (
+              <li key={strength} className="text-sm text-charcoal-600 flex items-start gap-2">
                 <span className="text-green-500 mt-1">•</span>
                 {strength}
               </li>
@@ -434,8 +434,8 @@ export function ScoreSummaryCard({
             Areas to Improve
           </h3>
           <ul className="space-y-2">
-            {improvements.slice(0, 3).map((item, i) => (
-              <li key={i} className="text-sm text-charcoal-600 flex items-start gap-2">
+            {improvements.slice(0, 3).map((item) => (
+              <li key={item} className="text-sm text-charcoal-600 flex items-start gap-2">
                 <span className="text-amber-500 mt-1">•</span>
                 {item}
               </li>
@@ -453,7 +453,7 @@ export function ScoreBadge({
 }: {
   score: number;
   size?: 'sm' | 'md';
-}) {
+}): React.JSX.Element {
   const color = getScoreColor(score);
   const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm';
 

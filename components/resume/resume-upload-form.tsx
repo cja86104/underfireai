@@ -10,7 +10,7 @@ interface ResumeUploadFormProps {
   existingResumeId?: string;
 }
 
-export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps) {
+export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps): React.JSX.Element {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -20,17 +20,17 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps) {
   const [targetRole, setTargetRole] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent): void => {
     e.preventDefault();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent): void => {
     e.preventDefault();
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent): void => {
     e.preventDefault();
     setIsDragging(false);
     setError(null);
@@ -41,7 +41,7 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps) {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setError(null);
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -49,7 +49,7 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps) {
     }
   };
 
-  const validateAndSetFile = (file: File) => {
+  const validateAndSetFile = (file: File): void => {
     // Check file type
     const validTypes = ['application/pdf', 'text/plain', 'application/msword', 
                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -67,7 +67,7 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps) {
     setSelectedFile(file);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     
     if (!selectedFile) {
@@ -92,8 +92,8 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps) {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to upload resume');
+        const data = await response.json() as { message?: string };
+        throw new Error(data.message ?? 'Failed to upload resume');
       }
 
       toast.success(existingResumeId ? 'Resume updated!' : 'Resume uploaded successfully!');
@@ -107,7 +107,7 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps) {
     }
   };
 
-  const clearFile = () => {
+  const clearFile = (): void => {
     setSelectedFile(null);
     setError(null);
     if (fileInputRef.current) {

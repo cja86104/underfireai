@@ -7,7 +7,7 @@ export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -25,21 +25,21 @@ export default async function DashboardLayout({
       <Sidebar
         user={{
           id: user.id,
-          email: user.email || '',
-          fullName: profile?.full_name || null,
-          avatarUrl: profile?.avatar_url || null,
+          email: user.email ?? '',
+          fullName: profile?.full_name ?? null,
+          avatarUrl: profile?.avatar_url ?? null,
         }}
-        subscriptionTier={profile?.subscription_tier || 'free'}
-        currentStreak={progress?.current_streak || 0}
+        subscriptionTier={profile?.subscription_tier ?? 'free'}
+        currentStreak={progress?.current_streak ?? 0}
       />
 
       {/* Main content area */}
       <div className="lg:pl-64">
         <DashboardHeader
           user={{
-            email: user.email || '',
-            fullName: profile?.full_name || null,
-            avatarUrl: profile?.avatar_url || null,
+            email: user.email ?? '',
+            fullName: profile?.full_name ?? null,
+            avatarUrl: profile?.avatar_url ?? null,
           }}
         />
 

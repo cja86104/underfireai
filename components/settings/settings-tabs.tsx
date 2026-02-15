@@ -44,12 +44,12 @@ export function SettingsTabs({
   activeTab,
   user,
   subscription,
-  onboardingCompleted,
-}: SettingsTabsProps) {
+  onboardingCompleted: _onboardingCompleted,
+}: SettingsTabsProps): React.JSX.Element {
   const router = useRouter();
   const [currentTab, setCurrentTab] = useState(activeTab);
 
-  const handleTabChange = (tabId: string) => {
+  const handleTabChange = (tabId: string): void => {
     setCurrentTab(tabId);
     router.push(`/settings?tab=${tabId}`, { scroll: false });
   };
@@ -94,14 +94,14 @@ export function SettingsTabs({
   );
 }
 
-function ProfileTab({ user }: { user: SettingsTabsProps['user'] }) {
+function ProfileTab({ user }: { user: SettingsTabsProps['user'] }): React.JSX.Element {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: user.fullName || '',
+    fullName: user.fullName ?? '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -116,7 +116,7 @@ function ProfileTab({ user }: { user: SettingsTabsProps['user'] }) {
 
       toast.success('Profile updated!');
       router.refresh();
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update profile');
     } finally {
       setIsLoading(false);
@@ -182,7 +182,7 @@ function ProfileTab({ user }: { user: SettingsTabsProps['user'] }) {
   );
 }
 
-function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscription'] }) {
+function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscription'] }): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
 
   const plans = [
@@ -207,7 +207,7 @@ function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscri
     },
   ];
 
-  const handleUpgrade = async (tier: 'pro' | 'premium') => {
+  const handleUpgrade = async (tier: 'pro' | 'premium'): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/stripe/create-checkout', {
@@ -220,16 +220,16 @@ function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscri
         throw new Error('Failed to create checkout session');
       }
 
-      const { url } = await response.json();
-      window.location.href = url;
-    } catch (error) {
+      const data = await response.json() as { url: string };
+      window.location.href = data.url;
+    } catch (_error) {
       toast.error('Failed to start checkout. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleManageBilling = async () => {
+  const handleManageBilling = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/stripe/create-portal', {
@@ -240,9 +240,9 @@ function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscri
         throw new Error('Failed to create portal session');
       }
 
-      const { url } = await response.json();
-      window.location.href = url;
-    } catch (error) {
+      const data = await response.json() as { url: string };
+      window.location.href = data.url;
+    } catch (_error) {
       toast.error('Failed to open billing portal. Please try again.');
     } finally {
       setIsLoading(false);
@@ -343,14 +343,14 @@ function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscri
   );
 }
 
-function NotificationsTab() {
+function NotificationsTab(): React.JSX.Element {
   const [settings, setSettings] = useState({
     emailDigest: true,
     practiceReminders: true,
     newFeatures: false,
   });
 
-  const handleToggle = (key: keyof typeof settings) => {
+  const handleToggle = (key: keyof typeof settings): void => {
     setSettings({ ...settings, [key]: !settings[key] });
     toast.success('Notification preference updated');
   };
@@ -393,7 +393,7 @@ function NotificationToggle({
   description: string;
   enabled: boolean;
   onToggle: () => void;
-}) {
+}): React.JSX.Element {
   return (
     <div className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0">
       <div>
@@ -418,10 +418,10 @@ function NotificationToggle({
   );
 }
 
-function SecurityTab({ email }: { email: string }) {
+function SecurityTab({ email }: { email: string }): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handlePasswordReset = async () => {
+  const handlePasswordReset = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const supabase = getClient();
@@ -432,7 +432,7 @@ function SecurityTab({ email }: { email: string }) {
       if (error) throw error;
 
       toast.success('Password reset email sent! Check your inbox.');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to send reset email');
     } finally {
       setIsLoading(false);

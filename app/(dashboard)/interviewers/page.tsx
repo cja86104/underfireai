@@ -1,13 +1,12 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import {
   Users,
-  Plus,
   MessageSquare,
   Sparkles,
   MoreVertical,
-  Trash2,
 } from 'lucide-react';
 import { getCurrentUser, getUserInterviewers } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils/cn';
@@ -17,7 +16,7 @@ export const metadata: Metadata = {
   description: 'Browse and manage your AI interviewers.',
 };
 
-export default async function InterviewersPage() {
+export default async function InterviewersPage(): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -27,12 +26,12 @@ export default async function InterviewersPage() {
   const interviewers = await getUserInterviewers();
 
   // Group by interview type
-  const groupedInterviewers = interviewers.reduce((acc, interviewer) => {
+  const groupedInterviewers = interviewers.reduce<Record<string, typeof interviewers>>((acc, interviewer) => {
     const type = interviewer.interview_type;
     if (!acc[type]) acc[type] = [];
     acc[type].push(interviewer);
     return acc;
-  }, {} as Record<string, typeof interviewers>);
+  }, {});
 
   const interviewTypeLabels: Record<string, string> = {
     behavioral: 'Behavioral',
@@ -43,7 +42,7 @@ export default async function InterviewersPage() {
     phone_screen: 'Phone Screen',
   };
 
-  const getMoodColor = (mood: string | undefined) => {
+  const getMoodColor = (mood: string | undefined): string => {
     switch (mood) {
       case 'impressed':
         return 'bg-green-500';
@@ -117,12 +116,14 @@ export default async function InterviewersPage() {
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
                         <div className="relative">
-                          <div className="h-12 w-12 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
+                          <div className="relative h-12 w-12 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
                             {interviewer.avatar_url ? (
-                              <img
+                              <Image
                                 src={interviewer.avatar_url}
                                 alt={interviewer.name}
-                                className="h-full w-full object-cover"
+                                fill
+                                className="object-cover"
+                                unoptimized
                               />
                             ) : (
                               <span className="text-slate-300">
@@ -163,7 +164,7 @@ export default async function InterviewersPage() {
                       <div className="rounded-lg bg-slate-800/50 p-2">
                         <p className="text-xs text-slate-500">Style</p>
                         <p className="font-medium text-white capitalize">
-                          {interviewer.company_style?.replace('_', ' ') || 'General'}
+                          {interviewer.company_style?.replace('_', ' ') ?? 'General'}
                         </p>
                       </div>
                     </div>

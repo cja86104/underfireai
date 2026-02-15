@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'UnderFireAI' }],
   creator: 'UnderFireAI',
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || 'https://underfireai.com'
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://underfireai.com'
   ),
   openGraph: {
     type: 'website',
@@ -73,7 +73,7 @@ export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}): React.JSX.Element {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>

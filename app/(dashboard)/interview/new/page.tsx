@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: 'Start a new mock interview session.',
 };
 
-export default async function NewInterviewPage() {
+export default async function NewInterviewPage(): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -43,7 +43,7 @@ export default async function NewInterviewPage() {
       <InterviewSetupForm
         interviewers={interviewers}
         hasResume={!!resume}
-        resumeSkills={resume?.skills || []}
+        resumeSkills={resume?.skills ?? []}
         subscriptionTier={subscription.tier}
         voiceModeEnabled={subscription.tier !== 'free'}
       />

@@ -1,18 +1,78 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
 import { Clock, Pause, Play, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import type { InterviewType } from '@/types/database';
 
+/**
+ * TimerDisplay - PURE DISPLAY COMPONENT
+ * 
+ * Parent owns all state. This component only renders.
+ * 
+ * BREAKING CHANGE from previous version:
+ * - `elapsed` is now a REQUIRED PROP (was internal state)
+ * - `isPaused` is now a REQUIRED PROP (was internal state)
+ * - `onTogglePause` is now REQUIRED when allowPause=true
+ * - `onTick` is REMOVED (parent handles the interval)
+ * 
+ * Parent is responsible for:
+ * - Running the interval (setInterval)
+ * - Incrementing elapsed each second
+ * - Handling pause/resume logic
+ * - Resetting elapsed to 0 when starting new session
+ * 
+ * Example parent usage:
+ * ```tsx
+ * const [elapsed, setElapsed] = useState(0);
+ * const [isPaused, setIsPaused] = useState(false);
+ * const [isRunning, setIsRunning] = useState(false);
+ * 
+ * useEffect(() => {
+ *   if (!isRunning || isPaused) return;
+ *   const interval = setInterval(() => {
+ *     setElapsed(prev => prev + 1);
+ *   }, 1000);
+ *   return () => clearInterval(interval);
+ * }, [isRunning, isPaused]);
+ * 
+ * // Reset when starting new session
+ * const startNewSession = () => {
+ *   setElapsed(0);
+ *   setIsPaused(false);
+ *   setIsRunning(true);
+ * };
+ * 
+ * <TimerDisplay
+ *   elapsed={elapsed}
+ *   isPaused={isPaused}
+ *   isRunning={isRunning}
+ *   interviewType="behavioral"
+ *   onTogglePause={() => setIsPaused(p => !p)}
+ *   onTimeUp={handleTimeUp}
+ * />
+ * ```
+ */
+
 interface TimerDisplayProps {
+  /** Current elapsed time in seconds - REQUIRED, parent owns this */
+  elapsed: number;
+  /** Whether timer is paused - REQUIRED, parent owns this */
+  isPaused: boolean;
+  /** Whether interview is currently running */
   isRunning: boolean;
+  /** Interview type determines time limit */
   interviewType?: InterviewType;
+  /** Called when time limit is reached */
   onTimeUp?: () => void;
-  onTick?: (elapsed: number) => void;
+  /** Called when pause button is clicked - REQUIRED when allowPause=true */
+  onTogglePause?: () => void;
+  /** Show progress bar */
   showProgress?: boolean;
+  /** Show pause/play button */
   allowPause?: boolean;
+  /** Size variant */
   size?: 'sm' | 'md' | 'lg';
+  /** Additional CSS classes */
   className?: string;
 }
 
@@ -24,7 +84,7 @@ interface InlineTimerProps {
 }
 
 interface SessionTimerProps {
-  startedAt: string;
+  elapsed: number;
   className?: string;
 }
 
@@ -52,58 +112,30 @@ function getWarningLevel(elapsed: number, limit: number): 'normal' | 'warning' |
 }
 
 export function TimerDisplay({
+  elapsed,
+  isPaused,
   isRunning,
   interviewType = 'behavioral',
   onTimeUp,
-  onTick,
+  onTogglePause,
   showProgress = true,
   allowPause = true,
   size = 'md',
   className,
-}: TimerDisplayProps) {
-  const [elapsed, setElapsed] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+}: TimerDisplayProps): React.JSX.Element {
   const timeLimit = INTERVIEW_TIME_LIMITS[interviewType];
-
-  const handleTogglePause = useCallback(() => {
-    setIsPaused((prev) => !prev);
-  }, []);
-
-  useEffect(() => {
-    if (isRunning && !isPaused) {
-      intervalRef.current = setInterval(() => {
-        setElapsed((prev) => {
-          const next = prev + 1;
-          onTick?.(next);
-
-          if (next >= timeLimit) {
-            onTimeUp?.();
-          }
-
-          return next;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning, isPaused, timeLimit, onTimeUp, onTick]);
-
-  // Reset when not running
-  useEffect(() => {
-    if (!isRunning) {
-      setElapsed(0);
-      setIsPaused(false);
-    }
-  }, [isRunning]);
-
   const warningLevel = getWarningLevel(elapsed, timeLimit);
   const progress = Math.min((elapsed / timeLimit) * 100, 100);
   const remaining = Math.max(timeLimit - elapsed, 0);
+
+  // Check if time is up - parent should handle this via onTimeUp
+  // This is a derived check, not state management
+  if (elapsed >= timeLimit && onTimeUp) {
+    // Use queueMicrotask to avoid calling during render
+    queueMicrotask(() => {
+      onTimeUp();
+    });
+  }
 
   const sizeClasses = {
     sm: 'text-sm',
@@ -162,10 +194,10 @@ export function TimerDisplay({
           </div>
         </div>
 
-        {allowPause && isRunning && (
+        {allowPause && isRunning && onTogglePause && (
           <button
             type="button"
-            onClick={handleTogglePause}
+            onClick={onTogglePause}
             className={cn(
               'rounded-lg p-2 transition-colors',
               isPaused
@@ -214,13 +246,14 @@ export function TimerDisplay({
 
 /**
  * Compact inline timer for headers/toolbars
+ * Pure display - receives elapsed as prop
  */
 export function InlineTimer({
   elapsed,
   limit,
   size = 'md',
   className,
-}: InlineTimerProps) {
+}: InlineTimerProps): React.JSX.Element {
   const warningLevel = limit ? getWarningLevel(elapsed, limit) : 'normal';
 
   const sizeClasses = {
@@ -249,29 +282,31 @@ export function InlineTimer({
 }
 
 /**
- * Session timer showing total duration from startedAt timestamp
+ * Session timer - pure display component
+ * Parent calculates elapsed from startedAt and passes it in
+ * 
+ * Example parent usage:
+ * ```tsx
+ * const [elapsed, setElapsed] = useState(0);
+ * 
+ * useEffect(() => {
+ *   const startTime = new Date(startedAt).getTime();
+ *   const updateElapsed = () => {
+ *     const seconds = Math.floor((Date.now() - startTime) / 1000);
+ *     setElapsed(Math.max(0, seconds));
+ *   };
+ *   updateElapsed();
+ *   const interval = setInterval(updateElapsed, 1000);
+ *   return () => clearInterval(interval);
+ * }, [startedAt]);
+ * 
+ * <SessionTimer elapsed={elapsed} />
+ * ```
  */
 export function SessionTimer({
-  startedAt,
+  elapsed,
   className,
-}: SessionTimerProps) {
-  const [elapsed, setElapsed] = useState(0);
-
-  useEffect(() => {
-    const startTime = new Date(startedAt).getTime();
-
-    const updateElapsed = () => {
-      const now = Date.now();
-      const seconds = Math.floor((now - startTime) / 1000);
-      setElapsed(Math.max(0, seconds));
-    };
-
-    updateElapsed();
-    const interval = setInterval(updateElapsed, 1000);
-
-    return () => clearInterval(interval);
-  }, [startedAt]);
-
+}: SessionTimerProps): React.JSX.Element {
   const hours = Math.floor(elapsed / 3600);
   const minutes = Math.floor((elapsed % 3600) / 60);
   const seconds = elapsed % 60;
@@ -293,3 +328,9 @@ export function SessionTimer({
     </div>
   );
 }
+
+/**
+ * Export time limits for parent components that need them
+ */
+export { INTERVIEW_TIME_LIMITS };
+export type { TimerDisplayProps, InlineTimerProps, SessionTimerProps };

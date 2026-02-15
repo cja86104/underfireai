@@ -9,7 +9,7 @@ import gsap from 'gsap';
  * Fire-themed animated background with floating gradient orbs.
  * Place at the root of your layout for a dynamic backdrop.
  */
-export function AnimatedBackground() {
+export function AnimatedBackground(): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export function AnimatedBackground() {
     const orbs = containerRef.current.querySelectorAll('.gradient-orb');
 
     // Add subtle mouse movement effect
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       const { clientX, clientY } = e;
       const xPercent = (clientX / window.innerWidth - 0.5) * 20;
       const yPercent = (clientY / window.innerHeight - 0.5) * 20;
@@ -58,7 +58,7 @@ export function AnimatedBackground() {
  * 
  * Concentrated fire glow effect for hero sections.
  */
-export function HeroGlow() {
+export function HeroGlow(): React.JSX.Element {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       {/* Top center glow */}
@@ -94,13 +94,13 @@ export function HeroGlow() {
  * 
  * Pulsing fire glow effect for highlighting elements.
  */
-export function FireGlow({ 
+export function FireGlow({
   size = 'md',
-  className = '' 
-}: { 
+  className = ''
+}: {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
-}) {
+}): React.JSX.Element {
   const sizes = {
     sm: 'w-32 h-32',
     md: 'w-64 h-64',
@@ -124,7 +124,7 @@ export function FireGlow({
  * 
  * Animated scroll indicator for hero sections.
  */
-export function ScrollIndicator() {
+export function ScrollIndicator(): React.JSX.Element {
   return (
     <div className="flex flex-col items-center gap-2">
       <span className="text-xs uppercase tracking-[3px] text-charcoal-400 font-medium">
@@ -140,7 +140,7 @@ export function ScrollIndicator() {
  * 
  * Decorative divider with fire gradient.
  */
-export function SectionDivider() {
+export function SectionDivider(): React.JSX.Element {
   return (
     <div className="relative py-20">
       <div className="absolute left-1/2 -translate-x-1/2 w-px h-20 bg-gradient-to-b from-transparent via-fire-500/50 to-transparent" />

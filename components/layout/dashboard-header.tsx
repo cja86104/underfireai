@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -23,19 +24,19 @@ interface DashboardHeaderProps {
   };
 }
 
-export function DashboardHeader({ user }: DashboardHeaderProps) {
+export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Element {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (): Promise<void> => {
     setIsSigningOut(true);
     try {
       await signOut();
       toast.success('Signed out successfully');
       router.push('/');
       router.refresh();
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to sign out');
     } finally {
       setIsSigningOut(false);
@@ -77,15 +78,17 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-slate-800 transition-colors"
             >
-              <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white overflow-hidden">
+              <div className="relative h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white overflow-hidden">
                 {user.avatarUrl ? (
-                  <img
+                  <Image
                     src={user.avatarUrl}
-                    alt={user.fullName || 'User'}
-                    className="h-full w-full object-cover"
+                    alt={user.fullName ?? 'User'}
+                    fill
+                    className="object-cover"
+                    unoptimized
                   />
                 ) : (
-                  (user.fullName?.[0] || user.email[0]).toUpperCase()
+                  (user.fullName?.[0] ?? user.email[0]).toUpperCase()
                 )}
               </div>
               <ChevronDown
@@ -107,7 +110,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                   {/* User info */}
                   <div className="px-4 py-3 border-b border-slate-700">
                     <p className="text-sm font-medium text-white truncate">
-                      {user.fullName || 'User'}
+                      {user.fullName ?? 'User'}
                     </p>
                     <p className="text-xs text-slate-400 truncate">{user.email}</p>
                   </div>

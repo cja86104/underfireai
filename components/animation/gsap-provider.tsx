@@ -3,22 +3,15 @@
 import { useEffect, useRef, createContext, useContext, type ReactNode } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-// Only import Lenis on client side
-let Lenis: typeof import('lenis').default | null = null;
-if (typeof window !== 'undefined') {
-  import('lenis').then((mod) => {
-    Lenis = mod.default;
-  });
-}
+import type LenisType from 'lenis';
 
 interface GSAPContextValue {
-  lenis: InstanceType<typeof import('lenis').default> | null;
+  lenis: LenisType | null;
 }
 
 const GSAPContext = createContext<GSAPContextValue>({ lenis: null });
 
-export function useGSAP() {
+export function useGSAP(): GSAPContextValue {
   return useContext(GSAPContext);
 }
 
@@ -26,15 +19,15 @@ interface GSAPProviderProps {
   children: ReactNode;
 }
 
-export function GSAPProvider({ children }: GSAPProviderProps) {
-  const lenisRef = useRef<InstanceType<typeof import('lenis').default> | null>(null);
+export function GSAPProvider({ children }: GSAPProviderProps): React.JSX.Element {
+  const lenisRef = useRef<LenisType | null>(null);
 
   useEffect(() => {
     // Register GSAP plugins
     gsap.registerPlugin(ScrollTrigger);
 
     // Initialize Lenis smooth scroll
-    const initLenis = async () => {
+    const initLenis = async (): Promise<void> => {
       const LenisModule = (await import('lenis')).default;
       
       const lenis = new LenisModule({
@@ -49,7 +42,7 @@ export function GSAPProvider({ children }: GSAPProviderProps) {
       lenisRef.current = lenis;
 
       // Connect Lenis to ScrollTrigger
-      lenis.on('scroll', ScrollTrigger.update);
+      lenis.on('scroll', () => { ScrollTrigger.update(); });
 
       // Add Lenis to GSAP ticker
       gsap.ticker.add((time) => {
@@ -63,7 +56,7 @@ export function GSAPProvider({ children }: GSAPProviderProps) {
       document.documentElement.classList.add('lenis');
     };
 
-    initLenis();
+    void initLenis();
 
     // Cleanup
     return () => {
@@ -107,7 +100,7 @@ export function useScrollAnimation<T extends HTMLElement = HTMLDivElement>(optio
   duration?: number;
   ease?: string;
   once?: boolean;
-}) {
+}): React.RefObject<T> {
   const ref = useRef<T>(null);
 
   const {
@@ -175,7 +168,7 @@ export function useStaggerAnimation<T extends HTMLElement = HTMLDivElement>(opti
   duration?: number;
   ease?: string;
   once?: boolean;
-}) {
+}): React.RefObject<T> {
   const ref = useRef<T>(null);
 
   const {
@@ -227,7 +220,7 @@ export function useStaggerAnimation<T extends HTMLElement = HTMLDivElement>(opti
 export function useParallax<T extends HTMLElement = HTMLDivElement>(options: {
   speed?: number;
   direction?: 'up' | 'down';
-}) {
+}): React.RefObject<T> {
   const ref = useRef<T>(null);
 
   const { speed = 0.5, direction = 'up' } = options;

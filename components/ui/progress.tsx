@@ -63,16 +63,16 @@ const Progress = React.forwardRef<
   ProgressProps
 >(({ className, value, size, variant, showValue, label, ...props }, ref) => {
   const indicatorClass = variant === 'score' 
-    ? getScoreColor(value || 0) 
+    ? getScoreColor(value ?? 0) 
     : indicatorVariants({ variant });
 
   return (
     <div className="w-full">
-      {(label || showValue) && (
+      {(label != null || showValue === true) && (
         <div className="mb-1.5 flex items-center justify-between text-sm">
           {label && <span className="text-muted-foreground">{label}</span>}
           {showValue && (
-            <span className="font-medium">{Math.round(value || 0)}%</span>
+            <span className="font-medium">{Math.round(value ?? 0)}%</span>
           )}
         </div>
       )}
@@ -83,7 +83,7 @@ const Progress = React.forwardRef<
       >
         <ProgressPrimitive.Indicator
           className={cn(indicatorClass)}
-          style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+          style={{ transform: `translateX(-${100 - (value ?? 0)}%)` }}
         />
       </ProgressPrimitive.Root>
     </div>
@@ -105,7 +105,7 @@ const sizeMap = {
   lg: { size: 120, stroke: 8, fontSize: 'text-2xl' },
 };
 
-function ScoreCircle({ value, size = 'default', label, showLabel = true }: ScoreCircleProps) {
+function ScoreCircle({ value, size = 'default', label, showLabel = true }: ScoreCircleProps): React.JSX.Element {
   const { size: svgSize, stroke, fontSize } = sizeMap[size];
   const radius = (svgSize - stroke) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -121,7 +121,7 @@ function ScoreCircle({ value, size = 'default', label, showLabel = true }: Score
     'bg-score-poor': '#f97316',
     'bg-score-critical': '#ef4444',
   };
-  const strokeColor = colorMap[colorClass] || '#d97706';
+  const strokeColor = colorMap[colorClass] ?? '#d97706';
 
   return (
     <div className="flex flex-col items-center gap-2">

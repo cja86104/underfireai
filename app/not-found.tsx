@@ -1,7 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { Flame, Home, ArrowLeft } from 'lucide-react';
 
-export default function NotFound() {
+export default function NotFound(): React.JSX.Element {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4">
       <div className="text-center">

@@ -1,14 +1,19 @@
 import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
 /**
  * Create a Supabase client for use in the browser (Client Components)
  */
-export function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+export function createClient(): SupabaseClient<Database> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are not configured');
+  }
+
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
 }
 
 /**
@@ -16,17 +21,15 @@ export function createClient() {
  */
 let browserClient: ReturnType<typeof createClient> | null = null;
 
-export function getClient() {
-  if (!browserClient) {
-    browserClient = createClient();
-  }
+export function getClient(): SupabaseClient<Database> {
+  browserClient ??= createClient();
   return browserClient;
 }
 
 /**
  * Get current user from browser
  */
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<Awaited<ReturnType<ReturnType<typeof createClient>['auth']['getUser']>>['data']['user']> {
   const supabase = getClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   
@@ -40,7 +43,7 @@ export async function getCurrentUser() {
 /**
  * Get current session from browser
  */
-export async function getCurrentSession() {
+export async function getCurrentSession(): Promise<Awaited<ReturnType<ReturnType<typeof createClient>['auth']['getSession']>>['data']['session']> {
   const supabase = getClient();
   const { data: { session }, error } = await supabase.auth.getSession();
   
@@ -56,7 +59,7 @@ export async function getCurrentSession() {
  */
 export function onAuthStateChange(
   callback: (event: string, session: unknown) => void
-) {
+): ReturnType<ReturnType<typeof createClient>['auth']['onAuthStateChange']> {
   const supabase = getClient();
   return supabase.auth.onAuthStateChange(callback);
 }
@@ -64,7 +67,7 @@ export function onAuthStateChange(
 /**
  * Sign out helper
  */
-export async function signOut() {
+export async function signOut(): Promise<void> {
   const supabase = getClient();
   const { error } = await supabase.auth.signOut();
   
@@ -78,7 +81,7 @@ export async function signOut() {
 /**
  * Sign in with email/password
  */
-export async function signInWithEmail(email: string, password: string) {
+export async function signInWithEmail(email: string, password: string): Promise<Awaited<ReturnType<ReturnType<typeof createClient>['auth']['signInWithPassword']>>['data']> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -101,7 +104,7 @@ export async function signUpWithEmail(
   metadata?: { 
     full_name?: string;
   }
-) {
+): Promise<Awaited<ReturnType<ReturnType<typeof createClient>['auth']['signUp']>>['data']> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -123,7 +126,7 @@ export async function signUpWithEmail(
  */
 export async function signInWithOAuth(
   provider: 'google' | 'github'
-) {
+): Promise<{ provider: string; url: string }> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -142,7 +145,7 @@ export async function signInWithOAuth(
 /**
  * Reset password
  */
-export async function resetPassword(email: string) {
+export async function resetPassword(email: string): Promise<object> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}/auth/reset-password`,
@@ -158,7 +161,7 @@ export async function resetPassword(email: string) {
 /**
  * Update password
  */
-export async function updatePassword(newPassword: string) {
+export async function updatePassword(newPassword: string): Promise<{ user: unknown }> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.updateUser({
     password: newPassword,
@@ -174,7 +177,7 @@ export async function updatePassword(newPassword: string) {
 /**
  * Update user metadata
  */
-export async function updateUserMetadata(metadata: Record<string, unknown>) {
+export async function updateUserMetadata(metadata: Record<string, unknown>): Promise<{ user: unknown }> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.updateUser({
     data: metadata,

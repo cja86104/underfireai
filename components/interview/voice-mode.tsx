@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Mic,
-  MicOff,
   Volume2,
   VolumeX,
   Loader2,
@@ -14,6 +13,9 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
 import type { VoiceConfig } from '@/types/database';
+
+// Number of frequency bars in the visualization
+const BAR_COUNT = 20;
 
 interface VoiceModeProps {
   sessionId: string;
@@ -66,31 +68,36 @@ export function VoiceMode({
   onTranscript,
   onSpeakText,
   lastInterviewerMessage,
-}: VoiceModeProps) {
+}: VoiceModeProps): React.JSX.Element {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [playbackState, setPlaybackState] = useState<PlaybackState>('idle');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [finalTranscript, setFinalTranscript] = useState('');
-  const [isSupported, setIsSupported] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0);
+  
+  // REAL frequency data: array of 20 values (0-1), each representing a frequency band
+  const [frequencyBars, setFrequencyBars] = useState<number[]>(() =>
+    Array<number>(BAR_COUNT).fill(0)
+  );
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const isSpeakingRef = useRef(false);
 
-  // Check browser support on mount
+  // Check browser support - derived constant, not state
+  const isSupported = typeof window !== 'undefined' && 
+    (typeof window.SpeechRecognition !== 'undefined' || 
+     typeof window.webkitSpeechRecognition !== 'undefined');
+
+  // Initialize speech recognition
   useEffect(() => {
+    if (!isSupported) return;
+
     const SpeechRecognitionAPI =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognitionAPI) {
-      setIsSupported(false);
-      return;
-    }
 
     const recognition = new SpeechRecognitionAPI();
     recognition.continuous = true;
@@ -124,7 +131,7 @@ export function VoiceMode({
       if (event.error === 'not-allowed') {
         toast.error('Microphone access denied. Please allow microphone access.');
       } else if (event.error === 'no-speech') {
-        setRecordingState('idle');
+        // Silently handle no-speech - user just hasn't spoken yet
       } else if (event.error !== 'aborted') {
         toast.error('Speech recognition error. Please try again.');
       }
@@ -132,9 +139,11 @@ export function VoiceMode({
     };
 
     recognition.onend = () => {
-      if (recordingState === 'listening') {
-        setRecordingState('idle');
-      }
+      // Only reset to idle if we're currently listening
+      // This prevents race conditions with manual stop
+      setRecordingState((current) => 
+        current === 'listening' ? 'idle' : current
+      );
     };
 
     recognitionRef.current = recognition;
@@ -149,11 +158,14 @@ export function VoiceMode({
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach((track) => track.stop());
       }
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        void audioContextRef.current.close();
+      }
     };
-  }, [recordingState]);
+  }, [isSupported]);
 
-  // Audio level visualization
-  const startAudioLevelMonitoring = useCallback(async () => {
+  // REAL audio level visualization using frequency bins from Web Audio API
+  const startAudioLevelMonitoring = useCallback(async (): Promise<void> => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
@@ -163,37 +175,70 @@ export function VoiceMode({
 
       const analyser = audioContext.createAnalyser();
       analyserRef.current = analyser;
+      
+      // FFT size determines frequency resolution
+      // 256 gives us 128 frequency bins (frequencyBinCount = fftSize / 2)
       analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8; // Smooth out rapid changes
 
       const source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
 
+      // Frequency data buffer - reused each frame for performance
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-      const updateLevel = () => {
-        analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-        setAudioLevel(average / 255);
-        animationFrameRef.current = requestAnimationFrame(updateLevel);
+      const updateLevels = (): void => {
+        if (!analyserRef.current) return;
+        
+        // Get REAL frequency data from the FFT
+        analyserRef.current.getByteFrequencyData(dataArray);
+        
+        // Map 128 frequency bins to 20 bars
+        // Each bar represents a range of frequencies
+        // Lower indices = lower frequencies, higher indices = higher frequencies
+        const binsPerBar = Math.floor(dataArray.length / BAR_COUNT);
+        
+        const newBars = Array.from({ length: BAR_COUNT }, (_, barIndex) => {
+          const startBin = barIndex * binsPerBar;
+          const endBin = startBin + binsPerBar;
+          
+          // Average the frequency bins for this bar
+          let sum = 0;
+          for (let i = startBin; i < endBin && i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const average = sum / binsPerBar;
+          
+          // Normalize to 0-1 range
+          return average / 255;
+        });
+        
+        setFrequencyBars(newBars);
+        animationFrameRef.current = requestAnimationFrame(updateLevels);
       };
 
-      updateLevel();
+      updateLevels();
     } catch (err) {
       console.error('Failed to start audio monitoring:', err);
+      toast.error('Could not access microphone for audio visualization');
     }
   }, []);
 
   const stopAudioLevelMonitoring = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
     }
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      void audioContextRef.current.close();
+      audioContextRef.current = null;
     }
-    setAudioLevel(0);
+    analyserRef.current = null;
+    setFrequencyBars(Array(BAR_COUNT).fill(0));
   }, []);
 
   const startRecording = useCallback(async () => {
@@ -206,6 +251,7 @@ export function VoiceMode({
       recognitionRef.current.start();
       await startAudioLevelMonitoring();
     } catch (err) {
+      console.error('Failed to start recording:', err);
       toast.error('Failed to start recording');
     }
   }, [startAudioLevelMonitoring]);
@@ -240,13 +286,29 @@ export function VoiceMode({
 
   // Auto-play interviewer messages
   useEffect(() => {
-    if (lastInterviewerMessage && voiceConfig?.tts_enabled && !isMuted && isActive) {
-      setPlaybackState('loading');
-      onSpeakText(lastInterviewerMessage)
-        .then(() => setPlaybackState('idle'))
-        .catch(() => setPlaybackState('idle'));
+    if (!lastInterviewerMessage || !voiceConfig?.tts_enabled || isMuted || !isActive) {
+      return;
     }
+
+    // Guard against duplicate calls
+    if (isSpeakingRef.current) return;
+    isSpeakingRef.current = true;
+
+    const speak = async (): Promise<void> => {
+      setPlaybackState('loading');
+      try {
+        await onSpeakText(lastInterviewerMessage);
+      } finally {
+        setPlaybackState('idle');
+        isSpeakingRef.current = false;
+      }
+    };
+
+    void speak();
   }, [lastInterviewerMessage, voiceConfig?.tts_enabled, isMuted, isActive, onSpeakText]);
+
+  // Suppress unused sessionId warning - reserved for future session-specific features
+  void sessionId;
 
   if (!isSupported) {
     return (
@@ -310,19 +372,22 @@ export function VoiceMode({
         </button>
       </div>
 
-      {/* Audio Level Visualization */}
+      {/* REAL Audio Level Visualization - frequency bars from actual FFT data */}
       {recordingState === 'listening' && (
         <div className="mb-4">
           <div className="flex items-center gap-1 h-8">
-            {[...Array(20)].map((_, i) => (
+            {frequencyBars.map((level, i) => (
               <div
+                // eslint-disable-next-line react/no-array-index-key -- Index is appropriate for frequency bar positions
                 key={i}
                 className={cn(
                   'flex-1 rounded-full transition-all duration-75',
-                  audioLevel > i / 20 ? 'bg-fire-500' : 'bg-stone-200'
+                  level > 0.1 ? 'bg-fire-500' : 'bg-stone-200'
                 )}
                 style={{
-                  height: `${Math.max(20, Math.min(100, audioLevel * 100 + Math.random() * 20))}%`,
+                  // Height driven by REAL frequency data
+                  // Min 20%, max 100%, scaled by actual frequency bin value
+                  height: `${Math.max(20, Math.min(100, level * 100))}%`,
                 }}
               />
             ))}

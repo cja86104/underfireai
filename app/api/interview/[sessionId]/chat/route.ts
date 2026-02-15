@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import {
   createChatCompletion,
   generateInterviewSystemPrompt,
@@ -48,7 +47,7 @@ interface ChatRequestBody {
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
-) {
+): Promise<NextResponse> {
   try {
     const { sessionId } = await params;
     const user = await getCurrentUser();
@@ -62,7 +61,7 @@ export async function POST(
 
     const supabase = await createClient();
 
-    // Verify session belongs to user
+    // Verify session belongs to user and get limits
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')
       .select('id, status, user_id')
@@ -84,7 +83,40 @@ export async function POST(
       );
     }
 
-    const body: ChatRequestBody = await request.json();
+    // Get session with extended fields (max_user_messages added by migration)
+    const { data: sessionFull } = await supabase
+      .from('interview_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .single();
+
+    // Type assertion for the new fields (from migration 002_session_length.sql)
+    const sessionData = sessionFull as typeof sessionFull & {
+      max_user_messages?: number;
+      session_length?: string;
+    };
+
+    // Get current user message count
+    const { count: userMessageCount } = await supabase
+      .from('interview_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', sessionId)
+      .eq('role', 'candidate');
+
+    const maxMessages = sessionData?.max_user_messages || 20; // Default to standard
+    const currentCount = userMessageCount ?? 0;
+
+    // Check if session should be force-ended due to message limit
+    if (currentCount >= maxMessages) {
+      return NextResponse.json({
+        content: "Thank you for your time today. We've covered a lot of ground in this interview. We'll be in touch soon with feedback and next steps.",
+        should_end: true,
+        limit_reached: true,
+        message: 'Session message limit reached',
+      });
+    }
+
+    const body = await request.json() as ChatRequestBody;
     const {
       message,
       responseTime,
@@ -107,11 +139,11 @@ export async function POST(
       roleTarget: targetRole,
       backstory: interviewer.backstory,
       personality: interviewer.personalityBase,
-      communicationStyle: interviewerPersonality?.communicationStyle || null,
-      redFlags: interviewerPersonality?.redFlags || null,
-      greenFlags: interviewerPersonality?.greenFlags || null,
-      petPeeves: interviewerPersonality?.petPeeves || null,
-      favoriteTopics: interviewerPersonality?.favoriteTopics || null,
+      communicationStyle: interviewerPersonality?.communicationStyle ?? null,
+      redFlags: interviewerPersonality?.redFlags ?? null,
+      greenFlags: interviewerPersonality?.greenFlags ?? null,
+      petPeeves: interviewerPersonality?.petPeeves ?? null,
+      favoriteTopics: interviewerPersonality?.favoriteTopics ?? null,
       resumeContext,
       currentMood: interviewer.currentMood,
     });
@@ -148,11 +180,15 @@ export async function POST(
       throw new Error('No response from AI');
     }
 
-    // Check if interview should end (AI indicates wrap-up)
+    // Check if interview should end (AI indicates wrap-up or limit approaching)
+    const messagesAfterThis = currentCount + 1;
+    const isNearLimit = messagesAfterThis >= maxMessages - 1;
+    const isAtLimit = messagesAfterThis >= maxMessages;
+
     const shouldEnd = aiResponse.toLowerCase().includes('thank you for your time') ||
                       aiResponse.toLowerCase().includes('that concludes our interview') ||
                       aiResponse.toLowerCase().includes('we\'ll be in touch') ||
-                      messageHistory.length >= 20; // Max 20 exchanges
+                      isAtLimit;
 
     // Save messages to database
     let userMessageId: string | null = null;
@@ -214,10 +250,10 @@ export async function POST(
     if (analysis && interviewer.currentMood) {
       const triggers = detectMoodTriggers({
         analysis,
-        redFlags: interviewerPersonality?.redFlags || [],
-        greenFlags: interviewerPersonality?.greenFlags || [],
-        petPeeves: interviewerPersonality?.petPeeves || [],
-        favoriteTopics: interviewerPersonality?.favoriteTopics || [],
+        redFlags: interviewerPersonality?.redFlags ?? [],
+        greenFlags: interviewerPersonality?.greenFlags ?? [],
+        petPeeves: interviewerPersonality?.petPeeves ?? [],
+        favoriteTopics: interviewerPersonality?.favoriteTopics ?? [],
         candidateMessage: message,
       });
 
@@ -237,6 +273,8 @@ export async function POST(
       interviewer_message_id: interviewerMsg?.id,
       analysis,
       should_end: shouldEnd,
+      messages_remaining: Math.max(0, maxMessages - messagesAfterThis),
+      ...(isNearLimit && !isAtLimit ? { limit_warning: `${maxMessages - messagesAfterThis} responses remaining in this session` } : {}),
       ...(warnings.length > 0 ? { warnings } : {}),
     });
 
