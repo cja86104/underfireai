@@ -204,7 +204,7 @@ export function AnimatedText({
     if (!text) return;
 
     // Split text into spans
-    const content = text.textContent || '';
+    const content = text.textContent ?? '';
     let elements: string[] = [];
 
     switch (animation) {

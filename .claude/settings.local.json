@@ -27,7 +27,10 @@
       "Bash(findstr:*)",
       "Bash(git checkout:*)",
       "Bash(grep:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(npm run start:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)"
     ]
   }
 }

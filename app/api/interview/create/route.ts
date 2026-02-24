@@ -104,9 +104,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // ── Premium gate ─────────────────────────────────────────────────────────
     const hasPremiumFields =
-      (body.archetype_mix && body.archetype_mix.length > 0) ||
-      (body.constraints   && body.constraints.length   > 0) ||
-      (body.trait_overrides && Object.keys(body.trait_overrides).length > 0);
+      ((body.archetype_mix?.length ?? 0) > 0) ||
+      ((body.constraints?.length ?? 0) > 0) ||
+      (Object.keys(body.trait_overrides ?? {}).length > 0);
 
     if (hasPremiumFields && subscription.tier !== 'premium') {
       return NextResponse.json(

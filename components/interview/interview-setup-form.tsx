@@ -186,9 +186,8 @@ export function InterviewSetupForm({
       if (next.has(key)) {
         next.delete(key);
         setTraitOverrides((o) => {
-          const copy = { ...o };
-          delete copy[key];
-          return copy;
+          const { [key]: _, ...rest } = o;
+          return rest;
         });
       } else {
         next.add(key);
@@ -645,7 +644,7 @@ export function InterviewSetupForm({
               Leave empty for a random archetype (default Pro behaviour).
             </p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {ARCHETYPE_OPTIONS.map((archetype, idx) => {
+              {ARCHETYPE_OPTIONS.map((archetype) => {
                 const selectedIdx = archetypeMix.indexOf(archetype.value);
                 const isSelected  = selectedIdx !== -1;
                 const isDisabled  = !isSelected && archetypeMix.length >= 2;
