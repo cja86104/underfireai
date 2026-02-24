@@ -30,7 +30,10 @@
       "Bash(npm run lint:*)",
       "Bash(npm run start:*)",
       "Bash(timeout:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(while read:*)",
+      "Bash(do echo \"$js:\")",
+      "Bash(done)"
     ]
   }
 }

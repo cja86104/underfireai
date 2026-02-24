@@ -317,6 +317,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       status:            'in_progress' as const,
       session_length,
       max_user_messages: sessionConfig.maxUserMessages,
+      voice_enabled:     body.use_voice_mode,
       // Premium fields — stored for analytics / replay; null for free/pro
       archetype_mix:    archetype_mix.length   > 0 ? archetype_mix   : null,
       constraints:      constraints.length     > 0 ? constraints     : null,

@@ -66,6 +66,8 @@ export interface Database {
       }
       interview_sessions: {
         Row: {
+          archetype_mix: string[] | null
+          constraints: string[] | null
           difficulty: number
           duration_seconds: number | null
           ended_at: string | null
@@ -78,10 +80,13 @@ export interface Database {
           status: Database["public"]["Enums"]["session_status"]
           target_company: string | null
           target_role: string | null
+          trait_overrides: Json | null
           user_id: string
           voice_enabled: boolean
         }
         Insert: {
+          archetype_mix?: string[] | null
+          constraints?: string[] | null
           difficulty?: number
           duration_seconds?: number | null
           ended_at?: string | null
@@ -94,10 +99,13 @@ export interface Database {
           status?: Database["public"]["Enums"]["session_status"]
           target_company?: string | null
           target_role?: string | null
+          trait_overrides?: Json | null
           user_id: string
           voice_enabled?: boolean
         }
         Update: {
+          archetype_mix?: string[] | null
+          constraints?: string[] | null
           difficulty?: number
           duration_seconds?: number | null
           ended_at?: string | null
@@ -110,6 +118,7 @@ export interface Database {
           status?: Database["public"]["Enums"]["session_status"]
           target_company?: string | null
           target_role?: string | null
+          trait_overrides?: Json | null
           user_id?: string
           voice_enabled?: boolean
         }
@@ -443,9 +452,34 @@ export interface Database {
           },
         ]
       }
+      waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          referrer: string | null
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          referrer?: string | null
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          referrer?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<never, never>
     Functions: {
+      get_waitlist_count: { Args: Record<PropertyKey, never>; Returns: number }
       reset_monthly_interviews: { Args: never; Returns: undefined }
     }
     Enums: {
@@ -851,6 +885,9 @@ export interface InterviewSession {
   voice_enabled: boolean;
   session_length: SessionLength | null;
   max_user_messages: number | null;
+  archetype_mix: string[] | null;
+  constraints: string[] | null;
+  trait_overrides: Json | null;
 }
 
 export interface InterviewSessionInsert {
@@ -868,6 +905,9 @@ export interface InterviewSessionInsert {
   voice_enabled?: boolean;
   session_length?: SessionLength;
   max_user_messages?: number;
+  archetype_mix?: string[] | null;
+  constraints?: string[] | null;
+  trait_overrides?: Json | null;
 }
 
 export interface InterviewSessionUpdate {
@@ -881,6 +921,9 @@ export interface InterviewSessionUpdate {
   voice_enabled?: boolean;
   session_length?: SessionLength;
   max_user_messages?: number;
+  archetype_mix?: string[] | null;
+  constraints?: string[] | null;
+  trait_overrides?: Json | null;
 }
 
 // -- Interview Messages --

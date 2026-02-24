@@ -83,18 +83,12 @@ export async function POST(
       );
     }
 
-    // Get session with extended fields (max_user_messages added by migration)
-    const { data: sessionFull } = await supabase
+    // Get full session data (includes session_length and max_user_messages)
+    const { data: sessionData } = await supabase
       .from('interview_sessions')
       .select('*')
       .eq('id', sessionId)
       .single();
-
-    // Type assertion for the new fields (from migration 002_session_length.sql)
-    const sessionData = sessionFull as typeof sessionFull & {
-      max_user_messages?: number;
-      session_length?: string;
-    };
 
     // Get current user message count
     const { count: userMessageCount } = await supabase
@@ -103,7 +97,7 @@ export async function POST(
       .eq('session_id', sessionId)
       .eq('role', 'candidate');
 
-    const maxMessages = sessionData?.max_user_messages || 20; // Default to standard
+    const maxMessages = sessionData?.max_user_messages ?? 20; // Default to standard
     const currentCount = userMessageCount ?? 0;
 
     // Check if session should be force-ended due to message limit
