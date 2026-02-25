@@ -344,82 +344,27 @@ function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscri
 }
 
 function NotificationsTab(): React.JSX.Element {
-  const [settings, setSettings] = useState({
-    emailDigest: true,
-    practiceReminders: true,
-    newFeatures: false,
-  });
-
-  const handleToggle = (key: keyof typeof settings): void => {
-    setSettings({ ...settings, [key]: !settings[key] });
-    toast.success('Notification preference updated');
-  };
-
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
       <h2 className="text-lg font-semibold text-white mb-6">Notification Preferences</h2>
-      
-      <div className="space-y-4">
-        <NotificationToggle
-          label="Weekly Progress Digest"
-          description="Get a summary of your interview practice each week"
-          enabled={settings.emailDigest}
-          onToggle={() => handleToggle('emailDigest')}
-        />
-        <NotificationToggle
-          label="Practice Reminders"
-          description="Gentle nudges to keep your streak going"
-          enabled={settings.practiceReminders}
-          onToggle={() => handleToggle('practiceReminders')}
-        />
-        <NotificationToggle
-          label="New Features"
-          description="Be the first to know about new interview types and features"
-          enabled={settings.newFeatures}
-          onToggle={() => handleToggle('newFeatures')}
-        />
-      </div>
-    </div>
-  );
-}
 
-function NotificationToggle({
-  label,
-  description,
-  enabled,
-  onToggle,
-}: {
-  label: string;
-  description: string;
-  enabled: boolean;
-  onToggle: () => void;
-}): React.JSX.Element {
-  return (
-    <div className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0">
-      <div>
-        <p className="font-medium text-white">{label}</p>
-        <p className="text-sm text-slate-400">{description}</p>
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <Bell className="h-12 w-12 text-slate-600 mb-4" />
+        <h3 className="text-lg font-medium text-white mb-2">Coming Soon</h3>
+        <p className="text-sm text-slate-400 max-w-md">
+          Email notifications for weekly progress digests, practice reminders, and new features
+          are coming in a future update. Stay tuned!
+        </p>
       </div>
-      <button
-        onClick={onToggle}
-        className={cn(
-          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-          enabled ? 'bg-orange-500' : 'bg-slate-700'
-        )}
-      >
-        <span
-          className={cn(
-            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-            enabled ? 'translate-x-6' : 'translate-x-1'
-          )}
-        />
-      </button>
     </div>
   );
 }
 
 function SecurityTab({ email }: { email: string }): React.JSX.Element {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const handlePasswordReset = async (): Promise<void> => {
     setIsLoading(true);
@@ -439,10 +384,36 @@ function SecurityTab({ email }: { email: string }): React.JSX.Element {
     }
   };
 
+  const handleDeleteAccount = async (): Promise<void> => {
+    if (deleteConfirmText !== 'DELETE') {
+      toast.error('Please type DELETE to confirm');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/account/delete', {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete account');
+      }
+
+      toast.success('Account deleted successfully');
+      router.push('/');
+    } catch (_error) {
+      toast.error('Failed to delete account. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
       <h2 className="text-lg font-semibold text-white mb-6">Security Settings</h2>
-      
+
       <div className="space-y-6">
         <div>
           <h3 className="font-medium text-white mb-2">Change Password</h3>
@@ -463,9 +434,46 @@ function SecurityTab({ email }: { email: string }): React.JSX.Element {
           <p className="text-sm text-slate-400 mb-4">
             Permanently delete your account and all associated data. This action cannot be undone.
           </p>
-          <button className="rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20 transition-colors">
-            Delete Account
-          </button>
+
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20 transition-colors"
+            >
+              Delete Account
+            </button>
+          ) : (
+            <div className="space-y-3 p-4 rounded-lg border border-red-500/30 bg-red-500/5">
+              <p className="text-sm text-red-400">
+                Type <strong>DELETE</strong> to confirm account deletion:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE"
+                className="w-full rounded-lg border border-red-500/30 bg-slate-800/50 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-red-500 focus:outline-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isLoading || deleteConfirmText !== 'DELETE'}
+                  className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'Deleting...' : 'Confirm Delete'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteConfirmText('');
+                  }}
+                  className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -352,6 +352,7 @@ export interface VoiceOption {
   suggestedFor: InterviewerArchetype[];
 }
 
+// Voice IDs are sourced from lib/tts/cartesia-tts.ts (authoritative)
 export const VOICE_OPTIONS: VoiceOption[] = [
   {
     id: 'katie',
@@ -391,7 +392,7 @@ export const VOICE_OPTIONS: VoiceOption[] = [
   },
   {
     id: 'leo',
-    cartesiaId: '040132fe-5f8f-4e9f-a315-18a5c8b8c445',
+    cartesiaId: '0834f3df-e650-4766-a20c-5a93a43aa6e3',
     name: 'Leo',
     description: 'Deep and authoritative',
     gender: 'masculine',
@@ -400,7 +401,7 @@ export const VOICE_OPTIONS: VoiceOption[] = [
   },
   {
     id: 'maya',
-    cartesiaId: 'c58c5a0c-4ed8-4c67-aec3-bb6fef4b4c02',
+    cartesiaId: 'cbaf8084-f009-4838-a096-07ee2e6612b1',
     name: 'Maya',
     description: 'Friendly and approachable',
     gender: 'feminine',

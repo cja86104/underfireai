@@ -33,7 +33,9 @@
       "Bash(curl:*)",
       "Bash(while read:*)",
       "Bash(do echo \"$js:\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(del \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\\\\lib\\\\middleware.ts\")",
+      "Bash(supabase db push:*)"
     ]
   }
 }

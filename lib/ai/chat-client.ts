@@ -5,7 +5,7 @@
  * Uses DeepSeek as primary model for cost optimization.
  */
 
-import { AI_MODELS, OPENROUTER_CONFIG, MODEL_PARAMS } from './config';
+import { AI_MODELS, OPENROUTER_CONFIG, MODEL_PARAMS, COMPANY_STYLE_MODIFIERS } from './config';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -192,6 +192,7 @@ export function generateInterviewSystemPrompt(params: {
   interviewerName: string;
   interviewType: string;
   companyStyle: string | null;
+  targetCompany: string | null;
   roleTarget: string | null;
   backstory: string | null;
   personality: {
@@ -213,11 +214,14 @@ export function generateInterviewSystemPrompt(params: {
   favoriteTopics: string[] | null;
   resumeContext: string | null;
   currentMood?: { current: string; intensity: number; triggers: string[] } | null;
+  generatedQuestions?: string[] | null;
+  hasResume?: boolean;
 }): string {
   const {
     interviewerName,
     interviewType,
     companyStyle,
+    targetCompany,
     roleTarget,
     backstory,
     personality,
@@ -228,19 +232,28 @@ export function generateInterviewSystemPrompt(params: {
     favoriteTopics,
     resumeContext,
     currentMood,
+    generatedQuestions,
+    hasResume,
   } = params;
 
   let prompt = `You are ${interviewerName}, a professional interviewer conducting a ${interviewType} interview`;
-  
-  if (companyStyle) {
+
+  if (targetCompany) {
+    prompt += ` at ${targetCompany}`;
+  } else if (companyStyle) {
     prompt += ` at a ${companyStyle}-style company`;
   }
-  
+
   if (roleTarget) {
     prompt += ` for a ${roleTarget} position`;
   }
-  
+
   prompt += '.\n\n';
+
+  // Company style behavioral instructions
+  if (companyStyle) {
+    prompt += buildChatCompanyContextSection(companyStyle, targetCompany);
+  }
 
   // Hidden backstory and personality
   if (backstory) {
@@ -297,6 +310,20 @@ export function generateInterviewSystemPrompt(params: {
     prompt += `## Candidate's Resume/Background\n${resumeContext}\n\n`;
   }
 
+  // Pre-generated question guide
+  if (generatedQuestions && generatedQuestions.length > 0) {
+    prompt += `## Suggested Question Guide\n`;
+    prompt += `These questions were generated based on this candidate's background, the role, and the company context. Use them as your primary question pool. You are not required to ask them verbatim or in order — adapt naturally based on the conversation flow, but stay within this scope rather than generating generic questions from scratch.\n\n`;
+    generatedQuestions.forEach((q, i) => {
+      prompt += `${i + 1}. ${q}\n`;
+    });
+    prompt += '\n';
+  }
+
+  const openingInstruction = hasResume
+    ? `Begin with a targeted opening question based on the candidate's resume. Do NOT ask them to introduce themselves or walk you through their background — you already have that information. Reference something specific from their experience to open the conversation.`
+    : `Begin with a brief introduction of yourself and your first question.`;
+
   prompt += `## Instructions
 1. Stay in character throughout the interview
 2. Ask one question at a time
@@ -309,9 +336,63 @@ export function generateInterviewSystemPrompt(params: {
 9. Keep responses concise - you're an interviewer, not a lecturer
 10. End the interview naturally after 5-10 questions or when appropriate
 
-Begin with a brief introduction and your first question.`;
+${openingInstruction}`;
 
   return prompt;
+}
+
+/**
+ * Build company context section for the live interview system prompt.
+ * Uses COMPANY_STYLE_MODIFIERS to produce real behavioral instructions.
+ * Kept separate from interviewer-prompts.ts to avoid a circular dependency
+ * (lib/interview/* already imports from lib/ai/*).
+ */
+function buildChatCompanyContextSection(companyStyle: string, targetCompany: string | null): string {
+  type KnownStyle = keyof typeof COMPANY_STYLE_MODIFIERS;
+  const isKnownStyle = (s: string): s is KnownStyle => s in COMPANY_STYLE_MODIFIERS;
+
+  if (!isKnownStyle(companyStyle)) return '';
+
+  const modifier = COMPANY_STYLE_MODIFIERS[companyStyle];
+  const companyLabel = targetCompany ?? `a ${companyStyle}-style company`;
+
+  const formalityLevel =
+    modifier.formalityBoost >= 30 ? 'very formal and structured'
+    : modifier.formalityBoost >= 10 ? 'professional and polished'
+    : modifier.formalityBoost <= -10 ? 'relaxed and conversational'
+    : 'balanced and professional';
+
+  const depthGuidance =
+    modifier.technicalDepthBoost >= 20
+      ? 'Probe deeply on technical decisions, system design, and engineering trade-offs. Expect candidates to go beyond surface answers.'
+      : modifier.technicalDepthBoost >= 10
+      ? 'Balance technical and non-technical questions. Ask follow-ups on implementation specifics when relevant.'
+      : 'Focus less on technical depth. Prioritize communication, process, and soft-skill indicators.';
+
+  let section = `## Company Context\n`;
+  section += `You represent ${companyLabel}.\n`;
+  section += `Your interviewing tone is ${formalityLevel}.\n`;
+  section += `${depthGuidance}\n`;
+
+  if (modifier.behavioralEmphasis) {
+    section += `This company places strong emphasis on behavioral evidence. Push candidates for specific, real examples — generic or hypothetical answers are not acceptable here.\n`;
+  }
+
+  if (modifier.cultureQuestions) {
+    section += `Culture and values fit is a priority at this company. Weave in questions about working style, team dynamics, and what motivates the candidate.\n`;
+  }
+
+  const styleGuidance: Record<KnownStyle, string> = {
+    faang: `You operate at a top-tier tech company where the bar is extremely high. You expect candidates to demonstrate structured thinking (STAR, frameworks), deep technical knowledge, and leadership principles. Vague answers will be challenged. Look for scope, impact, and scale in their examples.`,
+    startup: `You work at a fast-moving startup. You value scrappiness, ownership, and adaptability over polish. Candidates who have worn multiple hats are appealing. Look for bias toward action and comfort with ambiguity.`,
+    consulting: `You represent a consulting firm. You expect polished communication, structured problem-solving frameworks, and evidence of client-facing skills. Candidates should demonstrate they can simplify complexity for a non-technical audience.`,
+    enterprise: `You are from a large enterprise organization. Process, stakeholder management, and cross-functional collaboration are key. Look for candidates who understand change management and how to get things done in complex organizations.`,
+    agency: `You work at a creative or digital agency. You value creative thinking, speed, and client service. Look for candidates who balance creativity with delivery discipline and can manage multiple projects simultaneously.`,
+    government: `You represent a government or public sector organization. Compliance, process adherence, and public accountability matter. Candidates should demonstrate attention to detail, documentation skills, and an understanding of regulatory or policy constraints.`,
+  };
+
+  section += `\n${styleGuidance[companyStyle]}\n\n`;
+  return section;
 }
 
 /**

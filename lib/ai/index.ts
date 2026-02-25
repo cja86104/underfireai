@@ -9,16 +9,20 @@ export {
   MODEL_PARAMS,
   INTERVIEW_CONFIGS,
   COMPANY_STYLE_MODIFIERS,
-  INTERVIEWER_ARCHETYPES,
   TTS_VOICES,
   SCORING_WEIGHTS,
   RATE_LIMITS,
   type AIModel,
   type InterviewType,
   type CompanyStyle,
-  type InterviewerArchetype,
   type SubscriptionTier,
 } from './config';
+
+// Re-export canonical interviewer types from types/interviewer
+export {
+  INTERVIEWER_ARCHETYPES,
+  type InterviewerArchetype,
+} from '@/types/interviewer';
 
 // Chat Client
 export {

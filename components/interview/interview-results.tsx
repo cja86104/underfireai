@@ -11,6 +11,7 @@ import {
   ChevronUp,
   Play,
   ArrowRight,
+  RotateCcw,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils/cn';
@@ -98,6 +99,13 @@ export function InterviewResults({
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href={`/interview/${session.id}/replay`}
+            className="inline-flex items-center gap-2 rounded-lg border border-orange-500/50 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-400 hover:bg-orange-500/20 transition-colors"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Replay Session
+          </Link>
           <Link
             href="/history"
             className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors"
@@ -354,21 +362,28 @@ export function InterviewResults({
 
       {/* Transcript */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
-        <button
-          onClick={() => setShowTranscript(!showTranscript)}
-          className="w-full flex items-center justify-between p-6 hover:bg-slate-800/50 transition-colors"
-        >
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between p-6">
+          <button
+            onClick={() => setShowTranscript(!showTranscript)}
+            className="flex items-center gap-2 hover:text-white transition-colors"
+          >
             <MessageSquare className="h-5 w-5 text-slate-400" />
             <h2 className="text-lg font-semibold text-white">Full Transcript</h2>
             <span className="text-sm text-slate-500">({messages.length} messages)</span>
-          </div>
-          {showTranscript ? (
-            <ChevronUp className="h-5 w-5 text-slate-400" />
-          ) : (
-            <ChevronDown className="h-5 w-5 text-slate-400" />
-          )}
-        </button>
+            {showTranscript ? (
+              <ChevronUp className="h-5 w-5 text-slate-400" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-slate-400" />
+            )}
+          </button>
+          <Link
+            href={`/interview/${session.id}/replay`}
+            className="inline-flex items-center gap-1.5 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Detailed Replay
+          </Link>
+        </div>
 
         {showTranscript && (
           <div className="border-t border-slate-800 p-6 space-y-4 max-h-96 overflow-y-auto scrollbar-thin">

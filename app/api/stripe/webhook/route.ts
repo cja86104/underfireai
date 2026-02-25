@@ -136,6 +136,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     .update({
       subscription_tier: tier,
       subscription_status: 'active',
+      stripe_customer_id: session.customer as string,
       stripe_subscription_id: subscriptionId,
       subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
       monthly_interviews_used: 0, // Reset on upgrade

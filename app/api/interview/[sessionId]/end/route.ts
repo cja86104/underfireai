@@ -98,6 +98,7 @@ export async function POST(
       technical_depth: 0,
       star_usage_score: 0,
       communication_score: 0,
+      relevance_score: 0,
     };
 
     if (analyses.length > 0) {
@@ -142,6 +143,7 @@ export async function POST(
         technical_depth: Math.round(avgDepth),
         star_usage_score: Math.round(avgStar),
         communication_score: Math.round(avgCommunication),
+        relevance_score: Math.round(avgRelevance),
         overall_score: adjustedOverall,
       };
     }
@@ -256,6 +258,7 @@ Return ONLY valid JSON, no markdown or additional text.`;
         technical_depth: scores.technical_depth,
         star_usage_score: scores.star_usage_score,
         communication_score: scores.communication_score,
+        relevance_score: scores.relevance_score,
         strengths: feedback.strengths,
         improvements: feedback.improvements,
         ai_feedback: feedback.ai_feedback,
@@ -263,8 +266,13 @@ Return ONLY valid JSON, no markdown or additional text.`;
         key_moments: feedback.key_moments,
       });
 
+    // MAJOR-07: Treat score save errors as fatal
     if (scoresError) {
       console.error('Error saving scores:', scoresError);
+      return NextResponse.json(
+        { error: 'Database error', message: 'Failed to save session scores' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({

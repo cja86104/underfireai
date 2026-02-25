@@ -146,7 +146,9 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
             {sessions.map((session) => (
               <Link
                 key={session.id}
-                href={`/interview/${session.id}`}
+                href={session.status === 'completed'
+                  ? `/interview/${session.id}/results`
+                  : `/interview/${session.id}`}
                 className="flex items-center gap-4 p-5 hover:bg-slate-800/50 transition-colors"
               >
                 {/* Interviewer Avatar */}

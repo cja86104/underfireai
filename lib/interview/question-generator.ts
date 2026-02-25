@@ -11,6 +11,7 @@ import type { InterviewType, CompanyStyle } from '@/types/database';
 export interface QuestionGeneratorParams {
   interviewType: InterviewType;
   companyStyle?: CompanyStyle | null;
+  targetCompany?: string | null;
   roleTarget?: string | null;
   skills?: string[];
   experienceYears?: number;

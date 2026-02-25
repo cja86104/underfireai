@@ -30,6 +30,7 @@ export interface Database {
           content: string
           created_at: string
           id: string
+          interviewer_id: string | null
           response_time_seconds: number | null
           role: Database["public"]["Enums"]["message_role"]
           session_id: string
@@ -40,6 +41,7 @@ export interface Database {
           content: string
           created_at?: string
           id?: string
+          interviewer_id?: string | null
           response_time_seconds?: number | null
           role: Database["public"]["Enums"]["message_role"]
           session_id: string
@@ -50,6 +52,7 @@ export interface Database {
           content?: string
           created_at?: string
           id?: string
+          interviewer_id?: string | null
           response_time_seconds?: number | null
           role?: Database["public"]["Enums"]["message_role"]
           session_id?: string
@@ -62,11 +65,20 @@ export interface Database {
             referencedRelation: "interview_sessions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "interview_messages_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "interviewers"
+            referencedColumns: ["id"]
+          },
         ]
       }
       interview_sessions: {
         Row: {
           archetype_mix: string[] | null
+          challenge_id: string | null
+          coding_time_limit_seconds: number | null
           constraints: string[] | null
           difficulty: number
           duration_seconds: number | null
@@ -75,6 +87,8 @@ export interface Database {
           interview_type: Database["public"]["Enums"]["interview_type"]
           interviewer_id: string
           max_user_messages: number | null
+          panel_state: Json | null
+          programming_language: string | null
           session_length: Database["public"]["Enums"]["session_length"] | null
           started_at: string
           status: Database["public"]["Enums"]["session_status"]
@@ -86,6 +100,8 @@ export interface Database {
         }
         Insert: {
           archetype_mix?: string[] | null
+          challenge_id?: string | null
+          coding_time_limit_seconds?: number | null
           constraints?: string[] | null
           difficulty?: number
           duration_seconds?: number | null
@@ -94,6 +110,8 @@ export interface Database {
           interview_type: Database["public"]["Enums"]["interview_type"]
           interviewer_id: string
           max_user_messages?: number | null
+          panel_state?: Json | null
+          programming_language?: string | null
           session_length?: Database["public"]["Enums"]["session_length"] | null
           started_at?: string
           status?: Database["public"]["Enums"]["session_status"]
@@ -105,6 +123,8 @@ export interface Database {
         }
         Update: {
           archetype_mix?: string[] | null
+          challenge_id?: string | null
+          coding_time_limit_seconds?: number | null
           constraints?: string[] | null
           difficulty?: number
           duration_seconds?: number | null
@@ -113,6 +133,8 @@ export interface Database {
           interview_type?: Database["public"]["Enums"]["interview_type"]
           interviewer_id?: string
           max_user_messages?: number | null
+          panel_state?: Json | null
+          programming_language?: string | null
           session_length?: Database["public"]["Enums"]["session_length"] | null
           started_at?: string
           status?: Database["public"]["Enums"]["session_status"]
@@ -135,6 +157,150 @@ export interface Database {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_interviewers: {
+        Row: {
+          id: string
+          session_id: string
+          interviewer_id: string
+          seat_order: number
+          role_label: string | null
+          is_lead: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          interviewer_id: string
+          seat_order?: number
+          role_label?: string | null
+          is_lead?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          interviewer_id?: string
+          seat_order?: number
+          role_label?: string | null
+          is_lead?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_interviewers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_interviewers_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "interviewers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coding_challenges: {
+        Row: {
+          id: string
+          title: string
+          description: string
+          difficulty: number
+          category: string
+          languages: string[]
+          starter_code: Json
+          test_cases: Json
+          hints: string[]
+          time_limit_seconds: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description: string
+          difficulty?: number
+          category?: string
+          languages?: string[]
+          starter_code?: Json
+          test_cases?: Json
+          hints?: string[]
+          time_limit_seconds?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string
+          difficulty?: number
+          category?: string
+          languages?: string[]
+          starter_code?: Json
+          test_cases?: Json
+          hints?: string[]
+          time_limit_seconds?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      code_submissions: {
+        Row: {
+          id: string
+          session_id: string
+          challenge_id: string | null
+          language: string
+          code: string
+          status: string
+          test_results: Json
+          execution_time_ms: number | null
+          hints_used: number
+          submitted_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          challenge_id?: string | null
+          language: string
+          code: string
+          status?: string
+          test_results?: Json
+          execution_time_ms?: number | null
+          hints_used?: number
+          submitted_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          challenge_id?: string | null
+          language?: string
+          code?: string
+          status?: string
+          test_results?: Json
+          execution_time_ms?: number | null
+          hints_used?: number
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_submissions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "code_submissions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "coding_challenges"
             referencedColumns: ["id"]
           },
         ]
@@ -885,9 +1051,14 @@ export interface InterviewSession {
   voice_enabled: boolean;
   session_length: SessionLength | null;
   max_user_messages: number | null;
+  panel_state: Json | null;
   archetype_mix: string[] | null;
   constraints: string[] | null;
   trait_overrides: Json | null;
+  // Coding interview fields
+  challenge_id: string | null;
+  programming_language: string | null;
+  coding_time_limit_seconds: number | null;
 }
 
 export interface InterviewSessionInsert {
@@ -905,9 +1076,14 @@ export interface InterviewSessionInsert {
   voice_enabled?: boolean;
   session_length?: SessionLength;
   max_user_messages?: number;
+  panel_state?: Json | null;
   archetype_mix?: string[] | null;
   constraints?: string[] | null;
   trait_overrides?: Json | null;
+  // Coding interview fields
+  challenge_id?: string | null;
+  programming_language?: string | null;
+  coding_time_limit_seconds?: number | null;
 }
 
 export interface InterviewSessionUpdate {
@@ -921,9 +1097,14 @@ export interface InterviewSessionUpdate {
   voice_enabled?: boolean;
   session_length?: SessionLength;
   max_user_messages?: number;
+  panel_state?: Json | null;
   archetype_mix?: string[] | null;
   constraints?: string[] | null;
   trait_overrides?: Json | null;
+  // Coding interview fields
+  challenge_id?: string | null;
+  programming_language?: string | null;
+  coding_time_limit_seconds?: number | null;
 }
 
 // -- Interview Messages --
@@ -935,6 +1116,7 @@ export interface InterviewMessage {
   audio_url: string | null;
   response_time_seconds: number | null;
   analysis: ResponseAnalysis | null;
+  interviewer_id?: string | null;
   created_at: string;
 }
 
@@ -946,6 +1128,7 @@ export interface InterviewMessageInsert {
   audio_url?: string | null;
   response_time_seconds?: number | null;
   analysis?: ResponseAnalysis | null;
+  interviewer_id?: string | null;
   created_at?: string;
 }
 
@@ -954,6 +1137,7 @@ export interface InterviewMessageUpdate {
   audio_url?: string | null;
   response_time_seconds?: number | null;
   analysis?: ResponseAnalysis | null;
+  interviewer_id?: string | null;
 }
 
 // -- Session Scores --
@@ -1150,4 +1334,31 @@ export interface SessionWithDetails extends InterviewSession {
 
 export interface SessionWithMessages extends InterviewSession {
   interview_messages: InterviewMessage[];
+}
+
+// -- Session Interviewers (Panel Mode) --
+export interface SessionInterviewer {
+  id: string;
+  session_id: string;
+  interviewer_id: string;
+  seat_order: number;
+  role_label: string | null;
+  is_lead: boolean;
+  created_at: string;
+}
+
+export interface SessionInterviewerInsert {
+  id?: string;
+  session_id: string;
+  interviewer_id: string;
+  seat_order?: number;
+  role_label?: string | null;
+  is_lead?: boolean;
+  created_at?: string;
+}
+
+export interface SessionInterviewerUpdate {
+  seat_order?: number;
+  role_label?: string | null;
+  is_lead?: boolean;
 }

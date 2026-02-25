@@ -29,16 +29,38 @@ import type {
   QuestionPatterns,
   ResponseAnalysis,
 } from '@/types/database';
+import type { PanelTurnInterviewerUtterance, PanelState } from '@/types/panel';
+
+/** Panel member info for UI */
+interface PanelMember {
+  id: string;
+  name: string;
+  avatarUrl?: string | null;
+  roleLabel?: string | null;
+  isLead: boolean;
+}
 
 /** API response from chat endpoint */
 interface ChatApiResponse {
-  content: string;
+  content?: string;
   message_id?: string;
   user_message_id?: string;
   interviewer_message_id?: string;
   analysis?: ResponseAnalysis | null;
   should_end?: boolean;
+  // Panel mode fields
+  panel_turns?: PanelTurnInterviewerUtterance[];
+  panel_state?: PanelState;
+  panel_message_ids?: string[];
 }
+
+/** Panel colors for different speakers */
+const PANEL_COLORS = [
+  { bg: 'bg-blue-600', text: 'text-blue-100', border: 'border-blue-500' },
+  { bg: 'bg-purple-600', text: 'text-purple-100', border: 'border-purple-500' },
+  { bg: 'bg-teal-600', text: 'text-teal-100', border: 'border-teal-500' },
+  { bg: 'bg-amber-600', text: 'text-amber-100', border: 'border-amber-500' },
+];
 
 interface InterviewChatProps {
   sessionId: string;
@@ -46,7 +68,7 @@ interface InterviewChatProps {
   interviewType: InterviewType;
   targetRole: string | null;
   targetCompany: string | null;
-  difficulty: number;
+  companyStyle: string | null;
   interviewer: {
     id: string;
     name: string;
@@ -68,6 +90,8 @@ interface InterviewChatProps {
   resumeContext: string | null;
   startedAt: string;
   voiceEnabled: boolean;
+  // Panel mode props
+  panelMembers?: PanelMember[];
 }
 
 export function InterviewChat({
@@ -76,18 +100,24 @@ export function InterviewChat({
   interviewType,
   targetRole,
   targetCompany,
-  difficulty: _difficulty,
+  companyStyle,
   interviewer,
   interviewerPersonality,
   initialMessages,
   resumeContext,
   startedAt,
   voiceEnabled: initialVoiceEnabled,
+  panelMembers = [],
 }: InterviewChatProps): React.JSX.Element {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const responseStartTimeRef = useRef<number | null>(null);
+
+  const isPanelMode = interviewType === 'panel' && panelMembers.length > 0;
+
+  // Build panel member lookup and color assignments
+  const panelMemberMap = new Map(panelMembers.map((p, idx) => [p.id, { ...p, colorIndex: idx % PANEL_COLORS.length }]));
 
   const [messages, setMessages] = useState<InterviewMessage[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');
@@ -97,6 +127,9 @@ export function InterviewChat({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(initialVoiceEnabled);
   const [lastInterviewerMessage, setLastInterviewerMessage] = useState<string | null>(null);
+
+  // Ref to hold the latest sendMessageWithText function (fixes stale closure)
+  const sendMessageWithTextRef = useRef<(text: string) => Promise<void>>(() => Promise.resolve());
 
   // Calculate elapsed time
   useEffect(() => {
@@ -141,7 +174,10 @@ export function InterviewChat({
   const handleSpeakText = useCallback(async (text: string): Promise<void> => {
     try {
       const voiceId = interviewer.voiceConfig?.voice_id ?? 'katie';
-      const speed = interviewer.voiceConfig?.speed ?? 1.0;
+      const numericSpeed = interviewer.voiceConfig?.speed ?? 1.0;
+      // Map numeric speed to string for TTS API
+      const speed: 'slow' | 'normal' | 'fast' =
+        numericSpeed <= 0.85 ? 'slow' : numericSpeed >= 1.15 ? 'fast' : 'normal';
 
       const response = await fetch('/api/tts', {
         method: 'POST',
@@ -171,10 +207,10 @@ export function InterviewChat({
   const handleVoiceTranscript = useCallback((transcript: string): void => {
     setInputValue(transcript);
     // Auto-send after short delay to let state update
+    // Use ref to avoid stale closure issues
     setTimeout(() => {
-      void sendMessageWithText(transcript);
+      void sendMessageWithTextRef.current(transcript);
     }, 100);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startInterview = async (): Promise<void> => {
@@ -190,6 +226,7 @@ export function InterviewChat({
           interviewType,
           targetRole,
           targetCompany,
+          companyStyle,
           resumeContext,
         }),
       });
@@ -200,17 +237,35 @@ export function InterviewChat({
 
       const data = await response.json() as ChatApiResponse;
 
-      const firstMessage: InterviewMessage = {
-        id: data.message_id ?? `msg-${Date.now()}`,
-        session_id: sessionId,
-        role: 'interviewer',
-        content: data.content,
-        audio_url: null,
-        response_time_seconds: null,
-        analysis: null,
-        created_at: new Date().toISOString(),
-      };
-      setMessages([firstMessage]);
+      // Handle panel mode: multiple opening responses
+      if (data.panel_turns && data.panel_turns.length > 0) {
+        const panelMessages: InterviewMessage[] = data.panel_turns.map((turn, idx) => ({
+          id: data.panel_message_ids?.[idx] ?? `panel-${Date.now()}-${idx}`,
+          session_id: sessionId,
+          role: 'interviewer' as const,
+          content: turn.text,
+          interviewer_id: turn.interviewerId,
+          audio_url: null,
+          response_time_seconds: null,
+          analysis: null,
+          created_at: new Date().toISOString(),
+          _speakerName: turn.speakerName,
+          _tone: turn.tone,
+        } as InterviewMessage & { _speakerName?: string; _tone?: string }));
+        setMessages(panelMessages);
+      } else {
+        const firstMessage: InterviewMessage = {
+          id: data.message_id ?? `msg-${Date.now()}`,
+          session_id: sessionId,
+          role: 'interviewer',
+          content: data.content ?? '',
+          audio_url: null,
+          response_time_seconds: null,
+          analysis: null,
+          created_at: new Date().toISOString(),
+        };
+        setMessages([firstMessage]);
+      }
     } catch (error) {
       toast.error('Failed to start interview. Please try again.');
       console.error('Start interview error:', error);
@@ -256,6 +311,7 @@ export function InterviewChat({
           interviewType,
           targetRole,
           targetCompany,
+          companyStyle,
           resumeContext,
           messageHistory: messages.slice(-10), // Last 10 messages for context
         }),
@@ -267,20 +323,41 @@ export function InterviewChat({
 
       const data = await response.json() as ChatApiResponse;
 
-      // Update with actual message IDs and add interviewer response
+      // Update with actual message IDs and add interviewer response(s)
       setMessages((prev) => {
         const updated = prev.map((msg) =>
           msg.id === tempUserMessage.id
             ? { ...msg, id: data.user_message_id ?? msg.id, analysis: data.analysis ?? null }
             : msg
         );
+
+        // Handle panel mode: multiple interviewer responses
+        if (data.panel_turns && data.panel_turns.length > 0) {
+          const panelMessages: InterviewMessage[] = data.panel_turns.map((turn, idx) => ({
+            id: data.panel_message_ids?.[idx] ?? `panel-${Date.now()}-${idx}`,
+            session_id: sessionId,
+            role: 'interviewer' as const,
+            content: turn.text,
+            interviewer_id: turn.interviewerId,
+            audio_url: null,
+            response_time_seconds: null,
+            analysis: null,
+            created_at: new Date().toISOString(),
+            // Store speaker info for rendering
+            _speakerName: turn.speakerName,
+            _tone: turn.tone,
+          } as InterviewMessage & { _speakerName?: string; _tone?: string }));
+          return [...updated, ...panelMessages];
+        }
+
+        // Single interviewer mode
         return [
           ...updated,
           {
             id: data.interviewer_message_id ?? `msg-${Date.now()}`,
             session_id: sessionId,
             role: 'interviewer' as const,
-            content: data.content,
+            content: data.content ?? '',
             audio_url: null,
             response_time_seconds: null,
             analysis: null,
@@ -303,6 +380,11 @@ export function InterviewChat({
       responseStartTimeRef.current = Date.now();
     }
   };
+
+  // Keep ref updated with latest sendMessageWithText (fixes stale closure in voice callback)
+  useEffect(() => {
+    sendMessageWithTextRef.current = sendMessageWithText;
+  });
 
   const sendMessage = async (): Promise<void> => {
     await sendMessageWithText(inputValue);
@@ -370,26 +452,67 @@ export function InterviewChat({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900">
         <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
-            {interviewer.avatarUrl ? (
-              <Image
-                src={interviewer.avatarUrl}
-                alt={interviewer.name}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            ) : (
-              <span className="text-slate-300">{interviewer.name[0]}</span>
-            )}
-          </div>
-          <div>
-            <h2 className="font-semibold text-white">{interviewer.name}</h2>
-            <p className="text-xs text-slate-400 capitalize">
-              {interviewType.replace('_', ' ')} Interview
-              {targetRole && ` • ${targetRole}`}
-            </p>
-          </div>
+          {isPanelMode ? (
+            // Panel mode: show all panel member avatars
+            <>
+              <div className="flex -space-x-2">
+                {panelMembers.slice(0, 4).map((member, idx) => (
+                  <div
+                    key={member.id}
+                    className={cn(
+                      'relative h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium ring-2 ring-slate-900',
+                      PANEL_COLORS[idx % PANEL_COLORS.length].bg,
+                      PANEL_COLORS[idx % PANEL_COLORS.length].text
+                    )}
+                    title={`${member.name}${member.roleLabel ? ` (${member.roleLabel})` : ''}`}
+                  >
+                    {member.avatarUrl ? (
+                      <Image
+                        src={member.avatarUrl}
+                        alt={member.name}
+                        fill
+                        className="object-cover rounded-full"
+                        unoptimized
+                      />
+                    ) : (
+                      <span>{member.name[0]}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <h2 className="font-semibold text-white">Panel Interview</h2>
+                <p className="text-xs text-slate-400">
+                  {panelMembers.length} interviewers
+                  {targetRole && ` • ${targetRole}`}
+                </p>
+              </div>
+            </>
+          ) : (
+            // Single interviewer mode
+            <>
+              <div className="relative h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
+                {interviewer.avatarUrl ? (
+                  <Image
+                    src={interviewer.avatarUrl}
+                    alt={interviewer.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="text-slate-300">{interviewer.name[0]}</span>
+                )}
+              </div>
+              <div>
+                <h2 className="font-semibold text-white">{interviewer.name}</h2>
+                <p className="text-xs text-slate-400 capitalize">
+                  {interviewType.replace('_', ' ')} Interview
+                  {targetRole && ` • ${targetRole}`}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -489,50 +612,76 @@ export function InterviewChat({
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={cn(
-              'flex gap-3',
-              message.role === 'candidate' && 'flex-row-reverse'
-            )}
-          >
-            {/* Avatar */}
-            <div
-              className={cn(
-                'h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm',
-                message.role === 'interviewer'
-                  ? 'bg-slate-700 text-slate-300'
-                  : 'bg-orange-500 text-white'
-              )}
-            >
-              {message.role === 'interviewer' ? interviewer.name[0] : 'You'}
-            </div>
+        {messages.map((message) => {
+          // For panel mode, get speaker info
+          const extendedMsg = message as InterviewMessage & { _speakerName?: string; _tone?: string; interviewer_id?: string };
+          const interviewerId = extendedMsg.interviewer_id;
+          const panelMember = interviewerId ? panelMemberMap.get(interviewerId) : null;
+          const colorIndex = panelMember?.colorIndex ?? 0;
+          const panelColor = PANEL_COLORS[colorIndex];
 
-            {/* Message Bubble */}
+          return (
             <div
+              key={message.id}
               className={cn(
-                'max-w-[75%] rounded-2xl px-4 py-3',
-                message.role === 'interviewer'
-                  ? 'bg-slate-800 text-slate-100 rounded-tl-sm'
-                  : 'bg-orange-500 text-white rounded-tr-sm'
+                'flex gap-3',
+                message.role === 'candidate' && 'flex-row-reverse'
               )}
             >
-              <p className="whitespace-pre-wrap">{message.content}</p>
-              {message.response_time_seconds && message.role === 'candidate' && (
-                <p className="mt-1 text-xs opacity-70">
-                  Response time: {message.response_time_seconds}s
-                </p>
-              )}
+              {/* Avatar */}
+              <div
+                className={cn(
+                  'h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-medium',
+                  message.role === 'interviewer'
+                    ? isPanelMode && panelMember
+                      ? cn(panelColor.bg, panelColor.text)
+                      : 'bg-slate-700 text-slate-300'
+                    : 'bg-orange-500 text-white'
+                )}
+              >
+                {message.role === 'interviewer'
+                  ? panelMember?.name[0] ?? interviewer.name[0]
+                  : 'Y'}
+              </div>
+
+              {/* Message Bubble */}
+              <div className="max-w-[75%]">
+                {/* Speaker name for panel mode */}
+                {message.role === 'interviewer' && isPanelMode && (panelMember ?? extendedMsg._speakerName) && (
+                  <p className={cn('text-xs mb-1 font-medium', panelColor.text.replace('text-', 'text-').replace('-100', '-400'))}>
+                    {extendedMsg._speakerName ?? `${panelMember?.name ?? ''}${panelMember?.roleLabel ? ` (${panelMember.roleLabel})` : ''}`}
+                  </p>
+                )}
+                <div
+                  className={cn(
+                    'rounded-2xl px-4 py-3',
+                    message.role === 'interviewer'
+                      ? isPanelMode && panelMember
+                        ? cn('bg-slate-800/80 border-l-4', panelColor.border, 'text-slate-100 rounded-tl-sm')
+                        : 'bg-slate-800 text-slate-100 rounded-tl-sm'
+                      : 'bg-orange-500 text-white rounded-tr-sm'
+                  )}
+                >
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  {message.response_time_seconds && message.role === 'candidate' && (
+                    <p className="mt-1 text-xs opacity-70">
+                      Response time: {message.response_time_seconds}s
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Loading indicator */}
         {isLoading && (
           <div className="flex gap-3">
-            <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm text-slate-300">
-              {interviewer.name[0]}
+            <div className={cn(
+              'h-8 w-8 rounded-full flex items-center justify-center text-sm',
+              isPanelMode ? 'bg-blue-600 text-blue-100' : 'bg-slate-700 text-slate-300'
+            )}>
+              {isPanelMode ? '?' : interviewer.name[0]}
             </div>
             <div className="bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="flex items-center gap-2">
@@ -541,7 +690,9 @@ export function InterviewChat({
                   <span className="h-2 w-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="h-2 w-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <span className="text-sm text-slate-400">thinking...</span>
+                <span className="text-sm text-slate-400">
+                  {isPanelMode ? 'panel is deliberating...' : 'thinking...'}
+                </span>
               </div>
             </div>
           </div>

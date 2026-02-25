@@ -11,6 +11,8 @@ import {
   type Json,
   type SessionLength,
 } from '@/types/database';
+import { PANEL_ROLE_PRESETS, createInitialPanelState, type PanelPreset } from '@/types/panel';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface CreateInterviewRequest {
   interview_type: InterviewType;
@@ -22,6 +24,22 @@ interface CreateInterviewRequest {
   interviewer_id: string | null;
   generate_new_interviewer: boolean;
   session_length: SessionLength;
+  // ── Panel mode ──────────────────────────────────────────────────────────────
+  /**
+   * Panel preset to use when interview_type is 'panel'.
+   * If not provided, defaults to 'engineering_loop'.
+   */
+  panel_preset?: PanelPreset;
+  // ── Coding mode ─────────────────────────────────────────────────────────────
+  /**
+   * Challenge ID for coding interviews.
+   * If not provided, a random challenge matching difficulty will be selected.
+   */
+  challenge_id?: string;
+  /**
+   * Programming language for coding interviews.
+   */
+  programming_language?: string;
   // ── Premium: Custom Scenario Builder ────────────────────────────────────────
   /**
    * One or two archetype keys to blend. When two keys are provided the
@@ -79,6 +97,114 @@ function blendPersonalities(base: PersonalityBase, other: PersonalityBase): Pers
   };
 }
 
+interface GeneratedInterviewer {
+  id: string;
+  name: string;
+  archetypeKey: InterviewerArchetype;
+}
+
+/**
+ * Generate a single interviewer with the given archetype.
+ * Used by both single-interviewer and panel modes.
+ */
+async function generateSingleInterviewer(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  archetypeKey: InterviewerArchetype,
+  params: {
+    interview_type: InterviewType;
+    company_style: CompanyStyle;
+    target_role: string | null;
+    difficulty: number;
+    use_voice_mode: boolean;
+    constraints?: string[];
+  }
+): Promise<GeneratedInterviewer | null> {
+  const name = generateInterviewerName();
+  const archetypeData = INTERVIEWER_ARCHETYPES[archetypeKey];
+  const difficultyModifier = (params.difficulty - 5) * 5;
+
+  const personality: PersonalityBase = {
+    directness:       clamp(archetypeData.basePersonality.directness       + difficultyModifier),
+    depth_preference: clamp(archetypeData.basePersonality.depth_preference + difficultyModifier),
+    warmth:           clamp(archetypeData.basePersonality.warmth           - difficultyModifier),
+    patience:         clamp(archetypeData.basePersonality.patience         - difficultyModifier),
+    technical_focus:  archetypeData.basePersonality.technical_focus,
+    skepticism:       clamp(archetypeData.basePersonality.skepticism       + difficultyModifier),
+  };
+
+  const backstory = await generateBackstory({
+    archetypeId:          archetypeKey,
+    archetypeName:        archetypeData.name,
+    archetypeDescription: archetypeData.description,
+    interviewType:        params.interview_type,
+    companyStyle:         params.company_style,
+    roleTarget:           params.target_role,
+    interviewerName:      name,
+    constraints:          params.constraints ?? [],
+  });
+
+  const voiceId = archetypeData.suggestedVoices[0] ?? 'katie';
+
+  const { data: newInterviewer, error: interviewerError } = await supabase
+    .from('interviewers')
+    .insert({
+      user_id: userId,
+      name,
+      interview_type: params.interview_type,
+      company_style: params.company_style,
+      role_focus: params.target_role,
+      backstory,
+      personality_base: personality as unknown as Json,
+      difficulty_level: params.difficulty,
+      current_mood: {
+        current:   'neutral' as const,
+        intensity: 50,
+        triggers:  [],
+      } as unknown as Json,
+      voice_config: {
+        voice_id:    voiceId,
+        speed:       1.0,
+        pitch:       1.0,
+        tts_enabled: params.use_voice_mode,
+      } as unknown as Json,
+    })
+    .select('id')
+    .single();
+
+  if (interviewerError || !newInterviewer) {
+    console.error('Error creating interviewer:', interviewerError);
+    return null;
+  }
+
+  // Create interviewer personality record (non-fatal)
+  const personalityInsert: Database['public']['Tables']['interviewer_personality']['Insert'] = {
+    interviewer_id:      newInterviewer.id,
+    communication_style: archetypeData.communicationStyle as unknown as Json,
+    question_patterns:   archetypeData.questionPatterns   as unknown as Json,
+    red_flags:           [...archetypeData.defaultRedFlags],
+    green_flags:         [...archetypeData.defaultGreenFlags],
+    pet_peeves:          [...archetypeData.defaultPetPeeves],
+    favorite_topics:     params.target_role
+      ? [params.target_role, ...archetypeData.favoriteTopics.slice(0, 2)]
+      : [...archetypeData.favoriteTopics],
+  };
+
+  const { error: personalityError } = await supabase
+    .from('interviewer_personality')
+    .insert(personalityInsert);
+
+  if (personalityError) {
+    console.error('Error creating personality:', personalityError);
+  }
+
+  return {
+    id: newInterviewer.id,
+    name,
+    archetypeKey,
+  };
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
@@ -127,6 +253,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       interviewer_id,
       generate_new_interviewer,
       session_length,
+      panel_preset = 'engineering_loop',
+      challenge_id: requestedChallengeId,
+      programming_language,
       archetype_mix   = [],
       constraints     = [],
       trait_overrides = {},
@@ -156,15 +285,53 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const supabase = await createClient();
     let finalInterviewerId = interviewer_id;
+    const panelInterviewers: { id: string; name: string; archetypeKey: InterviewerArchetype; roleLabel: string; isLead: boolean }[] = [];
 
-    // Generate new interviewer if requested
-    if (generate_new_interviewer || !interviewer_id) {
-      const name = generateInterviewerName();
+    // ── Panel mode: generate multiple interviewers ─────────────────────────────
+    if (interview_type === 'panel') {
+      const presetRoles = PANEL_ROLE_PRESETS[panel_preset];
+      if (!presetRoles) {
+        return NextResponse.json(
+          { error: 'Validation error', message: `Unknown panel preset: ${panel_preset}` },
+          { status: 400 }
+        );
+      }
+
+      // Generate each panel member
+      for (let i = 0; i < presetRoles.length; i++) {
+        const role = presetRoles[i];
+        const archetypeKey = role.archetype as InterviewerArchetype;
+
+        const interviewer = await generateSingleInterviewer(supabase, user.id, archetypeKey, {
+          interview_type,
+          company_style,
+          target_role,
+          difficulty,
+          use_voice_mode: body.use_voice_mode,
+          constraints,
+        });
+
+        if (!interviewer) {
+          return NextResponse.json(
+            { error: 'Database error', message: `Failed to create panel interviewer ${i + 1}` },
+            { status: 500 }
+          );
+        }
+
+        panelInterviewers.push({
+          ...interviewer,
+          roleLabel: role.roleLabel,
+          isLead: i === 0, // First interviewer is the lead
+        });
+      }
+
+      // Use the lead interviewer as the primary interviewer_id for the session
+      finalInterviewerId = panelInterviewers[0].id;
+
+    } else if (generate_new_interviewer || !interviewer_id) {
+      // ── Single interviewer mode (existing logic refactored) ──────────────────
 
       // ── Archetype selection ───────────────────────────────────────────────
-      // Premium: use the first key in archetype_mix as the primary archetype so
-      // that red flags, green flags, etc. are rooted in one archetype.
-      // Standard (and premium with no mix): random selection as before.
       const archetypeKeys = Object.keys(INTERVIEWER_ARCHETYPES) as InterviewerArchetype[];
       const archetypeKey: InterviewerArchetype =
         archetype_mix.length > 0
@@ -174,7 +341,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const archetypeData = INTERVIEWER_ARCHETYPES[archetypeKey];
 
       // ── Base personality with difficulty modifier ─────────────────────────
-      const difficultyModifier = (difficulty - 5) * 5; // −20 to +20
+      const difficultyModifier = (difficulty - 5) * 5;
 
       let personality: PersonalityBase = {
         directness:       clamp(archetypeData.basePersonality.directness       + difficultyModifier),
@@ -201,6 +368,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
 
       // ── Generate AI backstory ─────────────────────────────────────────────
+      const name = generateInterviewerName();
       const backstory = await generateBackstory({
         archetypeId:          archetypeKey,
         archetypeName:        archetypeData.name,
@@ -212,10 +380,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         constraints,
       });
 
-      // Use primary archetype's suggested voice
       const voiceId = archetypeData.suggestedVoices[0] || 'katie';
 
-      // Create interviewer
       const { data: newInterviewer, error: interviewerError } = await supabase
         .from('interviewers')
         .insert({
@@ -252,9 +418,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       finalInterviewerId = newInterviewer.id;
 
-      // Create interviewer personality record (non-fatal if it fails)
+      // Create interviewer personality record (non-fatal)
       const personalityInsert: Database['public']['Tables']['interviewer_personality']['Insert'] = {
-        interviewer_id:    newInterviewer.id,
+        interviewer_id:      newInterviewer.id,
         communication_style: archetypeData.communicationStyle as unknown as Json,
         question_patterns:   archetypeData.questionPatterns   as unknown as Json,
         red_flags:           [...archetypeData.defaultRedFlags],
@@ -271,7 +437,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       if (personalityError) {
         console.error('Error creating personality:', personalityError);
-        // Non-fatal — continue without the personality record
       }
     }
 
@@ -307,6 +472,43 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // ── Create interview session ──────────────────────────────────────────────
+    // Initialize panel_state for panel interviews
+    const initialPanelState = interview_type === 'panel' && panelInterviewers.length > 0
+      ? createInitialPanelState(panelInterviewers.map(p => p.id))
+      : null;
+
+    // ── Handle coding interview challenge selection ────────────────────────────
+    let selectedChallengeId: string | null = null;
+    let codingTimeLimit: number | null = null;
+
+    if (interview_type === 'technical' && requestedChallengeId) {
+      // Validate the challenge exists
+      const { data: challenge } = await supabase
+        .from('coding_challenges')
+        .select('id, time_limit_seconds')
+        .eq('id', requestedChallengeId)
+        .single();
+
+      if (challenge) {
+        selectedChallengeId = challenge.id;
+        codingTimeLimit = challenge.time_limit_seconds;
+      }
+    } else if (interview_type === 'technical' && !requestedChallengeId) {
+      // Auto-select a challenge based on difficulty
+      const { data: challenges } = await supabase
+        .from('coding_challenges')
+        .select('id, time_limit_seconds')
+        .gte('difficulty', Math.max(1, difficulty - 2))
+        .lte('difficulty', Math.min(10, difficulty + 2))
+        .limit(10);
+
+      if (challenges && challenges.length > 0) {
+        const randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+        selectedChallengeId = randomChallenge.id;
+        codingTimeLimit = randomChallenge.time_limit_seconds;
+      }
+    }
+
     const insertData = {
       user_id:           user.id,
       interviewer_id:    finalInterviewerId,
@@ -318,6 +520,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       session_length,
       max_user_messages: sessionConfig.maxUserMessages,
       voice_enabled:     body.use_voice_mode,
+      panel_state:       initialPanelState as unknown as Json,
+      // Coding interview fields
+      challenge_id:              selectedChallengeId,
+      programming_language:      programming_language ?? null,
+      coding_time_limit_seconds: codingTimeLimit,
       // Premium fields — stored for analytics / replay; null for free/pro
       archetype_mix:    archetype_mix.length   > 0 ? archetype_mix   : null,
       constraints:      constraints.length     > 0 ? constraints     : null,
@@ -353,9 +560,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // ── Insert session_interviewers for panel mode ─────────────────────────────
+    if (interview_type === 'panel' && panelInterviewers.length > 0) {
+      const sessionInterviewerInserts = panelInterviewers.map((p, idx) => ({
+        session_id:     session.id,
+        interviewer_id: p.id,
+        seat_order:     idx,
+        role_label:     p.roleLabel,
+        is_lead:        p.isLead,
+      }));
+
+      const { error: sessionInterviewersError } = await supabase
+        .from('session_interviewers')
+        .insert(sessionInterviewerInserts);
+
+      if (sessionInterviewersError) {
+        console.error('Error creating session_interviewers:', sessionInterviewersError);
+        // Non-fatal for now, but log for debugging
+      }
+    }
+
     return NextResponse.json({
       session_id:     session.id,
       interviewer_id: finalInterviewerId,
+      panel:          interview_type === 'panel' ? panelInterviewers : undefined,
+      challenge_id:   selectedChallengeId,
       message:        'Interview session created successfully',
     });
 

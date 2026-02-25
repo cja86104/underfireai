@@ -135,116 +135,23 @@ export const COMPANY_STYLE_MODIFIERS = {
   },
 } as const;
 
-// Interviewer archetype defaults
-export const INTERVIEWER_ARCHETYPES = {
-  skeptic: {
-    name: 'The Skeptic',
-    personality: {
-      directness: 85,
-      depth_preference: 90,
-      warmth: 30,
-      patience: 40,
-      technical_focus: 70,
-      skepticism: 95,
-    },
-    behaviors: [
-      'Challenges every claim',
-      'Asks for specific metrics',
-      'Tests technical knowledge depth',
-    ],
-    redFlags: ['Vague answers', 'Unverifiable claims', 'Overconfidence'],
-    greenFlags: ['Admitting uncertainty', 'Specific examples', 'Data-backed claims'],
-  },
-  friendly: {
-    name: 'The Friendly',
-    personality: {
-      directness: 40,
-      depth_preference: 60,
-      warmth: 90,
-      patience: 85,
-      technical_focus: 40,
-      skepticism: 25,
-    },
-    behaviors: [
-      'Creates comfortable atmosphere',
-      'Builds rapport first',
-      'Surprises with tough questions',
-    ],
-    redFlags: ['Arrogance', 'Dismissiveness', 'Interrupting'],
-    greenFlags: ['Humility', 'Authenticity', 'Thoughtful responses'],
-  },
-  silentJudge: {
-    name: 'The Silent Judge',
-    personality: {
-      directness: 70,
-      depth_preference: 80,
-      warmth: 20,
-      patience: 90,
-      technical_focus: 60,
-      skepticism: 70,
-    },
-    behaviors: [
-      'Minimal feedback',
-      'Poker face',
-      'Long pauses',
-    ],
-    redFlags: ['Need for validation', 'Rambling', 'Over-explaining'],
-    greenFlags: ['Concise answers', 'Comfort with silence', 'Self-contained responses'],
-  },
-  rapidFire: {
-    name: 'The Rapid Fire',
-    personality: {
-      directness: 95,
-      depth_preference: 50,
-      warmth: 50,
-      patience: 10,
-      technical_focus: 60,
-      skepticism: 60,
-    },
-    behaviors: [
-      'Quick follow-ups',
-      'Interruptions',
-      'Time pressure',
-    ],
-    redFlags: ['Long-winded answers', 'Hesitation', 'Lack of structure'],
-    greenFlags: ['Concise responses', 'STAR structure', 'Quick thinking'],
-  },
-  cultureFit: {
-    name: 'The Culture Fit',
-    personality: {
-      directness: 50,
-      depth_preference: 70,
-      warmth: 75,
-      patience: 70,
-      technical_focus: 20,
-      skepticism: 50,
-    },
-    behaviors: [
-      'Values-focused questions',
-      'Team dynamics emphasis',
-      'Collaboration scenarios',
-    ],
-    redFlags: ['Blame-shifting', 'Lone wolf mentality', 'Negativity about past teams'],
-    greenFlags: ['Collaboration stories', 'Growth mindset', 'Positive framing'],
-  },
-} as const;
-
 // TTS Voice options (Cartesia Sonic 3)
 // Provider: Cartesia - 40ms time-to-first-audio, streaming support
+// NOTE: Voice IDs are sourced from lib/tts/cartesia-tts.ts (authoritative)
 export const TTS_VOICES = {
   male: [
     { id: 'kiefer', name: 'Kiefer', description: 'Professional, direct', cartesiaId: '228fca29-3a0a-435c-8728-5cb483251068' },
     { id: 'kyle', name: 'Kyle', description: 'Dynamic, energetic', cartesiaId: 'c961b81c-a935-4c17-bfb3-ba2239de8c2f' },
-    { id: 'leo', name: 'Leo', description: 'Deep, authoritative', cartesiaId: '040132fe-5f8f-4e9f-a315-18a5c8b8c445' },
+    { id: 'leo', name: 'Leo', description: 'Deep, authoritative', cartesiaId: '0834f3df-e650-4766-a20c-5a93a43aa6e3' },
   ],
   female: [
     { id: 'katie', name: 'Katie', description: 'Professional, clear', cartesiaId: 'f786b574-daa5-4673-aa0c-cbe3e8534c02' },
     { id: 'tessa', name: 'Tessa', description: 'Warm, engaging', cartesiaId: '6ccbfb76-1fc6-48f7-b71d-91ac6298247b' },
-    { id: 'maya', name: 'Maya', description: 'Friendly, approachable', cartesiaId: 'c58c5a0c-4ed8-4c67-aec3-bb6fef4b4c02' },
+    { id: 'maya', name: 'Maya', description: 'Friendly, approachable', cartesiaId: 'cbaf8084-f009-4838-a096-07ee2e6612b1' },
   ],
 } as const;
 
-// Scoring weights
+// Scoring weights by interview type
 export const SCORING_WEIGHTS = {
   overall: {
     clarity: 0.20,
@@ -268,6 +175,38 @@ export const SCORING_WEIGHTS = {
     relevance: 0.20,
     depth: 0.35,
     star_usage: 0.05,
+    communication: 0.15,
+  },
+  case: {
+    clarity: 0.20,
+    confidence: 0.15,
+    relevance: 0.25,
+    depth: 0.30,
+    star_usage: 0.00, // Case interviews don't use STAR
+    communication: 0.10,
+  },
+  hr: {
+    clarity: 0.15,
+    confidence: 0.20,
+    relevance: 0.20,
+    depth: 0.10,
+    star_usage: 0.15,
+    communication: 0.20,
+  },
+  panel: {
+    clarity: 0.15,
+    confidence: 0.15,
+    relevance: 0.20,
+    depth: 0.15,
+    star_usage: 0.20,
+    communication: 0.15,
+  },
+  phone_screen: {
+    clarity: 0.20,
+    confidence: 0.15,
+    relevance: 0.25,
+    depth: 0.15,
+    star_usage: 0.10,
     communication: 0.15,
   },
 } as const;
@@ -295,5 +234,4 @@ export const RATE_LIMITS = {
 export type AIModel = keyof typeof AI_MODELS;
 export type InterviewType = keyof typeof INTERVIEW_CONFIGS;
 export type CompanyStyle = keyof typeof COMPANY_STYLE_MODIFIERS;
-export type InterviewerArchetype = keyof typeof INTERVIEWER_ARCHETYPES;
 export type SubscriptionTier = keyof typeof RATE_LIMITS;

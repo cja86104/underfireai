@@ -6,7 +6,9 @@ import {
   analyzeResponse,
   type ChatMessage,
 } from '@/lib/ai/chat-client';
+import { generateQuestions } from '@/lib/interview/question-generator';
 import { detectMoodTriggers, calculateMoodUpdate } from '@/lib/ai/mood-engine';
+import { runPanelTurn } from '@/lib/ai/interview';
 import type {
   InterviewMessage,
   PersonalityBase,
@@ -15,7 +17,10 @@ import type {
   CommunicationStyle,
   QuestionPatterns,
   Json,
+  CompanyStyle,
 } from '@/types/database';
+import type { PanelInterviewer, PanelState } from '@/types/panel';
+import { INTERVIEWER_ARCHETYPES, type InterviewerArchetype } from '@/types/interviewer';
 
 interface ChatRequestBody {
   message: string;
@@ -40,6 +45,7 @@ interface ChatRequestBody {
   interviewType: string;
   targetRole: string | null;
   targetCompany: string | null;
+  companyStyle: string | null;
   resumeContext: string | null;
   messageHistory?: InterviewMessage[];
 }
@@ -83,12 +89,14 @@ export async function POST(
       );
     }
 
-    // Get full session data (includes session_length and max_user_messages)
+    // Get full session data (includes session_length, max_user_messages, interview_type, panel_state)
     const { data: sessionData } = await supabase
       .from('interview_sessions')
       .select('*')
       .eq('id', sessionId)
       .single();
+
+    const isPanelMode = sessionData?.interview_type === 'panel';
 
     // Get current user message count
     const { count: userMessageCount } = await supabase
@@ -119,17 +127,221 @@ export async function POST(
       interviewType,
       targetRole,
       targetCompany,
+      companyStyle,
       resumeContext,
       messageHistory = [],
     } = body;
 
     const isStarting = message === '__START_INTERVIEW__';
 
+    // ── Panel mode: fetch panel members and use panel orchestration ───────────
+    if (isPanelMode) {
+      // Fetch panel members from session_interviewers
+      const { data: sessionInterviewers } = await supabase
+        .from('session_interviewers')
+        .select(`
+          interviewer_id,
+          seat_order,
+          role_label,
+          is_lead,
+          interviewers (
+            id,
+            name,
+            avatar_url,
+            personality_base
+          )
+        `)
+        .eq('session_id', sessionId)
+        .order('seat_order');
+
+      if (!sessionInterviewers || sessionInterviewers.length === 0) {
+        return NextResponse.json(
+          { error: 'Invalid state', message: 'No panel members found for this session' },
+          { status: 400 }
+        );
+      }
+
+      // Build PanelInterviewer array
+      const panel: PanelInterviewer[] = sessionInterviewers.map((si) => {
+        const interviewerData = si.interviewers as unknown as {
+          id: string;
+          name: string;
+          avatar_url: string | null;
+          personality_base: PersonalityBase | null;
+        };
+
+        // Determine archetype from role preset
+        const roleLabel = si.role_label as string | null;
+        const roleLower = roleLabel?.toLowerCase() ?? '';
+        const archetypeKey: InterviewerArchetype =
+          roleLower.includes('tech') ? 'griller' :
+          roleLower.includes('hr') ? 'culture_fit' :
+          roleLower.includes('ceo') || roleLower.includes('vp') ? 'executive' :
+          'skeptic';
+
+        return {
+          id: interviewerData.id,
+          name: interviewerData.name,
+          avatarUrl: interviewerData.avatar_url,
+          roleLabel: roleLabel,
+          archetype: archetypeKey,
+          seatOrder: si.seat_order as number,
+          isLead: (si.is_lead as boolean | null) ?? false,
+          traits: interviewerData.personality_base ?? INTERVIEWER_ARCHETYPES[archetypeKey].basePersonality,
+        };
+      });
+
+      // Get previous panel state
+      const previousPanelState = sessionData?.panel_state as PanelState | null;
+
+      // Run panel turn
+      const panelResult = await runPanelTurn({
+        sessionId,
+        userAnswer: message,
+        panel,
+        previousPanelState,
+        history: messageHistory,
+        targetRole,
+        targetCompany,
+        resumeContext,
+        isFirstTurn: isStarting,
+      });
+
+      // Save user message (if not starting)
+      let userMessageId: string | null = null;
+      const warnings: string[] = [];
+
+      if (!isStarting) {
+        const { data: userMsg, error: userMsgError } = await supabase
+          .from('interview_messages')
+          .insert({
+            session_id: sessionId,
+            role: 'candidate',
+            content: message,
+            response_time_seconds: responseTime,
+            analysis: panelResult.analysis ? {
+              clarity_score: panelResult.analysis.clarityScore,
+              confidence_score: panelResult.analysis.confidenceScore,
+              relevance_score: panelResult.analysis.relevanceScore,
+              depth_score: panelResult.analysis.depthScore,
+              star_score: panelResult.analysis.starScore,
+              notes: panelResult.analysis.notes,
+            } : null,
+          })
+          .select('id')
+          .single();
+
+        if (userMsgError) {
+          console.error('Error saving user message:', userMsgError);
+          warnings.push('Failed to save your message to the session history.');
+        } else {
+          userMessageId = userMsg.id;
+        }
+      }
+
+      // Save each panel member's response as separate message
+      const panelMessageIds: string[] = [];
+      for (const turn of panelResult.turns) {
+        const { data: panelMsg, error: panelMsgError } = await supabase
+          .from('interview_messages')
+          .insert({
+            session_id: sessionId,
+            role: 'interviewer',
+            content: turn.text,
+            interviewer_id: turn.interviewerId,
+          })
+          .select('id')
+          .single();
+
+        if (panelMsgError) {
+          console.error('Error saving panel message:', panelMsgError);
+          warnings.push(`Failed to save response from ${turn.speakerName}.`);
+        } else if (panelMsg) {
+          panelMessageIds.push(panelMsg.id);
+        }
+      }
+
+      // Update session panel_state
+      const { error: updateError } = await supabase
+        .from('interview_sessions')
+        .update({ panel_state: panelResult.panelState as unknown as Json })
+        .eq('id', sessionId);
+
+      if (updateError) {
+        console.error('Error updating panel_state:', updateError);
+      }
+
+      // Check for session end
+      const messagesAfterThis = currentCount + 1;
+      const isAtLimit = messagesAfterThis >= maxMessages;
+      const isNearLimit = messagesAfterThis >= maxMessages - 1;
+
+      const lastTurnText = panelResult.turns[panelResult.turns.length - 1]?.text.toLowerCase() || '';
+      const shouldEnd = lastTurnText.includes('thank you for your time') ||
+                        lastTurnText.includes('that concludes our interview') ||
+                        lastTurnText.includes('we\'ll be in touch') ||
+                        isAtLimit;
+
+      return NextResponse.json({
+        panel_turns: panelResult.turns,
+        panel_state: panelResult.panelState,
+        analysis: panelResult.analysis,
+        user_message_id: userMessageId,
+        panel_message_ids: panelMessageIds,
+        should_end: shouldEnd,
+        messages_remaining: Math.max(0, maxMessages - messagesAfterThis),
+        ...(isNearLimit && !isAtLimit ? { limit_warning: `${maxMessages - messagesAfterThis} responses remaining in this session` } : {}),
+        ...(warnings.length > 0 ? { warnings } : {}),
+      });
+    }
+
+    // On session start, generate a question set from full context (resume, role, company, difficulty)
+    let generatedQuestions: string[] = [];
+    let hasResume = false;
+
+    if (isStarting) {
+      // Fetch resume server-side — authoritative source, not reliant on client
+      const { data: resume } = await supabase
+        .from('user_resumes')
+        .select('skills, experience_years, parsed_data')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const resumeSkills: string[] = resume?.skills ?? [];
+      const experienceYears: number | undefined = resume?.experience_years ?? undefined;
+      hasResume = resumeSkills.length > 0 || !!resume?.parsed_data;
+
+      try {
+        const questions = await generateQuestions(
+          {
+            interviewType: interviewType as Parameters<typeof generateQuestions>[0]['interviewType'],
+            companyStyle: (companyStyle as CompanyStyle) ?? null,
+            targetCompany: targetCompany ?? null,
+            roleTarget: targetRole ?? null,
+            skills: resumeSkills,
+            experienceYears,
+            difficulty: sessionData?.difficulty ?? 5,
+          },
+          7
+        );
+        generatedQuestions = questions.map(q => q.question);
+      } catch (qErr) {
+        // Non-fatal — interview proceeds without pre-generated questions
+        console.error('Failed to pre-generate questions:', qErr);
+      }
+    } else {
+      // For ongoing messages, check if resume exists to inform opening style
+      hasResume = !!resumeContext && resumeContext.length > 0;
+    }
+
     // Build system prompt
     const systemPrompt = generateInterviewSystemPrompt({
       interviewerName: interviewer.name,
       interviewType,
-      companyStyle: targetCompany,
+      companyStyle: companyStyle ?? null,
+      targetCompany: targetCompany ?? null,
       roleTarget: targetRole,
       backstory: interviewer.backstory,
       personality: interviewer.personalityBase,
@@ -140,6 +352,8 @@ export async function POST(
       favoriteTopics: interviewerPersonality?.favoriteTopics ?? null,
       resumeContext,
       currentMood: interviewer.currentMood,
+      generatedQuestions: generatedQuestions.length > 0 ? generatedQuestions : null,
+      hasResume,
     });
 
     // Build message history for AI

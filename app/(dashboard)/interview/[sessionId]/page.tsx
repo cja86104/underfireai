@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { createClient, getCurrentUser, getUserResume } from '@/lib/supabase/server';
 import { InterviewChat } from '@/components/interview/interview-chat';
+import { CodingInterviewPage } from '@/components/coding/coding-interview-page';
 import type { PersonalityBase, InterviewerMood, VoiceConfig, InterviewMessage, CommunicationStyle, QuestionPatterns } from '@/types/database';
+import type { CodingChallenge, ProgrammingLanguage, TestCase } from '@/types/coding';
 
 interface InterviewSessionPageProps {
   params: Promise<{ sessionId: string }>;
@@ -45,6 +47,11 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
     notFound();
   }
 
+  // Redirect completed sessions to results page
+  if (session.status === 'completed') {
+    redirect(`/interview/${sessionId}/results`);
+  }
+
   // Fetch existing messages
   const { data: messages, error: messagesError } = await supabase
     .from('interview_messages')
@@ -55,6 +62,73 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
 
   if (messagesError) {
     console.error('Messages fetch error:', messagesError);
+  }
+
+  // Fetch panel members for panel mode
+  const isPanelMode = session.interview_type === 'panel';
+  const isCodingMode = session.interview_type === 'technical' && session.challenge_id;
+  let panelMembers: { id: string; name: string; avatarUrl: string | null; roleLabel: string | null; isLead: boolean }[] = [];
+  let codingChallenge: CodingChallenge | null = null;
+
+  if (isPanelMode) {
+    const { data: sessionInterviewers, error: panelError } = await supabase
+      .from('session_interviewers')
+      .select(`
+        interviewer_id,
+        seat_order,
+        role_label,
+        is_lead,
+        interviewers (
+          id,
+          name,
+          avatar_url
+        )
+      `)
+      .eq('session_id', sessionId)
+      .order('seat_order');
+
+    if (panelError) {
+      console.error('Panel fetch error:', panelError);
+    } else if (sessionInterviewers) {
+      panelMembers = sessionInterviewers.map((si) => {
+        const interviewerData = si.interviewers as unknown as { id: string; name: string; avatar_url: string | null };
+        return {
+          id: interviewerData.id,
+          name: interviewerData.name,
+          avatarUrl: interviewerData.avatar_url,
+          roleLabel: si.role_label,
+          isLead: si.is_lead ?? false,
+        };
+      });
+    }
+  }
+
+  // Fetch coding challenge for coding mode
+  if (isCodingMode && session.challenge_id) {
+    const { data: challenge, error: challengeError } = await supabase
+      .from('coding_challenges')
+      .select('*')
+      .eq('id', session.challenge_id)
+      .single();
+
+    if (challengeError) {
+      console.error('Challenge fetch error:', challengeError);
+    } else if (challenge) {
+      codingChallenge = {
+        id: challenge.id,
+        title: challenge.title,
+        description: challenge.description,
+        difficulty: challenge.difficulty,
+        category: challenge.category,
+        languages: challenge.languages as ProgrammingLanguage[],
+        starterCode: challenge.starter_code as Record<ProgrammingLanguage, string>,
+        testCases: challenge.test_cases as unknown as TestCase[],
+        hints: challenge.hints ?? [],
+        timeLimitSeconds: challenge.time_limit_seconds,
+        createdAt: challenge.created_at,
+        updatedAt: challenge.updated_at,
+      };
+    }
   }
 
   // Fetch user resume for context
@@ -90,6 +164,27 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
     resumeContext = parts.join('\n');
   }
 
+  // Render coding interview UI if in coding mode with a challenge
+  if (isCodingMode && codingChallenge) {
+    return (
+      <div className="h-[calc(100vh-8rem)] flex flex-col">
+        <CodingInterviewPage
+          sessionId={session.id}
+          sessionStatus={session.status}
+          challenge={codingChallenge}
+          initialLanguage={(session.programming_language as ProgrammingLanguage) ?? undefined}
+          interviewer={{
+            id: interviewer.id,
+            name: interviewer.name,
+            avatarUrl: interviewer.avatar_url,
+          }}
+          initialMessages={(messages ?? []) as unknown as InterviewMessage[]}
+          startedAt={session.started_at}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col">
       <InterviewChat
@@ -98,7 +193,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
         interviewType={session.interview_type}
         targetRole={session.target_role}
         targetCompany={session.target_company}
-        difficulty={session.difficulty}
+        companyStyle={interviewer.company_style ?? null}
         interviewer={{
           id: interviewer.id,
           name: interviewer.name,
@@ -120,6 +215,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
         resumeContext={resumeContext}
         startedAt={session.started_at}
         voiceEnabled={!!(interviewer.voice_config as VoiceConfig | null)?.tts_enabled}
+        panelMembers={panelMembers}
       />
     </div>
   );
