@@ -479,6 +479,8 @@ export interface Database {
           star_usage_score: number | null
           strengths: string[] | null
           technical_depth: number | null
+          webhook_sent: boolean | null
+          webhook_sent_at: string | null
         }
         Insert: {
           ai_feedback?: string | null
@@ -496,6 +498,8 @@ export interface Database {
           star_usage_score?: number | null
           strengths?: string[] | null
           technical_depth?: number | null
+          webhook_sent?: boolean | null
+          webhook_sent_at?: string | null
         }
         Update: {
           ai_feedback?: string | null
@@ -513,6 +517,8 @@ export interface Database {
           star_usage_score?: number | null
           strengths?: string[] | null
           technical_depth?: number | null
+          webhook_sent?: boolean | null
+          webhook_sent_at?: string | null
         }
         Relationships: [
           {
@@ -567,6 +573,115 @@ export interface Database {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhooks: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          url: string
+          secret: string | null
+          events: string[]
+          enabled: boolean
+          created_at: string
+          updated_at: string
+          last_triggered_at: string | null
+          last_status_code: number | null
+          failure_count: number
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name?: string
+          url: string
+          secret?: string | null
+          events?: string[]
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+          last_triggered_at?: string | null
+          last_status_code?: number | null
+          failure_count?: number
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          url?: string
+          secret?: string | null
+          events?: string[]
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+          last_triggered_at?: string | null
+          last_status_code?: number | null
+          failure_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_deliveries: {
+        Row: {
+          id: string
+          webhook_id: string
+          event_type: string
+          payload: Json
+          status: string
+          attempts: number
+          max_attempts: number
+          status_code: number | null
+          response_body: string | null
+          error_message: string | null
+          created_at: string
+          next_retry_at: string | null
+          delivered_at: string | null
+        }
+        Insert: {
+          id?: string
+          webhook_id: string
+          event_type: string
+          payload: Json
+          status?: string
+          attempts?: number
+          max_attempts?: number
+          status_code?: number | null
+          response_body?: string | null
+          error_message?: string | null
+          created_at?: string
+          next_retry_at?: string | null
+          delivered_at?: string | null
+        }
+        Update: {
+          id?: string
+          webhook_id?: string
+          event_type?: string
+          payload?: Json
+          status?: string
+          attempts?: number
+          max_attempts?: number
+          status_code?: number | null
+          response_body?: string | null
+          error_message?: string | null
+          created_at?: string
+          next_retry_at?: string | null
+          delivered_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhooks"
             referencedColumns: ["id"]
           },
         ]

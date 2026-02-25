@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS, SCORING_WEIGHTS } from '@/lib/ai/config';
+import { sendSessionCompletedWebhook } from '@/lib/webhooks';
 import type { ResponseAnalysis } from '@/types/database';
 
 /** Parsed JSON structure from AI feedback generation */
@@ -279,6 +280,44 @@ Return ONLY valid JSON, no markdown or additional text.`;
       );
     }
 
+    // Send webhook notification (async, non-blocking)
+    const webhookResult = await sendSessionCompletedWebhook({
+      session_id: sessionId,
+      user_id: user.id,
+      interview_type: session.interview_type,
+      target_role: session.target_role,
+      target_company: session.target_company,
+      difficulty: session.difficulty,
+      duration_seconds: session.duration_seconds,
+      started_at: session.started_at,
+      ended_at: session.ended_at,
+      scores: {
+        overall_score: scores.overall_score,
+        clarity_score: scores.clarity_score,
+        confidence_score: scores.confidence_score,
+        technical_depth: scores.technical_depth,
+        star_usage_score: scores.star_usage_score,
+        communication_score: scores.communication_score,
+      },
+      feedback: {
+        strengths: feedback.strengths,
+        improvements: feedback.improvements,
+        ai_feedback: feedback.ai_feedback,
+        interviewer_impression: feedback.interviewer_impression,
+      },
+    });
+
+    // Update session_scores with webhook status
+    if (webhookResult.sent) {
+      await supabase
+        .from('session_scores')
+        .update({
+          webhook_sent: true,
+          webhook_sent_at: new Date().toISOString(),
+        })
+        .eq('session_id', sessionId);
+    }
+
     return NextResponse.json({
       success: true,
       alreadyScored: false,
@@ -287,6 +326,8 @@ Return ONLY valid JSON, no markdown or additional text.`;
       messageCount: messages.length,
       candidateResponseCount: candidateMessages.length,
       analyzedResponseCount: analyses.length,
+      webhookSent: webhookResult.sent,
+      webhookCount: webhookResult.webhookCount,
     });
 
   } catch (error) {

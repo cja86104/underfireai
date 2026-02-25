@@ -14,3 +14,8 @@ export { FeedbackPanel, FeedbackSummary } from './feedback-panel';
 export { InterviewReplay } from './interview-replay';
 export { InterviewTimeline } from './interview-timeline';
 export { MessageAnalysisPanel } from './message-analysis-panel';
+export {
+  CodeReplayPanel,
+  type CodeSubmissionReplay,
+  type CodingChallengeReplay,
+} from './code-replay-panel';

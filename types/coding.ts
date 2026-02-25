@@ -78,6 +78,8 @@ export interface TestResult {
   memoryKb?: number;
   error?: string;
   status?: string;
+  /** Internal flag - stripped before sending to client */
+  hidden?: boolean;
 }
 
 export interface CodeSubmission {
@@ -124,6 +126,7 @@ export const testResultSchema = z.object({
   memoryKb: z.number().optional(),
   error: z.string().optional(),
   status: z.string().optional(),
+  hidden: z.boolean().optional(),
 });
 
 export const codeEvaluationSchema = z.object({

@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { InterviewReplay } from '@/components/interview/interview-replay';
 import type { InterviewMessage, KeyMoment } from '@/types/database';
+import type { CodeSubmissionReplay, CodingChallengeReplay } from '@/components/interview/code-replay-panel';
 
 interface ReplayPageProps {
   params: Promise<{ sessionId: string }>;
@@ -66,6 +67,52 @@ export default async function InterviewReplayPage({ params }: ReplayPageProps): 
     console.error('Messages fetch error:', messagesError);
   }
 
+  // Fetch code submissions if this was a coding interview
+  let codeSubmissions: CodeSubmissionReplay[] = [];
+  let codingChallenge: CodingChallengeReplay | null = null;
+
+  if (session.challenge_id) {
+    // Fetch the challenge
+    const { data: challenge } = await supabase
+      .from('coding_challenges')
+      .select('id, title, description, difficulty, category, time_limit_seconds')
+      .eq('id', session.challenge_id)
+      .single();
+
+    if (challenge) {
+      codingChallenge = {
+        id: challenge.id,
+        title: challenge.title,
+        description: challenge.description,
+        difficulty: challenge.difficulty,
+        category: challenge.category,
+        timeLimitSeconds: challenge.time_limit_seconds,
+      };
+    }
+
+    // Fetch code submissions
+    const { data: submissions } = await supabase
+      .from('code_submissions')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('submitted_at', { ascending: true });
+
+    if (submissions) {
+      codeSubmissions = submissions.map((sub) => ({
+        id: sub.id,
+        language: sub.language,
+        code: sub.code,
+        status: sub.status,
+        testResults: (sub.test_results as unknown as CodeSubmissionReplay['testResults']) ?? [],
+        hintsUsed: sub.hints_used ?? 0,
+        executionTimeMs: sub.execution_time_ms,
+        submittedAt: sub.submitted_at,
+        // Note: evaluation is stored in the message analysis, not separately
+        evaluation: undefined,
+      }));
+    }
+  }
+
   const interviewer = session.interviewers;
   const scores = session.session_scores;
 
@@ -99,6 +146,8 @@ export default async function InterviewReplayPage({ params }: ReplayPageProps): 
         targetRole={session.target_role}
         totalDuration={totalDuration}
         startedAt={session.started_at}
+        codingChallenge={codingChallenge}
+        codeSubmissions={codeSubmissions}
       />
     </div>
   );

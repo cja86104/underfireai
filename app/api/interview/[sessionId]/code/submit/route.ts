@@ -11,7 +11,9 @@ import {
 } from '@/lib/code-execution';
 import {
   generateSimpleWrapper,
+  generateTestHarness,
   extractFunctionName,
+  extractAnyFunctionName,
   hasNativeJsonSupport,
 } from '@/lib/code-execution/language-wrappers';
 import { codeEvaluationSchema, type CodeEvaluation, type TestResult, type ProgrammingLanguage } from '@/types/coding';
@@ -100,14 +102,30 @@ export async function POST(
     // Get ALL test cases (including hidden) for final submission
     const allTestCases = challenge.test_cases as unknown as TestCase[];
 
-    // Extract function name from starter code
+    // Extract function name from starter code or user code
     const starterCode = challenge.starter_code as Record<string, string> | null;
-    const languageStarterCode = starterCode?.[language] ?? code;
-    const functionName = extractFunctionName(languageStarterCode, language as ProgrammingLanguage);
+    const languageStarterCode = starterCode?.[language] ?? '';
+
+    // Try multiple extraction strategies
+    let functionName = extractFunctionName(languageStarterCode, language as ProgrammingLanguage);
+
+    // Fallback 1: Try extracting from user's submitted code
+    functionName ??= extractFunctionName(code, language as ProgrammingLanguage);
+
+    // Fallback 2: Try generic pattern matching
+    functionName ??= extractAnyFunctionName(code, language as ProgrammingLanguage);
+
+    // Fallback 3: Try extracting from starter code with generic patterns
+    if (!functionName && languageStarterCode) {
+      functionName = extractAnyFunctionName(languageStarterCode, language as ProgrammingLanguage);
+    }
 
     if (!functionName) {
       return NextResponse.json(
-        { error: 'Parse error', message: 'Could not detect function name in code' },
+        {
+          error: 'Parse error',
+          message: 'Could not detect function name in code. Ensure your solution defines a function (e.g., "function solution()" or "def solution()").'
+        },
         { status: 400 }
       );
     }
@@ -130,19 +148,28 @@ export async function POST(
         const errorMessage = error instanceof Error ? error.message : 'Execution failed';
         testResults.push({
           passed: false,
-          input: testCase.hidden ? '[hidden]' : testCase.input,
-          expected: testCase.hidden ? '[hidden]' : testCase.expected,
+          input: testCase.input,
+          expected: testCase.expected,
           actual: '',
           error: errorMessage,
           status: 'Error',
+          hidden: testCase.hidden,
         });
       }
     }
+
+    // Separate visible and hidden test results
+    const visibleResults = testResults.filter(r => !r.hidden);
+    const hiddenResults = testResults.filter(r => r.hidden);
 
     // Calculate test statistics
     const passedCount = testResults.filter(r => r.passed).length;
     const totalCount = testResults.length;
     const allPassed = passedCount === totalCount;
+
+    // Hidden test stats (only counts, no per-case details)
+    const hiddenPassed = hiddenResults.filter(r => r.passed).length;
+    const hiddenTotal = hiddenResults.length;
 
     // Get AI evaluation of code quality (correctness already proven by tests)
     const evaluation = await evaluateCodeQuality(
@@ -199,21 +226,37 @@ export async function POST(
         } as unknown as Json,
       });
 
+    // Only return visible test results with full details
+    // Hidden tests only show aggregate pass/fail count (no per-case info to prevent probing)
+    const sanitizedVisibleResults = visibleResults.map(r => ({
+      passed: r.passed,
+      input: r.input,
+      expected: r.expected,
+      actual: r.actual,
+      timeMs: r.timeMs,
+      memoryKb: r.memoryKb,
+      error: r.error,
+      status: r.status,
+    }));
+
     return NextResponse.json({
       success: true,
       submissionId: submission?.id,
       evaluation,
-      testResults: testResults.map(r => ({
-        ...r,
-        // Hide hidden test case details
-        input: r.input,
-        expected: r.expected,
-      })),
+      // Only visible test cases get full results
+      testResults: sanitizedVisibleResults,
+      // Summary includes all tests
       summary: {
         passed: passedCount,
         total: totalCount,
         allPassed,
         executionTimeMs: totalTimeMs,
+      },
+      // Hidden tests only show counts (prevents probing individual cases)
+      hiddenTests: {
+        passed: hiddenPassed,
+        total: hiddenTotal,
+        allPassed: hiddenPassed === hiddenTotal,
       },
     });
   } catch (error) {
@@ -264,12 +307,14 @@ async function executeTestCase(
     inputArgs = [testCase.input];
   }
 
-  // Generate wrapped code with test harness
+  // Generate wrapped code with test harness for ALL languages
+  const inputJson = JSON.stringify(inputArgs);
   let wrappedCode: string;
   if (hasNativeJsonSupport(language)) {
     wrappedCode = generateSimpleWrapper(userCode, language, functionName, inputArgs);
   } else {
-    wrappedCode = userCode;
+    // Use the full test harness for compiled languages (Java, Go, Rust, C++)
+    wrappedCode = generateTestHarness(userCode, language, functionName, inputJson);
   }
 
   // Create submission with stdin
@@ -313,19 +358,17 @@ async function executeTestCase(
     actual = stdout;
   }
 
-  // For hidden test cases, mask the input/expected in results
-  const maskedInput = testCase.hidden ? '[hidden]' : testCase.input;
-  const maskedExpected = testCase.hidden ? '[hidden]' : testCase.expected;
-
+  // Return result with hidden flag for filtering later
   return {
     passed,
-    input: maskedInput,
-    expected: maskedExpected,
-    actual: testCase.hidden ? (passed ? '[correct]' : '[incorrect]') : actual,
+    input: testCase.input,
+    expected: testCase.expected,
+    actual,
     timeMs: Math.round(executionTime),
     memoryKb: memoryUsed,
     error,
     status: getStatusMessage(statusId),
+    hidden: testCase.hidden, // Track which tests are hidden
   };
 }
 

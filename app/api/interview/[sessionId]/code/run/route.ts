@@ -10,7 +10,9 @@ import {
 } from '@/lib/code-execution';
 import {
   generateSimpleWrapper,
+  generateTestHarness,
   extractFunctionName,
+  extractAnyFunctionName,
   hasNativeJsonSupport,
 } from '@/lib/code-execution/language-wrappers';
 import type { TestResult, ProgrammingLanguage } from '@/types/coding';
@@ -105,14 +107,30 @@ export async function POST(
     // Only run visible test cases for "Run" button
     const visibleTestCases = allTestCases.filter((tc) => !tc.hidden).slice(0, 3);
 
-    // Extract function name from starter code
+    // Extract function name from starter code or user code
     const starterCode = challenge.starter_code as Record<string, string> | null;
-    const languageStarterCode = starterCode?.[language] ?? code;
-    const functionName = extractFunctionName(languageStarterCode, language as ProgrammingLanguage);
+    const languageStarterCode = starterCode?.[language] ?? '';
+
+    // Try multiple extraction strategies
+    let functionName = extractFunctionName(languageStarterCode, language as ProgrammingLanguage);
+
+    // Fallback 1: Try extracting from user's submitted code
+    functionName ??= extractFunctionName(code, language as ProgrammingLanguage);
+
+    // Fallback 2: Try generic pattern matching
+    functionName ??= extractAnyFunctionName(code, language as ProgrammingLanguage);
+
+    // Fallback 3: Try extracting from starter code with generic patterns
+    if (!functionName && languageStarterCode) {
+      functionName = extractAnyFunctionName(languageStarterCode, language as ProgrammingLanguage);
+    }
 
     if (!functionName) {
       return NextResponse.json(
-        { error: 'Parse error', message: 'Could not detect function name in code' },
+        {
+          error: 'Parse error',
+          message: 'Could not detect function name in code. Ensure your solution defines a function (e.g., "function solution()" or "def solution()").'
+        },
         { status: 400 }
       );
     }
@@ -212,14 +230,14 @@ async function executeTestCase(
     inputArgs = [testCase.input];
   }
 
-  // Generate wrapped code with test harness
+  // Generate wrapped code with test harness for ALL languages
+  const inputJson = JSON.stringify(inputArgs);
   let wrappedCode: string;
   if (hasNativeJsonSupport(language)) {
     wrappedCode = generateSimpleWrapper(userCode, language, functionName, inputArgs);
   } else {
-    // For compiled languages, we need the user to provide a complete solution
-    // that handles input/output directly
-    wrappedCode = userCode;
+    // Use the full test harness for compiled languages (Java, Go, Rust, C++)
+    wrappedCode = generateTestHarness(userCode, language, functionName, inputJson);
   }
 
   // Create submission with stdin (the input JSON)

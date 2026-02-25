@@ -13,10 +13,12 @@ import {
   Zap,
   Clock,
   Trophy,
+  Code2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { InterviewTimeline } from './interview-timeline';
 import { MessageAnalysisPanel } from './message-analysis-panel';
+import { CodeReplayPanel, type CodeSubmissionReplay, type CodingChallengeReplay } from './code-replay-panel';
 import type { InterviewMessage, KeyMoment } from '@/types/database';
 
 interface SessionScores {
@@ -41,6 +43,8 @@ interface InterviewReplayProps {
   targetRole: string | null;
   totalDuration: number;
   startedAt: string;
+  codingChallenge?: CodingChallengeReplay | null;
+  codeSubmissions?: CodeSubmissionReplay[];
 }
 
 export function InterviewReplay({
@@ -51,14 +55,21 @@ export function InterviewReplay({
   interviewType,
   targetRole,
   totalDuration,
+  codingChallenge,
+  codeSubmissions = [],
 }: InterviewReplayProps): React.JSX.Element {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [expandedMessageIndex, setExpandedMessageIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showStats, setShowStats] = useState(true);
+  const [currentSubmissionIndex, setCurrentSubmissionIndex] = useState(
+    codeSubmissions.length > 0 ? codeSubmissions.length - 1 : 0
+  );
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const playbackRef = useRef<NodeJS.Timeout | null>(null);
+
+  const hasCodingChallenge = codingChallenge && codeSubmissions.length > 0;
 
   // Calculate average scores from candidate messages
   const averageScores = useMemo(() => {
@@ -243,6 +254,12 @@ export function InterviewReplay({
                 <Clock className="h-4 w-4" />
                 {formatDuration(totalDuration)}
               </span>
+              {hasCodingChallenge && (
+                <span className="flex items-center gap-1 text-blue-400">
+                  <Code2 className="h-4 w-4" />
+                  {codeSubmissions.length} submission{codeSubmissions.length !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -320,7 +337,10 @@ export function InterviewReplay({
       {/* Messages List */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-3 scrollbar-thin"
+        className={cn(
+          'overflow-y-auto p-6 space-y-3 scrollbar-thin',
+          hasCodingChallenge ? 'flex-1 min-h-0' : 'flex-1'
+        )}
       >
         {messages.map((message, index) => (
           <div
@@ -342,6 +362,16 @@ export function InterviewReplay({
           </div>
         ))}
       </div>
+
+      {/* Code Replay Panel */}
+      {hasCodingChallenge && (
+        <CodeReplayPanel
+          challenge={codingChallenge}
+          submissions={codeSubmissions}
+          currentSubmissionIndex={currentSubmissionIndex}
+          onSubmissionSelect={setCurrentSubmissionIndex}
+        />
+      )}
     </div>
   );
 }
