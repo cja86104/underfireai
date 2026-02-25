@@ -187,9 +187,9 @@ export function MessageAnalysisPanel({
                     Key Points Identified
                   </h4>
                   <ul className="space-y-1">
-                    {analysis.key_points.map((point, idx) => (
+                    {analysis.key_points.map((point) => (
                       <li
-                        key={`point-${idx}`}
+                        key={point}
                         className="text-sm text-slate-400 flex items-start gap-2"
                       >
                         <span className="text-green-400 mt-1">•</span>
@@ -208,9 +208,9 @@ export function MessageAnalysisPanel({
                     Filler Words Detected
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {analysis.filler_words.map((word, idx) => (
+                    {[...new Set(analysis.filler_words)].map((word) => (
                       <span
-                        key={`filler-${idx}`}
+                        key={word}
                         className="px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 text-xs"
                       >
                         &quot;{word}&quot;

@@ -125,9 +125,9 @@ export function InterviewTimeline({
           ))}
 
           {/* Key moment markers */}
-          {momentPositions.map((moment, idx) => (
+          {momentPositions.map((moment) => (
             <button
-              key={`moment-${idx}`}
+              key={`${moment.type}-${moment.position}-${moment.description}`}
               onClick={() => onMessageSelect(findMessageForMoment(moment))}
               className={cn(
                 'absolute -top-4 w-6 h-6 rounded-full border-2 flex items-center justify-center',
@@ -153,9 +153,9 @@ export function InterviewTimeline({
       {/* Key Moments Legend */}
       {keyMoments.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {keyMoments.map((moment, idx) => (
+          {keyMoments.map((moment) => (
             <button
-              key={`legend-${idx}`}
+              key={`legend-${moment.type}-${moment.timestamp}-${moment.description}`}
               onClick={() => onMessageSelect(findMessageForMoment(moment))}
               className={cn(
                 'flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-colors',

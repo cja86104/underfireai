@@ -14,7 +14,7 @@ interface ParsedScoreFeedback {
 }
 
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ): Promise<NextResponse> {
   try {
@@ -300,7 +300,7 @@ Return ONLY valid JSON, no markdown or additional text.`;
 
 // GET to retrieve existing score
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ): Promise<NextResponse> {
   try {

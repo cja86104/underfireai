@@ -137,7 +137,7 @@ export function parsePanelTurnResult(jsonText: string): PanelTurnResult {
     .replace(/^```(?:json)?\s*\n?/i, '')
     .replace(/\n?\s*```\s*$/i, '');
 
-  const parsed = JSON.parse(cleaned);
+  const parsed: unknown = JSON.parse(cleaned);
   return panelTurnResultSchema.parse(parsed);
 }
 

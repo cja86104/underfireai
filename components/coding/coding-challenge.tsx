@@ -259,12 +259,12 @@ export function CodingChallengeUI({
 
           {hintsRevealed > 0 ? (
             <div className="space-y-2">
-              {challenge.hints.slice(0, hintsRevealed).map((hint, idx) => (
+              {challenge.hints.slice(0, hintsRevealed).map((hint, hintIndex) => (
                 <div
-                  key={`hint-${idx}`}
+                  key={hint}
                   className="p-2 rounded bg-yellow-500/10 border border-yellow-500/20 text-sm text-yellow-200"
                 >
-                  <span className="font-medium">Hint {idx + 1}:</span> {hint}
+                  <span className="font-medium">Hint {hintIndex + 1}:</span> {hint}
                 </div>
               ))}
             </div>
@@ -280,9 +280,9 @@ export function CodingChallengeUI({
           <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-4">
             <h3 className="font-medium text-white mb-3">Test Results</h3>
             <div className="space-y-2">
-              {testResults.map((result, idx) => (
+              {testResults.map((result, testIndex) => (
                 <div
-                  key={`test-${idx}`}
+                  key={`${result.input}-${result.expected}`}
                   className={cn(
                     'p-3 rounded border text-sm',
                     result.passed
@@ -297,7 +297,7 @@ export function CodingChallengeUI({
                       <XCircle className="h-4 w-4 text-red-400" />
                     )}
                     <span className={result.passed ? 'text-green-400' : 'text-red-400'}>
-                      Test Case {idx + 1}
+                      Test Case {testIndex + 1}
                     </span>
                     {result.timeMs !== undefined && (
                       <span className="text-slate-500 text-xs ml-auto">{result.timeMs}ms</span>

@@ -171,7 +171,7 @@ export async function POST(
         };
 
         // Determine archetype from role preset
-        const roleLabel = si.role_label as string | null;
+        const roleLabel = si.role_label;
         const roleLower = roleLabel?.toLowerCase() ?? '';
         const archetypeKey: InterviewerArchetype =
           roleLower.includes('tech') ? 'griller' :
@@ -185,8 +185,8 @@ export async function POST(
           avatarUrl: interviewerData.avatar_url,
           roleLabel: roleLabel,
           archetype: archetypeKey,
-          seatOrder: si.seat_order as number,
-          isLead: (si.is_lead as boolean | null) ?? false,
+          seatOrder: si.seat_order,
+          isLead: si.is_lead ?? false,
           traits: interviewerData.personality_base ?? INTERVIEWER_ARCHETYPES[archetypeKey].basePersonality,
         };
       });

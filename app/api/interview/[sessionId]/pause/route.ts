@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ): Promise<NextResponse> {
   try {

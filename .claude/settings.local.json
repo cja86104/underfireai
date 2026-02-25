@@ -35,7 +35,9 @@
       "Bash(do echo \"$js:\")",
       "Bash(done)",
       "Bash(del \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\\\\lib\\\\middleware.ts\")",
-      "Bash(supabase db push:*)"
+      "Bash(supabase db push:*)",
+      "Bash(npx next lint:*)",
+      "Bash(npm audit:*)"
     ]
   }
 }
