@@ -4,7 +4,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { useState, type ReactNode } from 'react';
-import { GSAPProvider } from './animation';
+import dynamic from 'next/dynamic';
+
+const GSAPProvider = dynamic(
+  () => import('./animation/gsap-provider').then((mod) => mod.GSAPProvider),
+  { ssr: false }
+);
 
 interface ProvidersProps {
   children: ReactNode;
