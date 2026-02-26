@@ -6,9 +6,11 @@ import {
   Users,
   MessageSquare,
   Sparkles,
-  MoreVertical,
+  Crown,
+  Wand2,
 } from 'lucide-react';
-import { getCurrentUser, getUserInterviewers } from '@/lib/supabase/server';
+import { getCurrentUser, getUserInterviewers, getSubscriptionStatus } from '@/lib/supabase/server';
+import { InterviewerActions } from '@/components/interviewer/InterviewerActions';
 import { cn } from '@/lib/utils/cn';
 
 export const metadata: Metadata = {
@@ -23,7 +25,12 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
     redirect('/login');
   }
 
-  const interviewers = await getUserInterviewers();
+  const [interviewers, subscription] = await Promise.all([
+    getUserInterviewers(),
+    getSubscriptionStatus(),
+  ]);
+
+  const isPremium = subscription.tier === 'premium';
 
   // Group by interview type
   const groupedInterviewers = interviewers.reduce<Record<string, typeof interviewers>>((acc, interviewer) => {
@@ -69,13 +76,32 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
             AI personalities you&apos;ve practiced with
           </p>
         </div>
-        <Link
-          href="/interview/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
-        >
-          <Sparkles className="h-4 w-4" />
-          Generate New
-        </Link>
+        <div className="flex items-center gap-3">
+          {isPremium ? (
+            <Link
+              href="/interviewers/create"
+              className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
+            >
+              <Wand2 className="h-4 w-4" />
+              Create Custom
+            </Link>
+          ) : (
+            <Link
+              href="/settings?tab=billing"
+              className="inline-flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-400 hover:bg-amber-500/20 transition-colors"
+            >
+              <Crown className="h-4 w-4" />
+              Create Custom
+            </Link>
+          )}
+          <Link
+            href="/interview/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
+          >
+            <Sparkles className="h-4 w-4" />
+            Generate New
+          </Link>
+        </div>
       </div>
 
       {/* Info Card */}
@@ -147,10 +173,12 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
                         </div>
                       </div>
                       
-                      {/* Actions dropdown placeholder */}
-                      <button className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-800 hover:text-white transition-colors">
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
+                      {/* Actions dropdown */}
+                      <InterviewerActions
+                        interviewerId={interviewer.id}
+                        interviewerName={interviewer.name}
+                        isCustom={true}
+                      />
                     </div>
 
                     {/* Stats */}

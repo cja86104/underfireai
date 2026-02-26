@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
@@ -92,6 +92,8 @@ interface InterviewChatProps {
   voiceEnabled: boolean;
   // Panel mode props
   panelMembers?: PanelMember[];
+  // Session length limit
+  maxUserMessages?: number;
 }
 
 export function InterviewChat({
@@ -108,6 +110,7 @@ export function InterviewChat({
   startedAt,
   voiceEnabled: initialVoiceEnabled,
   panelMembers = [],
+  maxUserMessages = 20,
 }: InterviewChatProps): React.JSX.Element {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -127,6 +130,14 @@ export function InterviewChat({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(initialVoiceEnabled);
   const [lastInterviewerMessage, setLastInterviewerMessage] = useState<string | null>(null);
+
+  // Calculate user message count for session limit enforcement
+  const userMessageCount = useMemo(() => {
+    return messages.filter((m) => m.role === 'candidate').length;
+  }, [messages]);
+  const messagesRemaining = maxUserMessages - userMessageCount;
+  const isNearLimit = messagesRemaining <= 3 && messagesRemaining > 0;
+  const isAtLimit = messagesRemaining <= 0;
 
   // Ref to hold the latest sendMessageWithText function (fixes stale closure)
   const sendMessageWithTextRef = useRef<(text: string) => Promise<void>>(() => Promise.resolve());
@@ -423,7 +434,7 @@ export function InterviewChat({
       });
       setSessionStatus('paused');
       toast.info('Interview paused');
-    } catch (_error) {
+    } catch {
       toast.error('Failed to pause interview');
     }
   };
@@ -435,7 +446,7 @@ export function InterviewChat({
       });
       setSessionStatus('in_progress');
       toast.success('Interview resumed');
-    } catch (_error) {
+    } catch {
       toast.error('Failed to resume interview');
     }
   };
@@ -453,39 +464,61 @@ export function InterviewChat({
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900">
         <div className="flex items-center gap-3">
           {isPanelMode ? (
-            // Panel mode: show all panel member avatars
+            // Panel mode: show panel info with expandable roster
             <>
-              <div className="flex -space-x-2">
-                {panelMembers.slice(0, 4).map((member, idx) => (
-                  <div
-                    key={member.id}
-                    className={cn(
-                      'relative h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium ring-2 ring-slate-900',
-                      PANEL_COLORS[idx % PANEL_COLORS.length].bg,
-                      PANEL_COLORS[idx % PANEL_COLORS.length].text
-                    )}
-                    title={`${member.name}${member.roleLabel ? ` (${member.roleLabel})` : ''}`}
-                  >
-                    {member.avatarUrl ? (
-                      <Image
-                        src={member.avatarUrl}
-                        alt={member.name}
-                        fill
-                        className="object-cover rounded-full"
-                        unoptimized
-                      />
-                    ) : (
-                      <span>{member.name[0]}</span>
-                    )}
-                  </div>
-                ))}
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {panelMembers.slice(0, 4).map((member, idx) => (
+                    <div
+                      key={member.id}
+                      className={cn(
+                        'relative h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium ring-2 ring-slate-900',
+                        PANEL_COLORS[idx % PANEL_COLORS.length].bg,
+                        PANEL_COLORS[idx % PANEL_COLORS.length].text
+                      )}
+                      title={`${member.name}${member.roleLabel ? ` (${member.roleLabel})` : ''}`}
+                    >
+                      {member.avatarUrl ? (
+                        <Image
+                          src={member.avatarUrl}
+                          alt={member.name}
+                          fill
+                          className="object-cover rounded-full"
+                          unoptimized
+                        />
+                      ) : (
+                        <span>{member.name[0]}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <h2 className="font-semibold text-white">Panel Interview</h2>
+                  <p className="text-xs text-slate-400">
+                    {panelMembers.length} interviewers
+                    {targetRole && ` • ${targetRole}`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-semibold text-white">Panel Interview</h2>
-                <p className="text-xs text-slate-400">
-                  {panelMembers.length} interviewers
-                  {targetRole && ` • ${targetRole}`}
-                </p>
+              {/* Panel member roster */}
+              <div className="hidden lg:flex items-center gap-4 ml-4 pl-4 border-l border-slate-700">
+                {panelMembers.map((member, idx) => {
+                  const color = PANEL_COLORS[idx % PANEL_COLORS.length];
+                  return (
+                    <div key={member.id} className="flex items-center gap-2">
+                      <div className={cn('h-2 w-2 rounded-full', color.bg)} />
+                      <div className="text-xs">
+                        <span className="text-slate-300">{member.name}</span>
+                        {member.roleLabel && (
+                          <span className="text-slate-500 ml-1">({member.roleLabel})</span>
+                        )}
+                        {member.isLead && (
+                          <span className="text-amber-400 ml-1">★</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </>
           ) : (
@@ -536,6 +569,22 @@ export function InterviewChat({
           <div className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5">
             <Clock className="h-4 w-4 text-slate-400" />
             <span className="text-sm font-mono text-white">{formatTime(elapsedTime)}</span>
+          </div>
+
+          {/* Message Counter */}
+          <div
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm',
+              isAtLimit
+                ? 'bg-red-500/20 text-red-400'
+                : isNearLimit
+                ? 'bg-amber-500/20 text-amber-400'
+                : 'bg-slate-800 text-slate-400'
+            )}
+            title={`${userMessageCount} of ${maxUserMessages} responses used`}
+          >
+            <span className="font-mono">{messagesRemaining}</span>
+            <span className="text-xs">left</span>
           </div>
 
           {/* Status Badge */}
@@ -609,6 +658,27 @@ export function InterviewChat({
           </div>
         </div>
       </div>
+
+      {/* Mobile Panel Roster - shows on smaller screens */}
+      {isPanelMode && (
+        <div className="lg:hidden px-4 py-2 border-b border-slate-800 bg-slate-900/50">
+          <div className="flex flex-wrap gap-3">
+            {panelMembers.map((member, idx) => {
+              const color = PANEL_COLORS[idx % PANEL_COLORS.length];
+              return (
+                <div key={member.id} className="flex items-center gap-1.5">
+                  <div className={cn('h-2 w-2 rounded-full', color.bg)} />
+                  <span className="text-xs text-slate-300">{member.name}</span>
+                  {member.roleLabel && (
+                    <span className="text-xs text-slate-500">({member.roleLabel})</span>
+                  )}
+                  {member.isLead && <span className="text-xs text-amber-400">★</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
@@ -738,20 +808,37 @@ export function InterviewChat({
       {/* Input */}
       {sessionStatus === 'in_progress' && (
         <div className="p-4 border-t border-slate-800">
+          {/* Session limit warning */}
+          {isAtLimit && (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
+              <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-400">
+                You&apos;ve reached the response limit. Click the menu to end or extend the interview.
+              </p>
+            </div>
+          )}
+          {isNearLimit && !isAtLimit && (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <AlertCircle className="h-4 w-4 text-amber-400 flex-shrink-0" />
+              <p className="text-sm text-amber-400">
+                {messagesRemaining} response{messagesRemaining !== 1 ? 's' : ''} remaining in this session.
+              </p>
+            </div>
+          )}
           <div className="flex gap-3">
             <textarea
               ref={textareaRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your response..."
-              disabled={isLoading}
+              placeholder={isAtLimit ? 'Response limit reached' : 'Type your response...'}
+              disabled={isLoading || isAtLimit}
               rows={2}
               className="flex-1 resize-none rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
             />
             <button
               onClick={() => void sendMessage()}
-              disabled={!inputValue.trim() || isLoading}
+              disabled={!inputValue.trim() || isLoading || isAtLimit}
               className="self-end rounded-lg bg-orange-500 px-4 py-3 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (

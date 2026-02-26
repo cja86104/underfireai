@@ -44,7 +44,6 @@ export function SettingsTabs({
   activeTab,
   user,
   subscription,
-  onboardingCompleted: _onboardingCompleted,
 }: SettingsTabsProps): React.JSX.Element {
   const router = useRouter();
   const [currentTab, setCurrentTab] = useState(activeTab);
@@ -116,7 +115,7 @@ function ProfileTab({ user }: { user: SettingsTabsProps['user'] }): React.JSX.El
 
       toast.success('Profile updated!');
       router.refresh();
-    } catch (_error) {
+    } catch {
       toast.error('Failed to update profile');
     } finally {
       setIsLoading(false);
@@ -222,7 +221,7 @@ function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscri
 
       const data = await response.json() as { url: string };
       window.location.href = data.url;
-    } catch (_error) {
+    } catch {
       toast.error('Failed to start checkout. Please try again.');
     } finally {
       setIsLoading(false);
@@ -242,7 +241,7 @@ function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscri
 
       const data = await response.json() as { url: string };
       window.location.href = data.url;
-    } catch (_error) {
+    } catch {
       toast.error('Failed to open billing portal. Please try again.');
     } finally {
       setIsLoading(false);
@@ -377,7 +376,7 @@ function SecurityTab({ email }: { email: string }): React.JSX.Element {
       if (error) throw error;
 
       toast.success('Password reset email sent! Check your inbox.');
-    } catch (_error) {
+    } catch {
       toast.error('Failed to send reset email');
     } finally {
       setIsLoading(false);
@@ -402,7 +401,7 @@ function SecurityTab({ email }: { email: string }): React.JSX.Element {
 
       toast.success('Account deleted successfully');
       router.push('/');
-    } catch (_error) {
+    } catch {
       toast.error('Failed to delete account. Please try again.');
     } finally {
       setIsLoading(false);

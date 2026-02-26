@@ -24,43 +24,77 @@
   --fire-700: #c2410c;
   --fire-800: #9a3412;
   --fire-900: #7c2d12;
-  
-  /* Background - Warm Cream */
-  --bg-cream: #FFFBF5;
+
+  /* Background - Warm Cream (Light Mode) */
+  --bg-cream: #FAF8F5;
   --bg-warm: #FFF7ED;
   --bg-card: #FFFFFF;
   --bg-card-hover: #FFFAF5;
-  
-  /* Text - Charcoal */
-  --text-primary: #1C1917;
-  --text-secondary: #44403C;
-  --text-muted: #78716C;
+
+  /* Text - Brown/Charcoal (Light Mode) */
+  --text-primary: #3D3229;
+  --text-secondary: #6B5744;
+  --text-muted: #8B7355;
   --text-light: #A8A29E;
-  
+
   /* Borders */
-  --border-light: rgba(0, 0, 0, 0.06);
-  --border-medium: rgba(0, 0, 0, 0.1);
-  --border-fire: rgba(249, 115, 22, 0.3);
-  
-  /* Accents */
+  --border-light: rgba(61, 50, 41, 0.06);
+  --border-medium: rgba(61, 50, 41, 0.1);
+  --border-fire: rgba(139, 90, 43, 0.3);
+
+  /* Accents - Brown/Warm */
+  --accent-primary: #8B5A2B;
+  --accent-secondary: #5D3A1A;
   --accent-orange: #f97316;
   --accent-red: #ef4444;
   --accent-blue: #3b82f6;
   --accent-amber: #f59e0b;
-  
+
   /* Glows */
-  --glow-fire: rgba(249, 115, 22, 0.25);
-  --glow-fire-strong: rgba(249, 115, 22, 0.4);
+  --glow-fire: rgba(139, 90, 43, 0.25);
+  --glow-fire-strong: rgba(139, 90, 43, 0.4);
   --glow-red: rgba(239, 68, 68, 0.25);
   --glow-blue: rgba(59, 130, 246, 0.25);
-  
+
   /* Radius */
   --radius: 0.75rem;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-fire: 0 8px 30px rgba(139, 90, 43, 0.15);
+  --shadow-fire-lg: 0 20px 50px rgba(139, 90, 43, 0.25);
+}
+
+/* Dark Mode Overrides */
+.dark {
+  /* Background - Dark Slate */
+  --bg-cream: #08080a;
+  --bg-warm: #0f0f12;
+  --bg-card: #18181b;
+  --bg-card-hover: #27272a;
+
+  /* Text - Light */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-light: #52525b;
+
+  /* Borders */
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --border-fire: rgba(249, 115, 22, 0.3);
+
+  /* Accents - Orange for dark mode */
+  --accent-primary: #f97316;
+  --accent-secondary: #ea580c;
+
+  /* Glows */
+  --glow-fire: rgba(249, 115, 22, 0.25);
+  --glow-fire-strong: rgba(249, 115, 22, 0.4);
+
+  /* Shadows */
   --shadow-fire: 0 8px 30px rgba(249, 115, 22, 0.15);
   --shadow-fire-lg: 0 20px 50px rgba(249, 115, 22, 0.25);
 }
@@ -98,7 +132,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar - Fire themed */
+/* Custom scrollbar - Light mode (brown themed) */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -109,17 +143,36 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--fire-400), var(--fire-500));
+  background: linear-gradient(180deg, #C4956A, #8B5A2B);
   border-radius: 5px;
   border: 2px solid var(--bg-warm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8B5A2B, #5D3A1A);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #18181b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--fire-400), var(--fire-500));
+  border-color: #18181b;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, var(--fire-500), var(--fire-600));
 }
 
-/* Text selection - Fire */
+/* Text selection - Brown for light, Fire for dark */
 ::selection {
+  background: rgba(139, 90, 43, 0.2);
+  color: #3D3229;
+}
+
+.dark ::selection {
   background: rgba(249, 115, 22, 0.2);
   color: var(--fire-900);
 }
@@ -133,7 +186,16 @@ body {
   inset: 0;
   z-index: -1;
   overflow: hidden;
-  background: 
+  background:
+    radial-gradient(ellipse 100% 100% at 0% 0%, rgba(139, 90, 43, 0.06), transparent 50%),
+    radial-gradient(ellipse 80% 80% at 100% 0%, rgba(212, 165, 116, 0.05), transparent 50%),
+    radial-gradient(ellipse 60% 60% at 100% 100%, rgba(59, 130, 246, 0.04), transparent 50%),
+    radial-gradient(ellipse 80% 80% at 0% 100%, rgba(196, 149, 106, 0.05), transparent 50%),
+    var(--bg-cream);
+}
+
+.dark .gradient-bg {
+  background:
     radial-gradient(ellipse 100% 100% at 0% 0%, rgba(249, 115, 22, 0.08), transparent 50%),
     radial-gradient(ellipse 80% 80% at 100% 0%, rgba(239, 68, 68, 0.06), transparent 50%),
     radial-gradient(ellipse 60% 60% at 100% 100%, rgba(59, 130, 246, 0.06), transparent 50%),

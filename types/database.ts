@@ -374,6 +374,7 @@ export interface Database {
           difficulty_level: number
           id: string
           interview_type: Database["public"]["Enums"]["interview_type"]
+          is_custom: boolean
           name: string
           personality_base: Json | null
           role_focus: string | null
@@ -390,6 +391,7 @@ export interface Database {
           difficulty_level?: number
           id?: string
           interview_type: Database["public"]["Enums"]["interview_type"]
+          is_custom?: boolean
           name: string
           personality_base?: Json | null
           role_focus?: string | null
@@ -406,6 +408,7 @@ export interface Database {
           difficulty_level?: number
           id?: string
           interview_type?: Database["public"]["Enums"]["interview_type"]
+          is_custom?: boolean
           name?: string
           personality_base?: Json | null
           role_focus?: string | null
@@ -899,6 +902,121 @@ export interface Database {
           },
         ]
       }
+      negotiation_sessions: {
+        Row: {
+          id: string
+          user_id: string
+          target_role: string
+          company_name: string | null
+          current_offer_amount: number
+          target_amount: number
+          experience_years: number | null
+          additional_context: string | null
+          status: Database["public"]["Enums"]["negotiation_status"]
+          started_at: string
+          ended_at: string | null
+          duration_seconds: number | null
+          final_simulated_offer: number | null
+          overall_score: number | null
+          confidence_score: number | null
+          framing_score: number | null
+          strategy_score: number | null
+          composure_score: number | null
+          ai_feedback: string | null
+          key_tactics_used: string[]
+          improvements: string[]
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          target_role: string
+          company_name?: string | null
+          current_offer_amount: number
+          target_amount: number
+          experience_years?: number | null
+          additional_context?: string | null
+          status?: Database["public"]["Enums"]["negotiation_status"]
+          started_at?: string
+          ended_at?: string | null
+          duration_seconds?: number | null
+          final_simulated_offer?: number | null
+          overall_score?: number | null
+          confidence_score?: number | null
+          framing_score?: number | null
+          strategy_score?: number | null
+          composure_score?: number | null
+          ai_feedback?: string | null
+          key_tactics_used?: string[]
+          improvements?: string[]
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          target_role?: string
+          company_name?: string | null
+          current_offer_amount?: number
+          target_amount?: number
+          experience_years?: number | null
+          additional_context?: string | null
+          status?: Database["public"]["Enums"]["negotiation_status"]
+          started_at?: string
+          ended_at?: string | null
+          duration_seconds?: number | null
+          final_simulated_offer?: number | null
+          overall_score?: number | null
+          confidence_score?: number | null
+          framing_score?: number | null
+          strategy_score?: number | null
+          composure_score?: number | null
+          ai_feedback?: string | null
+          key_tactics_used?: string[]
+          improvements?: string[]
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negotiation_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      negotiation_messages: {
+        Row: {
+          id: string
+          session_id: string
+          role: Database["public"]["Enums"]["negotiation_role"]
+          content: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          role: Database["public"]["Enums"]["negotiation_role"]
+          content: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          role?: Database["public"]["Enums"]["negotiation_role"]
+          content?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negotiation_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "negotiation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waitlist: {
         Row: {
           created_at: string
@@ -945,6 +1063,8 @@ export interface Database {
         | "panel"
         | "phone_screen"
       message_role: "interviewer" | "candidate"
+      negotiation_role: "recruiter" | "user"
+      negotiation_status: "in_progress" | "completed" | "abandoned"
       session_length: "short" | "standard" | "deep"
       session_status: "in_progress" | "completed" | "abandoned" | "paused"
       subscription_status: "active" | "canceled" | "past_due" | "trialing"
@@ -1056,7 +1176,6 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
@@ -1092,6 +1211,8 @@ export const Constants = {
         "phone_screen",
       ],
       message_role: ["interviewer", "candidate"],
+      negotiation_role: ["recruiter", "user"],
+      negotiation_status: ["in_progress", "completed", "abandoned"],
       session_length: ["short", "standard", "deep"],
       session_status: ["in_progress", "completed", "abandoned", "paused"],
       subscription_status: ["active", "canceled", "past_due", "trialing"],
@@ -1112,6 +1233,10 @@ export type SubscriptionStatus = Database['public']['Enums']['subscription_statu
 
 // Session length types for cost control
 export type SessionLength = Database['public']['Enums']['session_length'];
+
+// Negotiation module types
+export type NegotiationStatus = Database['public']['Enums']['negotiation_status'];
+export type NegotiationRole = Database['public']['Enums']['negotiation_role'];
 
 export const SESSION_LENGTH_CONFIG: Record<SessionLength, {
   label: string;
@@ -1211,6 +1336,7 @@ export interface Interviewer {
   current_mood: InterviewerMood | null;
   voice_config: VoiceConfig | null;
   total_sessions: number;
+  is_custom: boolean;
   created_at: string;
 }
 
@@ -1228,6 +1354,7 @@ export interface InterviewerInsert {
   current_mood?: InterviewerMood | null;
   voice_config?: VoiceConfig | null;
   total_sessions?: number;
+  is_custom?: boolean;
   created_at?: string;
 }
 
@@ -1243,6 +1370,7 @@ export interface InterviewerUpdate {
   current_mood?: InterviewerMood | null;
   voice_config?: VoiceConfig | null;
   total_sessions?: number;
+  is_custom?: boolean;
 }
 
 // -- Interviewer Personality --
@@ -1778,3 +1906,110 @@ export interface SessionInterviewerUpdate {
   role_label?: string | null;
   is_lead?: boolean;
 }
+
+// ============================================
+// NEGOTIATION MODULE TYPES
+// ============================================
+
+// -- NegotiationFeedback (JSON column type for scoring context) --
+export interface NegotiationFeedback {
+  key_tactics_used: string[];
+  improvements: string[];
+  ai_feedback: string;
+  overall_score: number;
+  confidence_score: number;
+  framing_score: number;
+  strategy_score: number;
+  composure_score: number;
+  final_simulated_offer: number | null;
+}
+
+// -- Negotiation Sessions --
+export interface NegotiationSession {
+  id: string;
+  user_id: string;
+  target_role: string;
+  company_name: string | null;
+  current_offer_amount: number;
+  target_amount: number;
+  experience_years: number | null;
+  additional_context: string | null;
+  status: NegotiationStatus;
+  started_at: string;
+  ended_at: string | null;
+  duration_seconds: number | null;
+  final_simulated_offer: number | null;
+  overall_score: number | null;
+  confidence_score: number | null;
+  framing_score: number | null;
+  strategy_score: number | null;
+  composure_score: number | null;
+  ai_feedback: string | null;
+  key_tactics_used: string[];
+  improvements: string[];
+  created_at: string;
+}
+
+export interface NegotiationSessionInsert {
+  id?: string;
+  user_id: string;
+  target_role: string;
+  company_name?: string | null;
+  current_offer_amount: number;
+  target_amount: number;
+  experience_years?: number | null;
+  additional_context?: string | null;
+  status?: NegotiationStatus;
+  started_at?: string;
+  ended_at?: string | null;
+  duration_seconds?: number | null;
+  final_simulated_offer?: number | null;
+  overall_score?: number | null;
+  confidence_score?: number | null;
+  framing_score?: number | null;
+  strategy_score?: number | null;
+  composure_score?: number | null;
+  ai_feedback?: string | null;
+  key_tactics_used?: string[];
+  improvements?: string[];
+  created_at?: string;
+}
+
+export interface NegotiationSessionUpdate {
+  target_role?: string;
+  company_name?: string | null;
+  current_offer_amount?: number;
+  target_amount?: number;
+  experience_years?: number | null;
+  additional_context?: string | null;
+  status?: NegotiationStatus;
+  ended_at?: string | null;
+  duration_seconds?: number | null;
+  final_simulated_offer?: number | null;
+  overall_score?: number | null;
+  confidence_score?: number | null;
+  framing_score?: number | null;
+  strategy_score?: number | null;
+  composure_score?: number | null;
+  ai_feedback?: string | null;
+  key_tactics_used?: string[];
+  improvements?: string[];
+}
+
+// -- Negotiation Messages --
+export interface NegotiationMessage {
+  id: string;
+  session_id: string;
+  role: NegotiationRole;
+  content: string;
+  created_at: string;
+}
+
+export interface NegotiationMessageInsert {
+  id?: string;
+  session_id: string;
+  role: NegotiationRole;
+  content: string;
+  created_at?: string;
+}
+

@@ -104,7 +104,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  *
  * Get recent suggestions and resume health score.
  */
-export async function GET(_request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 

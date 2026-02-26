@@ -22,6 +22,7 @@ import {
   SlidersHorizontal,
   Shield,
   Target,
+  Crown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
@@ -53,12 +54,12 @@ interface InterviewSetupFormProps {
   savedJobDescriptions?: SavedJobDescription[];
 }
 
-const INTERVIEW_TYPES: { value: InterviewType; label: string; description: string }[] = [
+const INTERVIEW_TYPES: { value: InterviewType; label: string; description: string; premiumOnly?: boolean }[] = [
   { value: 'behavioral',    label: 'Behavioral',    description: 'Tell me about a time...' },
   { value: 'technical',     label: 'Technical',     description: 'System design & coding' },
   { value: 'case',          label: 'Case Study',    description: 'Business problem solving' },
   { value: 'hr',            label: 'HR Screen',     description: 'Culture fit & logistics' },
-  { value: 'panel',         label: 'Panel',         description: 'Multiple interviewers' },
+  { value: 'panel',         label: 'Panel',         description: 'Multiple interviewers', premiumOnly: true },
   { value: 'phone_screen',  label: 'Phone Screen',  description: 'Initial screening' },
 ];
 
@@ -205,8 +206,9 @@ export function InterviewSetupForm({
       if (next.has(key)) {
         next.delete(key);
         setTraitOverrides((o) => {
-          const { [key]: _, ...rest } = o;
-          return rest;
+          const updated = { ...o };
+          delete updated[key as keyof typeof updated];
+          return updated;
         });
       } else {
         next.add(key);
@@ -286,22 +288,49 @@ export function InterviewSetupForm({
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {INTERVIEW_TYPES.map((type) => (
-            <button
-              key={type.value}
-              type="button"
-              onClick={() => setFormData({ ...formData, interviewType: type.value })}
-              className={cn(
-                'rounded-lg border p-4 text-left transition-colors',
-                formData.interviewType === type.value
-                  ? 'border-orange-500 bg-orange-500/10'
-                  : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-              )}
-            >
-              <p className="font-medium text-white">{type.label}</p>
-              <p className="text-sm text-slate-400">{type.description}</p>
-            </button>
-          ))}
+          {INTERVIEW_TYPES.map((type) => {
+            const isLocked = type.premiumOnly && subscriptionTier !== 'premium';
+            return (
+              <button
+                key={type.value}
+                type="button"
+                onClick={() => {
+                  if (isLocked) return;
+                  setFormData({ ...formData, interviewType: type.value });
+                }}
+                disabled={isLocked}
+                className={cn(
+                  'rounded-lg border p-4 text-left transition-colors relative',
+                  isLocked
+                    ? 'border-slate-700 bg-slate-800/30 cursor-not-allowed opacity-60'
+                    : formData.interviewType === type.value
+                    ? 'border-orange-500 bg-orange-500/10'
+                    : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-white">{type.label}</p>
+                  {type.premiumOnly && (
+                    <span className={cn(
+                      'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                      isLocked
+                        ? 'bg-amber-500/20 text-amber-400'
+                        : 'bg-amber-500/10 text-amber-500'
+                    )}>
+                      <Crown className="h-3 w-3" />
+                      Premium
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-slate-400">{type.description}</p>
+                {isLocked && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-slate-900/50">
+                    <Lock className="h-5 w-5 text-slate-500" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

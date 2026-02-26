@@ -216,6 +216,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
         startedAt={session.started_at}
         voiceEnabled={!!(interviewer.voice_config as VoiceConfig | null)?.tts_enabled}
         panelMembers={panelMembers}
+        maxUserMessages={session.max_user_messages ?? 20}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getCurrentUser, getUserProfile } from '@/lib/supabase/server';
 
@@ -17,7 +17,7 @@ function getStripe(): Stripe {
   return _stripe;
 }
 
-export async function POST(_request: NextRequest): Promise<NextResponse> {
+export async function POST(): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 

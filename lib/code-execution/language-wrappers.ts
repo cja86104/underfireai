@@ -427,8 +427,6 @@ function generateGoWrapper(
   const funcMatch = new RegExp(`func\\s+${functionName}\\s*\\(([^)]*)\\)\\s*([^{]+)?`).exec(userCode);
 
   const paramsStr = funcMatch?.[1] ?? '';
-  // Return type extracted for potential future use
-  const _returnType = funcMatch?.[2]?.trim() ?? '';
 
   // Parse parameter types
   const params = paramsStr.split(',').map(p => p.trim()).filter(p => p.length > 0);

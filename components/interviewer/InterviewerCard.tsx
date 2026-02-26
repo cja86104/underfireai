@@ -11,11 +11,10 @@ import {
   INTERVIEWER_ARCHETYPES,
   VOICE_OPTIONS,
 } from '@/types/interviewer';
-import type { Interviewer, InterviewerPersonality } from '@/types/database';
+import type { Interviewer } from '@/types/database';
 
 interface InterviewerCardProps {
   interviewer: Interviewer;
-  personality?: InterviewerPersonality | null;
   onSelect?: (interviewer: Interviewer) => void;
   onPreviewVoice?: (voiceId: string) => void;
   selected?: boolean;
@@ -25,7 +24,6 @@ interface InterviewerCardProps {
 
 export function InterviewerCard({
   interviewer,
-  personality: _personality,
   onSelect,
   onPreviewVoice,
   selected = false,
@@ -35,7 +33,7 @@ export function InterviewerCard({
   const [isPlayingVoice, setIsPlayingVoice] = useState(false);
 
   const archetype = Object.entries(INTERVIEWER_ARCHETYPES).find(
-    ([_, data]) => data.name === interviewer.name ||
+    ([, data]) => data.name === interviewer.name ||
     interviewer.backstory?.toLowerCase().includes(data.id)
   );
   const archetypeData = archetype ? archetype[1] : null;

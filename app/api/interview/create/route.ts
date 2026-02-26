@@ -260,6 +260,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Panel interviews are premium-only
+    if (body.interview_type === 'panel' && subscription.tier !== 'premium') {
+      return NextResponse.json(
+        {
+          error: 'Premium required',
+          message: 'Panel interviews require a Premium subscription.',
+        },
+        { status: 403 }
+      );
+    }
+
     const {
       interview_type,
       company_style,

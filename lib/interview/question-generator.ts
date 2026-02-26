@@ -162,8 +162,7 @@ Return ONLY the follow-up question, no additional text.`;
 }
 
 export function generateOpeningQuestion(
-  interviewType: InterviewType,
-  _roleTarget?: string | null
+  interviewType: InterviewType
 ): string {
   const openings: Record<InterviewType, string[]> = {
     behavioral: [

@@ -6,28 +6,45 @@ import {
   Clock,
   Calendar,
   TrendingUp,
-  Filter,
-  Search,
   ChevronRight,
   MessageSquare,
 } from 'lucide-react';
 import { getCurrentUser, getUserSessions } from '@/lib/supabase/server';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils/cn';
+import { HistorySearch } from './history-search';
 
 export const metadata: Metadata = {
   title: 'Interview History',
   description: 'View your past interview sessions and scores.',
 };
 
-export default async function HistoryPage(): Promise<React.JSX.Element> {
+interface HistoryPageProps {
+  searchParams: Promise<{ q?: string }>;
+}
+
+export default async function HistoryPage({ searchParams }: HistoryPageProps): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect('/login');
   }
 
-  const sessions = await getUserSessions(50);
+  const { q: searchQuery } = await searchParams;
+  const allSessions = await getUserSessions(50);
+
+  // Filter sessions based on search query
+  const sessions = searchQuery
+    ? allSessions.filter((session) => {
+        const query = searchQuery.toLowerCase();
+        return (
+          session.interviewers?.name?.toLowerCase().includes(query) ||
+          session.interview_type?.toLowerCase().includes(query) ||
+          session.target_role?.toLowerCase().includes(query) ||
+          session.target_company?.toLowerCase().includes(query)
+        );
+      })
+    : allSessions;
 
   // Calculate stats
   const completedSessions = sessions.filter((s) => s.status === 'completed');
@@ -114,18 +131,12 @@ export default async function HistoryPage(): Promise<React.JSX.Element> {
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
         <div className="p-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Search sessions..."
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 pl-10 pr-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none"
-              />
-            </div>
-            <button className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Filter
-            </button>
+            <HistorySearch />
+            {searchQuery && (
+              <span className="text-sm text-slate-400">
+                {sessions.length} result{sessions.length !== 1 ? 's' : ''} for &quot;{searchQuery}&quot;
+              </span>
+            )}
           </div>
         </div>
 

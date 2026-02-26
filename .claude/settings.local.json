@@ -37,7 +37,15 @@
       "Bash(del \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\\\\lib\\\\middleware.ts\")",
       "Bash(supabase db push:*)",
       "Bash(npx next lint:*)",
-      "Bash(npm audit:*)"
+      "Bash(npm audit:*)",
+      "Bash(xargs:*)",
+      "Bash(for comp in \"FeedbackPanel\" \"MessageAnalysisPanel\" \"InterviewTimeline\" \"SkillsEditor\" \"AnimatedSection\" \"BadgeGrid\" \"ScoreChart\" \"StreakDisplay\" \"ResumePreview\")",
+      "Bash(do echo \"=== $comp ===\")",
+      "Bash(for comp in \"FeedbackSummary\" \"ScoreRing\" \"CategoryScoreCard\" \"ScoreSummaryCard\" \"ScoreBadge\" \"CodeEditor\" \"CodingChallengeUI\" \"TimerDisplay\" \"InlineTimer\" \"SessionTimer\")",
+      "Bash(for comp in \"StreakBadge\" \"StreakIndicator\" \"WeeklyProgress\" \"ScoreSparkline\" \"ScoreTrend\" \"BadgeShowcase\" \"BadgeDisplay\" \"BackgroundGenerator\" \"PersonalityConfig\" \"SkillsDisplay\")",
+      "Bash(for comp in \"GSAPProvider\" \"AnimatedCard\" \"AnimatedText\" \"AnimatedStagger\" \"AnimatedCounter\" \"Parallax\" \"Reveal\" \"AnimatedBackground\" \"HeroGlow\" \"FireGlow\" \"ScrollIndicator\" \"SectionDivider\")",
+      "Bash(echo:*)",
+      "Bash(Test-Path \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\\\\components\\\\interviewer\\\\InterviewerActions.tsx\")"
     ]
   }
 }

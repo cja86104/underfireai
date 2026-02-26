@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getCurrentUser } from '@/lib/supabase/server';
 import type { Database } from '@/types/database';
@@ -17,7 +17,7 @@ function getSupabaseAdmin(): ReturnType<typeof createClient<Database>> {
   return _supabaseAdmin;
 }
 
-export async function DELETE(_request: NextRequest): Promise<NextResponse> {
+export async function DELETE(): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 

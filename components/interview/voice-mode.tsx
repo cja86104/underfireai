@@ -378,7 +378,6 @@ export function VoiceMode({
           <div className="flex items-center gap-1 h-8">
             {frequencyBars.map((level, i) => (
               <div
-                // eslint-disable-next-line react/no-array-index-key -- Index is appropriate for frequency bar positions
                 key={i}
                 className={cn(
                   'flex-1 rounded-full transition-all duration-75',

@@ -20,7 +20,7 @@ export default async function DashboardLayout({
   ]);
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-[#FAF8F5] dark:bg-slate-950">
       {/* Sidebar - fixed on desktop, hidden on mobile */}
       <Sidebar
         user={{
