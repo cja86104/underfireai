@@ -36,6 +36,21 @@ export async function POST(
 
     const supabase = await createClient();
 
+    // Gate: Job Analysis requires Pro or Premium
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single();
+
+    const tier = profile?.subscription_tier ?? 'free';
+    if (tier !== 'pro' && tier !== 'premium') {
+      return NextResponse.json(
+        { error: 'Upgrade required', message: 'Job Description Analysis requires a Pro or Premium plan.' },
+        { status: 403 }
+      );
+    }
+
     // Get the job description
     const { data: jd, error: jdError } = await supabase
       .from('job_descriptions')

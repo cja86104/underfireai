@@ -21,7 +21,7 @@ export async function DELETE(
     // Verify the interviewer belongs to this user (custom interviewers have user_id set)
     const { data: interviewer, error: fetchError } = await supabase
       .from('interviewers')
-      .select('id, user_id, is_premium')
+      .select('id, user_id, is_custom')
       .eq('id', interviewerId)
       .single();
 

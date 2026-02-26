@@ -9,6 +9,7 @@ import {
 import { generateQuestions } from '@/lib/interview/question-generator';
 import { detectMoodTriggers, calculateMoodUpdate } from '@/lib/ai/mood-engine';
 import { runPanelTurn } from '@/lib/ai/interview';
+import { sanitizeInterviewerResponse, containsStageDirections } from '@/lib/ai/response-sanitizer';
 import type {
   InterviewMessage,
   PersonalityBase,
@@ -242,12 +243,16 @@ export async function POST(
       // Save each panel member's response as separate message
       const panelMessageIds: string[] = [];
       for (const turn of panelResult.turns) {
+        const cleanText = sanitizeInterviewerResponse(turn.text);
+        if (cleanText !== turn.text) {
+          console.warn(`[Chat Panel] Stage directions stripped from ${turn.speakerName}'s response.`);
+        }
         const { data: panelMsg, error: panelMsgError } = await supabase
           .from('interview_messages')
           .insert({
             session_id: sessionId,
             role: 'interviewer',
-            content: turn.text,
+            content: cleanText,
             interviewer_id: turn.interviewerId,
           })
           .select('id')
@@ -283,7 +288,10 @@ export async function POST(
                         isAtLimit;
 
       return NextResponse.json({
-        panel_turns: panelResult.turns,
+        panel_turns: panelResult.turns.map((turn) => ({
+          ...turn,
+          text: sanitizeInterviewerResponse(turn.text),
+        })),
         panel_state: panelResult.panelState,
         analysis: panelResult.analysis,
         user_message_id: userMessageId,
@@ -388,11 +396,18 @@ export async function POST(
       max_tokens: 1024,
     });
 
-    const aiResponse = completion.choices[0]?.message?.content;
+    const rawResponse = completion.choices[0]?.message?.content;
 
-    if (!aiResponse) {
+    if (!rawResponse) {
       throw new Error('No response from AI');
     }
+
+    // Strip stage directions, internal thoughts, and markdown from the response.
+    // The system prompt forbids this output but models occasionally slip.
+    if (containsStageDirections(rawResponse)) {
+      console.warn('[Chat] Stage directions detected in AI response — sanitizing.');
+    }
+    const aiResponse = sanitizeInterviewerResponse(rawResponse);
 
     // Check if interview should end (AI indicates wrap-up or limit approaching)
     const messagesAfterThis = currentCount + 1;

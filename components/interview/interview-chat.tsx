@@ -18,10 +18,12 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
 import { VoiceMode } from './voice-mode';
+import { SceneBanner } from './scene-banner';
 import type {
   InterviewMessage,
   SessionStatus,
   InterviewType,
+  CompanyStyle,
   PersonalityBase,
   InterviewerMood,
   VoiceConfig,
@@ -658,6 +660,14 @@ export function InterviewChat({
           </div>
         </div>
       </div>
+
+      {/* Scene Banner — AI-generated interview environment + optional Segmind image */}
+      {sessionStatus === 'in_progress' && !isPanelMode && companyStyle && (
+        <SceneBanner
+          companyStyle={companyStyle as CompanyStyle}
+          interviewType={interviewType}
+        />
+      )}
 
       {/* Mobile Panel Roster - shows on smaller screens */}
       {isPanelMode && (

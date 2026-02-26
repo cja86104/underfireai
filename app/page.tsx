@@ -805,9 +805,7 @@ export default function LandingPage(): React.JSX.Element {
             ))}
           </div>
 
-          <p className="text-center text-base text-[#8B7355] mt-10">
-            All paid plans include a 7-day money-back guarantee. No questions asked.
-          </p>
+
         </div>
       </section>
 
@@ -888,7 +886,7 @@ export default function LandingPage(): React.JSX.Element {
                 <li><a href="#features" className="hover:text-[#8B5A2B] transition-colors">Features</a></li>
                 <li><a href="#pricing" className="hover:text-[#8B5A2B] transition-colors">Pricing</a></li>
                 <li><a href="#how-it-works" className="hover:text-[#8B5A2B] transition-colors">How It Works</a></li>
-                <li><a href="#faq" className="hover:text-[#8B5A2B] transition-colors">FAQ</a></li>
+                <li><Link href="/faq" className="hover:text-[#8B5A2B] transition-colors">FAQ</Link></li>
               </ul>
             </div>
 
@@ -915,6 +913,10 @@ export default function LandingPage(): React.JSX.Element {
             <p className="text-base text-[#8B7355]">
               &copy; {new Date().getFullYear()} UnderFireAI. All rights reserved.
             </p>
+            <div className="flex items-center gap-6 text-base text-[#8B7355]">
+              <Link href="/privacy" className="hover:text-[#8B5A2B] transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-[#8B5A2B] transition-colors">Terms of Service</Link>
+            </div>
           </div>
         </div>
       </footer>

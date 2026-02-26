@@ -132,7 +132,9 @@ export function CodingChallengeUI({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to run code');
+        const errorData = await response.json().catch(() => ({})) as { message?: string; error?: string };
+        const message = errorData.message ?? errorData.error ?? 'Failed to run code';
+        throw new Error(message);
       }
 
       const data = await response.json() as RunCodeApiResponse;
@@ -148,7 +150,8 @@ export function CodingChallengeUI({
       }
     } catch (error) {
       console.error('Run code error:', error);
-      toast.error('Failed to run code. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to run code. Please try again.';
+      toast.error(message);
     } finally {
       setIsRunning(false);
     }
@@ -172,7 +175,9 @@ export function CodingChallengeUI({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit code');
+        const errorData = await response.json().catch(() => ({})) as { message?: string; error?: string };
+        const message = errorData.message ?? errorData.error ?? 'Failed to submit code';
+        throw new Error(message);
       }
 
       const data = await response.json() as SubmitCodeApiResponse;

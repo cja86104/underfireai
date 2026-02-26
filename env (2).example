@@ -16,9 +16,11 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 # Get from https://openrouter.ai/keys
 OPENROUTER_API_KEY=sk-or-v1-your-key-here
 
-# OpenAI API key for Text-to-Speech (voice mode)
-# Get from https://platform.openai.com/api-keys
-OPENAI_API_KEY=sk-your-openai-key-here
+# NOTE: OPENAI_API_KEY is NOT used by this application.
+# All AI completions go through OpenRouter (OPENROUTER_API_KEY).
+# Text-to-speech uses Cartesia (CARTESIA_API_KEY below).
+# This entry is kept as a placeholder in case you add direct OpenAI calls.
+# OPENAI_API_KEY=sk-your-openai-key-here
 
 # ===========================================
 # STRIPE (Payments)
@@ -45,7 +47,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # ===========================================
 # IMAGE GENERATION (Segmind)
 # ===========================================
-# For generating interview scene images
+# For generating interview scene background images (REQUIRED for scene visuals).
+# Used by: /api/interview/generate-scene → lib/image/segmind.ts
+# Scene text descriptions still work without this key; only images require it.
 # Get from https://www.segmind.com/
 SEGMIND_API_KEY=your-segmind-key
 

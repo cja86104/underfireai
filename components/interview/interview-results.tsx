@@ -89,32 +89,32 @@ export function InterviewResults({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Interview Results</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-4xl font-bold text-white">Interview Results</h1>
+          <p className="text-slate-200 mt-2 text-lg">
             {format(new Date(session.startedAt), 'MMMM d, yyyy')} • {interviewer.name}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href={`/interview/${session.id}/replay`}
-            className="inline-flex items-center gap-2 rounded-lg border border-orange-500/50 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-400 hover:bg-orange-500/20 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg border border-orange-500/50 bg-orange-500/10 px-5 py-3 text-base font-medium text-orange-300 hover:bg-orange-500/20 transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
             Replay Session
           </Link>
           <Link
             href="/history"
-            className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors"
+            className="rounded-lg border border-slate-600 bg-slate-800/50 px-5 py-3 text-base font-medium text-slate-100 hover:bg-slate-800 transition-colors"
           >
             View History
           </Link>
           <Link
             href="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-5 py-3 text-base font-semibold text-white hover:bg-orange-600 transition-colors"
           >
             <Play className="h-4 w-4" />
             New Interview
@@ -123,21 +123,21 @@ export function InterviewResults({
       </div>
 
       {/* Overall Score Card */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="rounded-xl border border-slate-700 bg-slate-900/50 p-8">
         <div className="flex flex-col md:flex-row md:items-center gap-6">
           {/* Score Circle */}
           <div className="flex-shrink-0">
             <div
               className={cn(
-                'relative h-32 w-32 rounded-full flex items-center justify-center',
+                'relative h-44 w-44 rounded-full flex items-center justify-center',
                 getScoreBgColor(scores?.overallScore ?? null)
               )}
             >
               <div className="text-center">
-                <p className={cn('text-4xl font-bold', getScoreColor(scores?.overallScore ?? null))}>
+                <p className={cn('text-5xl font-bold', getScoreColor(scores?.overallScore ?? null))}>
                   {scores?.overallScore ?? '—'}
                 </p>
-                <p className="text-sm text-slate-400">Overall</p>
+                <p className="text-base text-slate-300">Overall</p>
               </div>
               {scores?.overallScore != null && (
                 <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100">
@@ -170,23 +170,23 @@ export function InterviewResults({
           <div className="flex-1">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-sm text-slate-400">Interview Type</p>
-                <p className="font-medium text-white capitalize">
+                <p className="text-base text-slate-300">Interview Type</p>
+                <p className="text-lg font-semibold text-white capitalize">
                   {session.interviewType.replace('_', ' ')}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-slate-400">Duration</p>
+                <p className="text-base text-slate-300">Duration</p>
                 <p className="font-medium text-white">
                   {session.durationSeconds ? formatDuration(session.durationSeconds) : '—'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-slate-400">Difficulty</p>
+                <p className="text-base text-slate-300">Difficulty</p>
                 <p className="font-medium text-white">{session.difficulty}/10</p>
               </div>
               <div>
-                <p className="text-sm text-slate-400">Questions</p>
+                <p className="text-base text-slate-300">Questions</p>
                 <p className="font-medium text-white">
                   {messages.filter((m) => m.role === 'interviewer').length}
                 </p>
@@ -195,7 +195,7 @@ export function InterviewResults({
 
             {session.targetRole && (
               <div className="mt-4 pt-4 border-t border-slate-700">
-                <p className="text-sm text-slate-400">Target Position</p>
+                <p className="text-base text-slate-300">Target Position</p>
                 <p className="font-medium text-white">
                   {session.targetRole}
                   {session.targetCompany && ` at ${session.targetCompany}`}
@@ -208,15 +208,15 @@ export function InterviewResults({
 
       {/* Score Breakdown */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Score Breakdown</h2>
-        <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-white mb-6">Score Breakdown</h2>
+        <div className="space-y-5">
           {scoreCategories.map((category) => (
             <div key={category.key} className="flex items-center gap-4">
-              <div className="w-32 flex-shrink-0">
-                <p className="text-sm text-slate-300">{category.label}</p>
+              <div className="w-44 flex-shrink-0">
+                <p className="text-base text-slate-100">{category.label}</p>
               </div>
               <div className="flex-1">
-                <div className="h-3 rounded-full bg-slate-700 overflow-hidden">
+                <div className="h-4 rounded-full bg-slate-700 overflow-hidden">
                   <div
                     className={cn(
                       'h-full rounded-full transition-all duration-500',
@@ -233,7 +233,7 @@ export function InterviewResults({
                 </div>
               </div>
               <div className="w-12 text-right">
-                <span className={cn('font-medium', getScoreColor(category.value ?? null))}>
+                <span className={cn('text-lg font-bold', getScoreColor(category.value ?? null))}>
                   {category.value ?? '—'}
                 </span>
               </div>
@@ -248,19 +248,19 @@ export function InterviewResults({
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <div className="flex items-center gap-2 mb-4">
             <CheckCircle className="h-5 w-5 text-green-500" />
-            <h2 className="text-lg font-semibold text-white">Strengths</h2>
+            <h2 className="text-xl font-bold text-white">Strengths</h2>
           </div>
           {scores?.strengths && scores.strengths.length > 0 ? (
             <ul className="space-y-3">
               {scores.strengths.map((strength) => (
                 <li key={strength} className="flex items-start gap-3">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                  <span className="text-slate-300">{strength}</span>
+                  <span className="mt-1 mt-1 h-2 w-2 rounded-full bg-green-400 flex-shrink-0" />
+                  <span className="text-base text-slate-100 leading-relaxed">{strength}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-slate-500">No strengths identified</p>
+            <p className="text-slate-300 text-base">No strengths identified</p>
           )}
         </div>
 
@@ -268,19 +268,19 @@ export function InterviewResults({
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Target className="h-5 w-5 text-amber-500" />
-            <h2 className="text-lg font-semibold text-white">Areas for Improvement</h2>
+            <h2 className="text-xl font-bold text-white">Areas for Improvement</h2>
           </div>
           {scores?.improvements && scores.improvements.length > 0 ? (
             <ul className="space-y-3">
               {scores.improvements.map((improvement) => (
                 <li key={improvement} className="flex items-start gap-3">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                  <span className="text-slate-300">{improvement}</span>
+                  <span className="mt-1 mt-1 h-2 w-2 rounded-full bg-amber-400 flex-shrink-0" />
+                  <span className="text-base text-slate-100 leading-relaxed">{improvement}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-slate-500">No improvements identified</p>
+            <p className="text-slate-300 text-base">No improvements identified</p>
           )}
         </div>
       </div>
@@ -290,9 +290,9 @@ export function InterviewResults({
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Lightbulb className="h-5 w-5 text-blue-500" />
-            <h2 className="text-lg font-semibold text-white">AI Coach Feedback</h2>
+            <h2 className="text-xl font-bold text-white">AI Coach Feedback</h2>
           </div>
-          <p className="text-slate-300 leading-relaxed">{scores.aiFeedback}</p>
+          <p className="text-slate-100 text-base leading-relaxed">{scores.aiFeedback}</p>
         </div>
       )}
 
@@ -300,7 +300,7 @@ export function InterviewResults({
       {scores?.interviewerImpression && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="relative h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+            <div className="relative h-14 w-14 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
               {interviewer.avatarUrl ? (
                 <Image
                   src={interviewer.avatarUrl}
@@ -310,15 +310,15 @@ export function InterviewResults({
                   unoptimized
                 />
               ) : (
-                <span className="text-slate-300">{interviewer.name[0]}</span>
+                <span className="text-lg text-slate-100">{interviewer.name[0]}</span>
               )}
             </div>
             <div>
-              <h2 className="font-semibold text-white">Interviewer&apos;s Perspective</h2>
-              <p className="text-sm text-slate-400">{interviewer.name}</p>
+              <h2 className="text-xl font-bold text-white">Interviewer&apos;s Perspective</h2>
+              <p className="text-base text-slate-200">{interviewer.name}</p>
             </div>
           </div>
-          <p className="text-slate-300 leading-relaxed italic">
+          <p className="text-slate-100 text-base leading-relaxed italic">
             &ldquo;{scores.interviewerImpression}&rdquo;
           </p>
         </div>
@@ -327,7 +327,7 @@ export function InterviewResults({
       {/* Key Moments */}
       {scores?.keyMoments && scores.keyMoments.length > 0 && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Key Moments</h2>
+          <h2 className="text-xl font-bold text-white mb-5">Key Moments</h2>
           <div className="space-y-3">
             {scores.keyMoments.map((moment) => (
               <div
@@ -353,7 +353,7 @@ export function InterviewResults({
                 >
                   {moment.type === 'strong' ? 'Strong' : moment.type === 'weak' ? 'Weak' : 'Turning Point'}
                 </span>
-                <p className="text-slate-300 text-sm">{moment.description}</p>
+                <p className="text-slate-100 text-base">{moment.description}</p>
               </div>
             ))}
           </div>
@@ -368,8 +368,8 @@ export function InterviewResults({
             className="flex items-center gap-2 hover:text-white transition-colors"
           >
             <MessageSquare className="h-5 w-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-white">Full Transcript</h2>
-            <span className="text-sm text-slate-500">({messages.length} messages)</span>
+            <h2 className="text-xl font-bold text-white">Full Transcript</h2>
+            <span className="text-base text-slate-300">({messages.length} messages)</span>
             {showTranscript ? (
               <ChevronUp className="h-5 w-5 text-slate-400" />
             ) : (
@@ -378,7 +378,7 @@ export function InterviewResults({
           </button>
           <Link
             href={`/interview/${session.id}/replay`}
-            className="inline-flex items-center gap-1.5 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-base text-orange-300 hover:text-orange-200 transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
             Detailed Replay
@@ -386,7 +386,7 @@ export function InterviewResults({
         </div>
 
         {showTranscript && (
-          <div className="border-t border-slate-800 p-6 space-y-4 max-h-96 overflow-y-auto scrollbar-thin">
+          <div className="border-t border-slate-800 p-6 space-y-4 max-h-[600px] overflow-y-auto scrollbar-thin">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -399,7 +399,7 @@ export function InterviewResults({
                   className={cn(
                     'h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs',
                     message.role === 'interviewer'
-                      ? 'bg-slate-700 text-slate-300'
+                      ? 'bg-slate-600 text-slate-100'
                       : 'bg-orange-500 text-white'
                   )}
                 >
@@ -409,11 +409,11 @@ export function InterviewResults({
                   className={cn(
                     'max-w-[80%] rounded-lg px-4 py-2',
                     message.role === 'interviewer'
-                      ? 'bg-slate-800 text-slate-200'
-                      : 'bg-orange-500/20 text-slate-200'
+                      ? 'bg-slate-700 text-slate-50'
+                      : 'bg-orange-500/20 text-slate-50'
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-base leading-relaxed whitespace-pre-wrap">{message.content}</p>
                 </div>
               </div>
             ))}
@@ -423,21 +423,21 @@ export function InterviewResults({
 
       {/* Next Steps */}
       <div className="rounded-xl border border-orange-500/30 bg-orange-500/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-2">What&apos;s Next?</h2>
-        <p className="text-slate-300 mb-4">
+        <h2 className="text-xl font-bold text-white mb-3">What&apos;s Next?</h2>
+        <p className="text-slate-100 text-base mb-5">
           Keep practicing to improve your scores. Try different interview types and difficulty levels.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link
             href="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-6 py-3 text-base font-semibold text-white hover:bg-orange-600 transition-colors"
           >
             Practice Again
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             href="/progress"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-800/50 px-6 py-3 text-base font-medium text-slate-100 hover:bg-slate-800 transition-colors"
           >
             View Progress
           </Link>

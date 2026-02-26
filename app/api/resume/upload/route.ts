@@ -1,8 +1,14 @@
+// pdf-parse reads local filesystem test files at module init time.
+// Force Node.js runtime so that behaviour is safe on serverless (Vercel).
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
 import { generateAndSaveVulnerabilityScan } from '@/lib/resume/insights-service';
+import { uploadResume } from '@/lib/storage';
 import type { Json } from '@/types/database';
 import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
@@ -233,6 +239,17 @@ Return ONLY the JSON object, no markdown or explanation.`;
 
     const supabase = await createClient();
 
+    // Upload original file to Supabase Storage (resumes bucket).
+    // Runs before DB insert so the URL is available immediately.
+    // Failure is non-blocking — the resume text is still saved.
+    let fileUrl: string | null = null;
+    const storageResult = await uploadResume(supabase, user.id, file);
+    if (storageResult.success && storageResult.url) {
+      fileUrl = storageResult.url;
+    } else {
+      console.warn('[Resume Upload] Storage upload failed — continuing without file_url:', storageResult.error);
+    }
+
     // Delete existing resume if replacing
     if (replaceId) {
       await supabase
@@ -253,7 +270,7 @@ Return ONLY the JSON object, no markdown or explanation.`;
         experience_years: experienceYears,
         target_role: targetRole ?? null,
         target_company_type: null,
-        file_url: null,
+        file_url: fileUrl,
       })
       .select('id')
       .single();
@@ -292,6 +309,7 @@ Return ONLY the JSON object, no markdown or explanation.`;
         has_education: (parsedData.education?.length || 0) > 0,
         has_experience: (parsedData.experience?.length || 0) > 0,
       },
+      file_stored: fileUrl !== null,
       vulnerability_scan_triggered: isPaidUser,
       message: 'Resume uploaded and parsed successfully',
     });

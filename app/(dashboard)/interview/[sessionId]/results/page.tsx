@@ -80,7 +80,7 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
   const scores = session.session_scores;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-8">
       <InterviewResults
         session={{
           id: session.id,
