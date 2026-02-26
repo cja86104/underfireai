@@ -5,6 +5,7 @@ import {
   getUserInterviewers,
   getUserResume,
   getSubscriptionStatus,
+  createClient,
 } from '@/lib/supabase/server';
 import { InterviewSetupForm } from '@/components/interview/interview-setup-form';
 
@@ -31,6 +32,54 @@ export default async function NewInterviewPage(): Promise<React.JSX.Element> {
     redirect('/settings?tab=billing&reason=limit_reached');
   }
 
+  // Fetch premium-only data for resume targeting
+  let hasVulnerabilityScan = false;
+  let vulnerabilityCount = 0;
+  let savedJobDescriptions: {
+    id: string;
+    companyName: string | null;
+    roleTitle: string | null;
+    matchPercentage: number | null;
+  }[] = [];
+
+  if (subscription.tier === 'premium') {
+    const supabase = await createClient();
+
+    // Fetch latest vulnerability scan
+    const { data: vulnScan } = await supabase
+      .from('resume_insights')
+      .select('vulnerabilities')
+      .eq('user_id', user.id)
+      .eq('insight_type', 'vulnerability')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (vulnScan?.vulnerabilities) {
+      hasVulnerabilityScan = true;
+      vulnerabilityCount = Array.isArray(vulnScan.vulnerabilities)
+        ? vulnScan.vulnerabilities.length
+        : 0;
+    }
+
+    // Fetch saved job descriptions
+    const { data: jdList } = await supabase
+      .from('job_descriptions')
+      .select('id, company_name, role_title, match_percentage')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (jdList) {
+      savedJobDescriptions = jdList.map((jd) => ({
+        id: jd.id,
+        companyName: jd.company_name,
+        roleTitle: jd.role_title,
+        matchPercentage: jd.match_percentage,
+      }));
+    }
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-8">
@@ -46,6 +95,9 @@ export default async function NewInterviewPage(): Promise<React.JSX.Element> {
         resumeSkills={resume?.skills ?? []}
         subscriptionTier={subscription.tier}
         voiceModeEnabled={subscription.tier !== 'free'}
+        hasVulnerabilityScan={hasVulnerabilityScan}
+        vulnerabilityCount={vulnerabilityCount}
+        savedJobDescriptions={savedJobDescriptions}
       />
     </div>
   );

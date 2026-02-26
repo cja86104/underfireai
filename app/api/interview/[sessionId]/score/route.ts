@@ -3,6 +3,7 @@ import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS, SCORING_WEIGHTS } from '@/lib/ai/config';
 import { sendSessionCompletedWebhook } from '@/lib/webhooks';
+import { generateAndSaveAlignmentAnalysis } from '@/lib/resume/insights-service';
 import type { ResponseAnalysis } from '@/types/database';
 
 /** Parsed JSON structure from AI feedback generation */
@@ -318,6 +319,33 @@ Return ONLY valid JSON, no markdown or additional text.`;
         .eq('session_id', sessionId);
     }
 
+    // Generate resume alignment analysis for paid users (async, non-blocking)
+    let resumeAlignmentGenerated = false;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single();
+
+    if (profile && profile.subscription_tier !== 'free') {
+      // Run alignment analysis in background - don't await to avoid blocking response
+      generateAndSaveAlignmentAnalysis(
+        user.id,
+        sessionId,
+        messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+          analysis: m.analysis as ResponseAnalysis | null,
+        })),
+        scores,
+        session.interview_type,
+        session.target_role
+      ).catch((err: unknown) => {
+        console.error('Error generating resume alignment:', err);
+      });
+      resumeAlignmentGenerated = true;
+    }
+
     return NextResponse.json({
       success: true,
       alreadyScored: false,
@@ -328,6 +356,7 @@ Return ONLY valid JSON, no markdown or additional text.`;
       analyzedResponseCount: analyses.length,
       webhookSent: webhookResult.sent,
       webhookCount: webhookResult.webhookCount,
+      resumeAlignmentTriggered: resumeAlignmentGenerated,
     });
 
   } catch (error) {

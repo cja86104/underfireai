@@ -17,6 +17,7 @@ import {
   Zap,
   Menu,
   X,
+  Target,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
@@ -37,6 +38,7 @@ const navigation = [
   { name: 'Interviewers', href: '/interviewers', icon: Users },
   { name: 'History', href: '/history', icon: History },
   { name: 'Resume', href: '/resume', icon: FileText },
+  { name: 'Job Analysis', href: '/job-analysis', icon: Target },
   { name: 'Progress', href: '/progress', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];

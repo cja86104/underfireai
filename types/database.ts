@@ -89,10 +89,13 @@ export interface Database {
           max_user_messages: number | null
           panel_state: Json | null
           programming_language: string | null
+          resume_targeting_context: Json | null
           session_length: Database["public"]["Enums"]["session_length"] | null
           started_at: string
           status: Database["public"]["Enums"]["session_status"]
           target_company: string | null
+          target_job_description_id: string | null
+          target_resume_weak_spots: boolean
           target_role: string | null
           trait_overrides: Json | null
           user_id: string
@@ -112,10 +115,13 @@ export interface Database {
           max_user_messages?: number | null
           panel_state?: Json | null
           programming_language?: string | null
+          resume_targeting_context?: Json | null
           session_length?: Database["public"]["Enums"]["session_length"] | null
           started_at?: string
           status?: Database["public"]["Enums"]["session_status"]
           target_company?: string | null
+          target_job_description_id?: string | null
+          target_resume_weak_spots?: boolean
           target_role?: string | null
           trait_overrides?: Json | null
           user_id: string
@@ -135,10 +141,13 @@ export interface Database {
           max_user_messages?: number | null
           panel_state?: Json | null
           programming_language?: string | null
+          resume_targeting_context?: Json | null
           session_length?: Database["public"]["Enums"]["session_length"] | null
           started_at?: string
           status?: Database["public"]["Enums"]["session_status"]
           target_company?: string | null
+          target_job_description_id?: string | null
+          target_resume_weak_spots?: boolean
           target_role?: string | null
           trait_overrides?: Json | null
           user_id?: string
@@ -481,6 +490,8 @@ export interface Database {
           technical_depth: number | null
           webhook_sent: boolean | null
           webhook_sent_at: string | null
+          resume_alignment_generated: boolean | null
+          resume_insight_id: string | null
         }
         Insert: {
           ai_feedback?: string | null
@@ -500,6 +511,8 @@ export interface Database {
           technical_depth?: number | null
           webhook_sent?: boolean | null
           webhook_sent_at?: string | null
+          resume_alignment_generated?: boolean | null
+          resume_insight_id?: string | null
         }
         Update: {
           ai_feedback?: string | null
@@ -519,6 +532,8 @@ export interface Database {
           technical_depth?: number | null
           webhook_sent?: boolean | null
           webhook_sent_at?: string | null
+          resume_alignment_generated?: boolean | null
+          resume_insight_id?: string | null
         }
         Relationships: [
           {
@@ -729,6 +744,157 @@ export interface Database {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resume_insights: {
+        Row: {
+          id: string
+          user_id: string
+          resume_id: string
+          session_id: string | null
+          insight_type: string
+          alignment_score: number | null
+          discrepancies: Json
+          confirmations: Json
+          vulnerabilities: Json
+          vulnerability_score: number | null
+          resume_suggestions: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          resume_id: string
+          session_id?: string | null
+          insight_type: string
+          alignment_score?: number | null
+          discrepancies?: Json
+          confirmations?: Json
+          vulnerabilities?: Json
+          vulnerability_score?: number | null
+          resume_suggestions?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          resume_id?: string
+          session_id?: string | null
+          insight_type?: string
+          alignment_score?: number | null
+          discrepancies?: Json
+          confirmations?: Json
+          vulnerabilities?: Json
+          vulnerability_score?: number | null
+          resume_suggestions?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resume_insights_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_insights_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "user_resumes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_insights_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_descriptions: {
+        Row: {
+          id: string
+          user_id: string
+          raw_text: string
+          source_url: string | null
+          company_name: string | null
+          role_title: string | null
+          required_skills: string[]
+          preferred_skills: string[]
+          experience_requirements: Json | null
+          education_requirements: Json | null
+          responsibilities: string[]
+          resume_id: string | null
+          match_percentage: number | null
+          matched_skills: string[]
+          missing_required: string[]
+          missing_preferred: string[]
+          additional_skills: string[]
+          narrative_gaps: Json
+          created_at: string
+          analyzed_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          raw_text: string
+          source_url?: string | null
+          company_name?: string | null
+          role_title?: string | null
+          required_skills?: string[]
+          preferred_skills?: string[]
+          experience_requirements?: Json | null
+          education_requirements?: Json | null
+          responsibilities?: string[]
+          resume_id?: string | null
+          match_percentage?: number | null
+          matched_skills?: string[]
+          missing_required?: string[]
+          missing_preferred?: string[]
+          additional_skills?: string[]
+          narrative_gaps?: Json
+          created_at?: string
+          analyzed_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          raw_text?: string
+          source_url?: string | null
+          company_name?: string | null
+          role_title?: string | null
+          required_skills?: string[]
+          preferred_skills?: string[]
+          experience_requirements?: Json | null
+          education_requirements?: Json | null
+          responsibilities?: string[]
+          resume_id?: string | null
+          match_percentage?: number | null
+          matched_skills?: string[]
+          missing_required?: string[]
+          missing_preferred?: string[]
+          additional_skills?: string[]
+          narrative_gaps?: Json
+          created_at?: string
+          analyzed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_descriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_descriptions_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "user_resumes"
             referencedColumns: ["id"]
           },
         ]
@@ -1148,6 +1314,141 @@ export interface UserResumeUpdate {
   target_role?: string | null;
   target_company_type?: string | null;
   file_url?: string | null;
+}
+
+// -- Resume Insights --
+export type ResumeInsightType = 'alignment' | 'vulnerability' | 'suggestion' | 'gap_analysis';
+
+export interface AlignmentDiscrepancy {
+  claim: string;
+  evidence: string;
+  severity: 'high' | 'medium' | 'low';
+  suggestion: string;
+}
+
+export interface AlignmentConfirmation {
+  claim: string;
+  evidence: string;
+}
+
+export interface ResumeVulnerability {
+  claim: string;
+  severity: 'high' | 'medium' | 'low';
+  reason: string;
+  probingQuestions: string[];
+  suggestedFix: string;
+  category: string;
+}
+
+export interface ResumeSuggestionItem {
+  id: string;
+  type: 'add' | 'modify' | 'remove' | 'reorder';
+  priority: 'high' | 'medium' | 'low';
+  section: string;
+  currentText: string | null;
+  suggestedText: string;
+  reason: string;
+  sourceQuote: string | null;
+  sessionId: string;
+}
+
+export interface ResumeInsight {
+  id: string;
+  user_id: string;
+  resume_id: string;
+  session_id: string | null;
+  insight_type: ResumeInsightType;
+  alignment_score: number | null;
+  discrepancies: AlignmentDiscrepancy[];
+  confirmations: AlignmentConfirmation[];
+  vulnerabilities: ResumeVulnerability[];
+  vulnerability_score: number | null;
+  resume_suggestions: ResumeSuggestionItem[];
+  created_at: string;
+}
+
+export interface ResumeInsightInsert {
+  id?: string;
+  user_id: string;
+  resume_id: string;
+  session_id?: string | null;
+  insight_type: ResumeInsightType;
+  alignment_score?: number | null;
+  discrepancies?: AlignmentDiscrepancy[];
+  confirmations?: AlignmentConfirmation[];
+  vulnerabilities?: ResumeVulnerability[];
+  vulnerability_score?: number | null;
+  resume_suggestions?: ResumeSuggestionItem[];
+  created_at?: string;
+}
+
+// -- Job Descriptions --
+export interface NarrativeGap {
+  area: string;
+  gap_description: string;
+  coaching_tip: string;
+}
+
+export interface ExperienceRequirements {
+  min_years?: number;
+  max_years?: number;
+  specific_domains?: string[];
+}
+
+export interface JobDescription {
+  id: string;
+  user_id: string;
+  raw_text: string;
+  source_url: string | null;
+  company_name: string | null;
+  role_title: string | null;
+  required_skills: string[];
+  preferred_skills: string[];
+  experience_requirements: ExperienceRequirements | null;
+  education_requirements: Json | null;
+  responsibilities: string[];
+  resume_id: string | null;
+  match_percentage: number | null;
+  matched_skills: string[];
+  missing_required: string[];
+  missing_preferred: string[];
+  additional_skills: string[];
+  narrative_gaps: NarrativeGap[];
+  created_at: string;
+  analyzed_at: string | null;
+}
+
+export interface JobDescriptionInsert {
+  id?: string;
+  user_id: string;
+  raw_text: string;
+  source_url?: string | null;
+  company_name?: string | null;
+  role_title?: string | null;
+  required_skills?: string[];
+  preferred_skills?: string[];
+  experience_requirements?: ExperienceRequirements | null;
+  education_requirements?: Json | null;
+  responsibilities?: string[];
+}
+
+export interface JobDescriptionUpdate {
+  source_url?: string | null;
+  company_name?: string | null;
+  role_title?: string | null;
+  required_skills?: string[];
+  preferred_skills?: string[];
+  experience_requirements?: ExperienceRequirements | null;
+  education_requirements?: Json | null;
+  responsibilities?: string[];
+  resume_id?: string | null;
+  match_percentage?: number | null;
+  matched_skills?: string[];
+  missing_required?: string[];
+  missing_preferred?: string[];
+  additional_skills?: string[];
+  narrative_gaps?: NarrativeGap[];
+  analyzed_at?: string | null;
 }
 
 // -- Interview Sessions --

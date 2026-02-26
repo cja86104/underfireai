@@ -20,6 +20,8 @@ import {
   Brain,
   AlertTriangle,
   SlidersHorizontal,
+  Shield,
+  Target,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
@@ -33,12 +35,22 @@ import {
 } from '@/types/database';
 import type { InterviewerArchetype } from '@/types/interviewer';
 
+interface SavedJobDescription {
+  id: string;
+  companyName: string | null;
+  roleTitle: string | null;
+  matchPercentage: number | null;
+}
+
 interface InterviewSetupFormProps {
   interviewers: Interviewer[];
   hasResume: boolean;
   resumeSkills: string[];
   subscriptionTier: 'free' | 'pro' | 'premium';
   voiceModeEnabled: boolean;
+  hasVulnerabilityScan?: boolean;
+  vulnerabilityCount?: number;
+  savedJobDescriptions?: SavedJobDescription[];
 }
 
 const INTERVIEW_TYPES: { value: InterviewType; label: string; description: string }[] = [
@@ -130,9 +142,16 @@ export function InterviewSetupForm({
   resumeSkills,
   subscriptionTier,
   voiceModeEnabled,
+  hasVulnerabilityScan = false,
+  vulnerabilityCount = 0,
+  savedJobDescriptions = [],
 }: InterviewSetupFormProps): React.JSX.Element {
   const router  = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
+  // ── Resume targeting state (Premium) ────────────────────────────────────────
+  const [targetResumeWeakSpots, setTargetResumeWeakSpots] = useState(false);
+  const [targetJobDescriptionId, setTargetJobDescriptionId] = useState<string | null>(null);
 
   // ── Standard form state ────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
@@ -224,6 +243,9 @@ export function InterviewSetupForm({
         if (archetypeMix.length > 0)           payload.archetype_mix    = archetypeMix;
         if (constraints.length > 0)            payload.constraints      = constraints;
         if (Object.keys(traitOverrides).length > 0) payload.trait_overrides = traitOverrides;
+        // Resume targeting
+        if (targetResumeWeakSpots)             payload.target_resume_weak_spots = true;
+        if (targetJobDescriptionId)            payload.target_job_description_id = targetJobDescriptionId;
       }
 
       const response = await fetch('/api/interview/create', {
@@ -580,6 +602,211 @@ export function InterviewSetupForm({
           )}
         </div>
       </div>
+
+      {/* ── Premium: Resume Targeting ────────────────────────────────────── */}
+      {subscriptionTier === 'premium' ? (
+        <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-lg bg-purple-500/10 p-2">
+              <Shield className="h-5 w-5 text-purple-400" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-white flex items-center gap-2">
+                Resume Targeting
+                <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-xs font-medium text-purple-400">
+                  Premium
+                </span>
+              </h2>
+              <p className="text-sm text-slate-400">
+                Focus the interview on your resume weak points or job-specific gaps
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Target Resume Weak Spots */}
+            {hasVulnerabilityScan && vulnerabilityCount > 0 && (
+              <div className="flex items-center justify-between p-4 rounded-lg border border-slate-700 bg-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-400" />
+                  <div>
+                    <p className="font-medium text-white">Target Resume Weak Spots</p>
+                    <p className="text-sm text-slate-400">
+                      Interviewer will probe {vulnerabilityCount} vulnerable claims from your resume
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTargetResumeWeakSpots(!targetResumeWeakSpots)}
+                  className={cn(
+                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                    targetResumeWeakSpots ? 'bg-purple-500' : 'bg-slate-700'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                      targetResumeWeakSpots ? 'translate-x-6' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+              </div>
+            )}
+
+            {!hasVulnerabilityScan && hasResume && (
+              <div className="p-4 rounded-lg border border-slate-700 bg-slate-800/50 text-center">
+                <p className="text-sm text-slate-400">
+                  Run a vulnerability scan on your resume to enable targeted practice.
+                </p>
+                <a
+                  href="/dashboard"
+                  className="text-sm text-purple-400 hover:text-purple-300 mt-2 inline-block"
+                >
+                  Go to Dashboard →
+                </a>
+              </div>
+            )}
+
+            {/* Target Job Description */}
+            {savedJobDescriptions.length > 0 && (
+              <div className="p-4 rounded-lg border border-slate-700 bg-slate-800/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <Target className="h-5 w-5 text-blue-400" />
+                  <div>
+                    <p className="font-medium text-white">Practice for Job</p>
+                    <p className="text-sm text-slate-400">
+                      Target gaps from a saved job description
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setTargetJobDescriptionId(null)}
+                    className={cn(
+                      'w-full text-left rounded-lg border p-3 transition-colors',
+                      targetJobDescriptionId === null
+                        ? 'border-blue-500 bg-blue-500/10'
+                        : 'border-slate-600 bg-slate-800/30 hover:border-slate-500'
+                    )}
+                  >
+                    <p className="text-sm font-medium text-white">No specific job</p>
+                    <p className="text-xs text-slate-400">General interview practice</p>
+                  </button>
+                  {savedJobDescriptions.slice(0, 3).map((jd) => (
+                    <button
+                      key={jd.id}
+                      type="button"
+                      onClick={() => setTargetJobDescriptionId(jd.id)}
+                      className={cn(
+                        'w-full text-left rounded-lg border p-3 transition-colors',
+                        targetJobDescriptionId === jd.id
+                          ? 'border-blue-500 bg-blue-500/10'
+                          : 'border-slate-600 bg-slate-800/30 hover:border-slate-500'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">
+                            {jd.roleTitle ?? 'Unknown Role'}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {jd.companyName ?? 'Unknown Company'}
+                          </p>
+                        </div>
+                        {jd.matchPercentage !== null && (
+                          <span
+                            className={cn(
+                              'text-xs font-medium px-2 py-0.5 rounded',
+                              jd.matchPercentage >= 80
+                                ? 'bg-green-500/20 text-green-400'
+                                : jd.matchPercentage >= 60
+                                ? 'bg-amber-500/20 text-amber-400'
+                                : 'bg-red-500/20 text-red-400'
+                            )}
+                          >
+                            {jd.matchPercentage}% match
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                  {savedJobDescriptions.length > 3 && (
+                    <a
+                      href="/job-analysis"
+                      className="block text-center text-sm text-blue-400 hover:text-blue-300 py-2"
+                    >
+                      View all {savedJobDescriptions.length} jobs →
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {savedJobDescriptions.length === 0 && (
+              <div className="p-4 rounded-lg border border-slate-700 bg-slate-800/50 text-center">
+                <p className="text-sm text-slate-400">
+                  Save job descriptions to practice for specific roles.
+                </p>
+                <a
+                  href="/job-analysis"
+                  className="text-sm text-blue-400 hover:text-blue-300 mt-2 inline-block"
+                >
+                  Analyze a Job Description →
+                </a>
+              </div>
+            )}
+
+            {/* Active targeting summary */}
+            {(targetResumeWeakSpots || targetJobDescriptionId) && (
+              <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                <p className="text-xs font-medium text-purple-400 mb-1">Targeting active</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                  {targetResumeWeakSpots && (
+                    <p className="text-xs text-purple-300">
+                      Resume vulnerabilities: {vulnerabilityCount} claims
+                    </p>
+                  )}
+                  {targetJobDescriptionId && (
+                    <p className="text-xs text-purple-300">
+                      Job: {savedJobDescriptions.find(j => j.id === targetJobDescriptionId)?.roleTitle ?? 'Selected'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Locked teaser for non-premium users */
+        <div className="rounded-xl border border-slate-700 bg-slate-900/30 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-slate-800 p-2">
+                <Lock className="h-5 w-5 text-slate-500" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-slate-400 flex items-center gap-2">
+                  Resume Targeting
+                  <span className="rounded-full bg-slate-700 px-2 py-0.5 text-xs text-slate-400">
+                    Premium
+                  </span>
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Practice defending your resume weak spots and job-specific gaps
+                </p>
+              </div>
+            </div>
+            <a
+              href="/settings?tab=billing"
+              className="flex-shrink-0 text-sm text-purple-500 hover:text-purple-400 font-medium"
+            >
+              Upgrade
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* ── Premium: Custom Scenario Builder ─────────────────────────────── */}
       {subscriptionTier === 'premium' ? (

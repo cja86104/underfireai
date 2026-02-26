@@ -18,6 +18,7 @@ import {
   getSubscriptionStatus,
 } from '@/lib/supabase/server';
 import { formatDistanceToNow } from 'date-fns';
+import { VulnerabilityScannerCard, ResumeHealthScore } from '@/components/resume';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -30,6 +31,8 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
     getUserSessions(5),
     getSubscriptionStatus(),
   ]);
+
+  const isPaidUser = subscription.tier !== 'free';
 
   const stats = [
     {
@@ -248,6 +251,16 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
             </Link>
           </div>
         )}
+      </div>
+
+      {/* Resume Insights Section */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <VulnerabilityScannerCard isPaidUser={isPaidUser} />
+        </div>
+        <div>
+          <ResumeHealthScore isPaidUser={isPaidUser} />
+        </div>
       </div>
 
       {/* Quick Tips */}

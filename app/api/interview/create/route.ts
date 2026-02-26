@@ -3,6 +3,11 @@ import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supab
 import { INTERVIEWER_ARCHETYPES, type InterviewerArchetype } from '@/types/interviewer';
 import { generateBackstory } from '@/lib/ai/backstory-generator';
 import {
+  getResumeVulnerabilitiesForInterview,
+  getJdGapsForInterview,
+  buildResumeTargetingPrompt,
+} from '@/lib/resume/interview-context';
+import {
   SESSION_LENGTH_CONFIG as lengthConfig,
   type Database,
   type InterviewType,
@@ -57,6 +62,15 @@ interface CreateInterviewRequest {
    * Values are clamped to [0, 100].
    */
   trait_overrides?: Partial<PersonalityBase>;
+  // ── Premium: Resume Targeting ─────────────────────────────────────────────────
+  /**
+   * When true, the interviewer will probe the candidate's resume vulnerabilities.
+   */
+  target_resume_weak_spots?: boolean;
+  /**
+   * JD ID to use for gap-targeted practice.
+   */
+  target_job_description_id?: string;
 }
 
 // Generate a random interviewer name
@@ -232,13 +246,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const hasPremiumFields =
       ((body.archetype_mix?.length ?? 0) > 0) ||
       ((body.constraints?.length ?? 0) > 0) ||
-      (Object.keys(body.trait_overrides ?? {}).length > 0);
+      (Object.keys(body.trait_overrides ?? {}).length > 0) ||
+      (body.target_resume_weak_spots === true) ||
+      (body.target_job_description_id != null);
 
     if (hasPremiumFields && subscription.tier !== 'premium') {
       return NextResponse.json(
         {
           error: 'Premium required',
-          message: 'Custom Scenario Builder requires a Premium subscription.',
+          message: 'Resume targeting and Custom Scenario Builder require a Premium subscription.',
         },
         { status: 403 }
       );
@@ -259,6 +275,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       archetype_mix   = [],
       constraints     = [],
       trait_overrides = {},
+      target_resume_weak_spots = false,
+      target_job_description_id,
     } = body;
 
     // Get session length config for message limits
@@ -380,7 +398,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         constraints,
       });
 
-      const voiceId = archetypeData.suggestedVoices[0] || 'katie';
+      const voiceId = archetypeData.suggestedVoices[0] ?? 'katie';
 
       const { data: newInterviewer, error: interviewerError } = await supabase
         .from('interviewers')
@@ -509,6 +527,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // ── Fetch resume targeting context if enabled (Premium) ────────────────────
+    let resumeTargetingContext: Json | null = null;
+
+    if (target_resume_weak_spots || target_job_description_id) {
+      const vulnerabilities = target_resume_weak_spots
+        ? await getResumeVulnerabilitiesForInterview(user.id, 5)
+        : [];
+
+      const gaps = target_job_description_id
+        ? await getJdGapsForInterview(user.id, target_job_description_id)
+        : [];
+
+      if (vulnerabilities.length > 0 || gaps.length > 0) {
+        resumeTargetingContext = {
+          vulnerabilities,
+          gaps,
+          promptContext: buildResumeTargetingPrompt(vulnerabilities, gaps),
+        } as unknown as Json;
+      }
+    }
+
     const insertData = {
       user_id:           user.id,
       interviewer_id:    finalInterviewerId,
@@ -531,6 +570,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       trait_overrides:  Object.keys(trait_overrides).length > 0
         ? (trait_overrides as unknown as Json)
         : null,
+      // Premium: Resume targeting
+      target_resume_weak_spots:   target_resume_weak_spots || null,
+      target_job_description_id:  target_job_description_id ?? null,
+      resume_targeting_context:   resumeTargetingContext,
     };
 
     const { data: session, error: sessionError } = await supabase

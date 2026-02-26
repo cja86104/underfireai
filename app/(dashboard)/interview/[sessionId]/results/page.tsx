@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { InterviewResults } from '@/components/interview/interview-results';
+import { ResumeAlignmentPanel } from '@/components/resume';
 import type { InterviewMessage } from '@/types/database';
 
 interface ResultsPageProps {
@@ -66,11 +67,20 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
     console.error('Messages fetch error:', messagesError);
   }
 
+  // Fetch user profile to check subscription
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .single();
+
+  const isPaidUser = profile?.subscription_tier !== 'free';
+
   const interviewer = session.interviewers;
   const scores = session.session_scores;
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-6">
       <InterviewResults
         session={{
           id: session.id,
@@ -104,6 +114,9 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
         } : null}
         messages={(messages ?? []) as unknown as InterviewMessage[]}
       />
+
+      {/* Resume Alignment Panel */}
+      <ResumeAlignmentPanel sessionId={sessionId} isPaidUser={isPaidUser} />
     </div>
   );
 }

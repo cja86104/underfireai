@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
+import { generateAndSaveVulnerabilityScan } from '@/lib/resume/insights-service';
 import type { Json } from '@/types/database';
 import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
@@ -265,6 +266,22 @@ Return ONLY the JSON object, no markdown or explanation.`;
       );
     }
 
+    // Check if user is paid to trigger vulnerability scan
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single();
+
+    const isPaidUser = profile?.subscription_tier !== 'free';
+
+    // Trigger vulnerability scan asynchronously for paid users
+    if (isPaidUser) {
+      generateAndSaveVulnerabilityScan(user.id, resume.id).catch((err: unknown) => {
+        console.error('Background vulnerability scan error:', err);
+      });
+    }
+
     return NextResponse.json({
       success: true,
       resume_id: resume.id,
@@ -275,6 +292,7 @@ Return ONLY the JSON object, no markdown or explanation.`;
         has_education: (parsedData.education?.length || 0) > 0,
         has_experience: (parsedData.experience?.length || 0) > 0,
       },
+      vulnerability_scan_triggered: isPaidUser,
       message: 'Resume uploaded and parsed successfully',
     });
   } catch (error) {

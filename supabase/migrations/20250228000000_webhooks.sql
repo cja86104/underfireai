@@ -28,11 +28,25 @@ CREATE TABLE IF NOT EXISTS webhooks (
     failure_count INTEGER NOT NULL DEFAULT 0,
 
     -- Constraints
-    CONSTRAINT valid_url CHECK (url ~ '^https?://'),
-    CONSTRAINT max_webhooks_per_user CHECK (
-        (SELECT COUNT(*) FROM webhooks w WHERE w.user_id = webhooks.user_id) <= 5
-    )
+    CONSTRAINT valid_url CHECK (url ~ '^https?://')
 );
+
+-- Function to enforce max 5 webhooks per user
+CREATE OR REPLACE FUNCTION check_max_webhooks_per_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (SELECT COUNT(*) FROM webhooks WHERE user_id = NEW.user_id) >= 5 THEN
+        RAISE EXCEPTION 'Maximum of 5 webhooks per user allowed';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to enforce webhook limit on insert
+CREATE TRIGGER enforce_max_webhooks
+    BEFORE INSERT ON webhooks
+    FOR EACH ROW
+    EXECUTE FUNCTION check_max_webhooks_per_user();
 
 -- Webhook delivery log for debugging and retry
 CREATE TABLE IF NOT EXISTS webhook_deliveries (

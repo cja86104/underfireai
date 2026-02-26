@@ -216,6 +216,8 @@ export function generateInterviewSystemPrompt(params: {
   currentMood?: { current: string; intensity: number; triggers: string[] } | null;
   generatedQuestions?: string[] | null;
   hasResume?: boolean;
+  /** Premium: Additional context for resume-targeted practice */
+  resumeTargetingContext?: string | null;
 }): string {
   const {
     interviewerName,
@@ -234,6 +236,7 @@ export function generateInterviewSystemPrompt(params: {
     currentMood,
     generatedQuestions,
     hasResume,
+    resumeTargetingContext,
   } = params;
 
   let prompt = `You are ${interviewerName}, a professional interviewer conducting a ${interviewType} interview`;
@@ -308,6 +311,11 @@ export function generateInterviewSystemPrompt(params: {
 
   if (resumeContext) {
     prompt += `## Candidate's Resume/Background\n${resumeContext}\n\n`;
+  }
+
+  // Premium: Resume-targeted practice mode
+  if (resumeTargetingContext) {
+    prompt += resumeTargetingContext;
   }
 
   // Pre-generated question guide

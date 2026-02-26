@@ -336,6 +336,11 @@ export async function POST(
       hasResume = !!resumeContext && resumeContext.length > 0;
     }
 
+    // Get resume targeting context if set (Premium feature)
+    const resumeTargetingContext = sessionData?.resume_targeting_context as {
+      promptContext?: string;
+    } | null;
+
     // Build system prompt
     const systemPrompt = generateInterviewSystemPrompt({
       interviewerName: interviewer.name,
@@ -354,6 +359,7 @@ export async function POST(
       currentMood: interviewer.currentMood,
       generatedQuestions: generatedQuestions.length > 0 ? generatedQuestions : null,
       hasResume,
+      resumeTargetingContext: resumeTargetingContext?.promptContext ?? null,
     });
 
     // Build message history for AI
