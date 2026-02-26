@@ -37,7 +37,7 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
   const today = new Date();
   const weekStart = startOfWeek(today);
   const weekDays = eachDayOfInterval({ start: weekStart, end: today });
-  
+
   const weeklyActivity = weekDays.map((day) => {
     const dayStr = format(day, 'yyyy-MM-dd');
     const daySessions = sessions.filter(
@@ -107,8 +107,8 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Your Progress</h1>
-        <p className="text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-[#3D3229] dark:text-white">Your Progress</h1>
+        <p className="text-[#6B5744] dark:text-slate-400 mt-1">
           Track your improvement over time
         </p>
       </div>
@@ -144,31 +144,31 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
       </div>
 
       {/* Weekly Activity */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-6">
-          <Calendar className="h-5 w-5 text-slate-400" />
-          <h2 className="text-lg font-semibold text-white">This Week</h2>
+          <Calendar className="h-5 w-5 text-[#8B5A2B] dark:text-slate-400" />
+          <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white">This Week</h2>
         </div>
         <div className="grid grid-cols-7 gap-2">
           {weeklyActivity.map((day) => (
             <div key={day.date} className="text-center">
-              <p className="text-xs text-slate-500 mb-2">{day.day}</p>
+              <p className="text-xs text-[#8B7355] dark:text-slate-500 mb-2">{day.day}</p>
               <div
                 className={cn(
                   'aspect-square rounded-lg flex items-center justify-center text-sm font-medium',
                   day.count === 0
-                    ? 'bg-slate-800 text-slate-500'
+                    ? 'bg-[#FAF8F5] dark:bg-slate-800 text-[#8B7355] dark:text-slate-500 border border-[#3D3229]/8 dark:border-transparent'
                     : day.count === 1
-                    ? 'bg-orange-500/20 text-orange-400'
+                    ? 'bg-[#8B5A2B]/15 text-[#8B5A2B] dark:bg-orange-500/20 dark:text-orange-400'
                     : day.count === 2
-                    ? 'bg-orange-500/40 text-orange-300'
-                    : 'bg-orange-500 text-white'
+                    ? 'bg-[#8B5A2B]/30 text-[#5D3A1A] dark:bg-orange-500/40 dark:text-orange-300'
+                    : 'bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] text-[#3D3229] dark:text-white dark:bg-orange-500'
                 )}
               >
                 {day.count}
               </div>
               {day.avgScore > 0 && (
-                <p className="text-xs text-slate-500 mt-1">{day.avgScore}%</p>
+                <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-1">{day.avgScore}%</p>
               )}
             </div>
           ))}
@@ -178,17 +178,17 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
       {/* Score Trend & Type Breakdown */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Score Trend */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <BarChart3 className="h-5 w-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-white">Score Trend</h2>
+            <BarChart3 className="h-5 w-5 text-[#8B5A2B] dark:text-slate-400" />
+            <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white">Score Trend</h2>
           </div>
           {scoreTrend.length > 0 ? (
             <div className="space-y-3">
               {scoreTrend.map((item) => (
                 <div key={item.date} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500 w-16">{item.date}</span>
-                  <div className="flex-1 h-6 bg-slate-800 rounded-full overflow-hidden">
+                  <span className="text-xs text-[#8B7355] dark:text-slate-500 w-16">{item.date}</span>
+                  <div className="flex-1 h-6 bg-[#FAF8F5] dark:bg-slate-800 rounded-full overflow-hidden border border-[#3D3229]/6 dark:border-transparent">
                     <div
                       className={cn(
                         'h-full rounded-full transition-all',
@@ -201,28 +201,28 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
                       style={{ width: `${item.score}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-white w-12 text-right">
+                  <span className="text-sm font-semibold text-[#3D3229] dark:text-white w-12 text-right">
                     {item.score}%
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-slate-500 text-center py-8">
+            <p className="text-[#8B7355] dark:text-slate-500 text-center py-8">
               Complete interviews to see your score trend
             </p>
           )}
         </div>
 
         {/* Interview Type Breakdown */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-          <h2 className="text-lg font-semibold text-white mb-6">By Interview Type</h2>
+        <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-6">By Interview Type</h2>
           {typeStats.length > 0 ? (
             <div className="space-y-4">
               {typeStats.map((stat) => (
                 <div key={stat.type} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-lg bg-[#8B5A2B]/10 dark:bg-slate-800 flex items-center justify-center">
                       <span className="text-lg">
                         {stat.type === 'behavioral' ? '💬' :
                          stat.type === 'technical' ? '💻' :
@@ -232,8 +232,8 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-white capitalize">{stat.label}</p>
-                      <p className="text-sm text-slate-400">{stat.count} sessions</p>
+                      <p className="font-semibold text-[#3D3229] dark:text-white capitalize">{stat.label}</p>
+                      <p className="text-sm text-[#6B5744] dark:text-slate-400">{stat.count} sessions</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -241,23 +241,23 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
                       className={cn(
                         'font-semibold',
                         stat.avgScore >= 80
-                          ? 'text-green-500'
+                          ? 'text-green-600 dark:text-green-500'
                           : stat.avgScore >= 60
-                          ? 'text-amber-500'
+                          ? 'text-amber-600 dark:text-amber-500'
                           : stat.avgScore > 0
                           ? 'text-red-500'
-                          : 'text-slate-500'
+                          : 'text-[#8B7355] dark:text-slate-500'
                       )}
                     >
                       {stat.avgScore > 0 ? `${stat.avgScore}%` : '—'}
                     </p>
-                    <p className="text-xs text-slate-500">avg score</p>
+                    <p className="text-xs text-[#8B7355] dark:text-slate-500">avg score</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-slate-500 text-center py-8">
+            <p className="text-[#8B7355] dark:text-slate-500 text-center py-8">
               No interview data yet
             </p>
           )}
@@ -265,27 +265,26 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
       </div>
 
       {/* Badges */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-6">
-          <Award className="h-5 w-5 text-slate-400" />
-          <h2 className="text-lg font-semibold text-white">Badges</h2>
+          <Award className="h-5 w-5 text-[#8B5A2B] dark:text-slate-400" />
+          <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white">Badges</h2>
         </div>
         {badges.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {badges.map((badge) => (
               <div
                 key={badge.id}
-                className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 text-center"
+                className="rounded-xl border border-[#3D3229]/10 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 p-4 text-center"
               >
                 <span className="text-3xl">{badge.icon}</span>
-                <p className="font-medium text-white mt-2">{badge.name}</p>
-                <p className="text-xs text-slate-400 mt-1">{badge.description}</p>
+                <p className="font-semibold text-[#3D3229] dark:text-white mt-2">{badge.name}</p>
+                <p className="text-xs text-[#6B5744] dark:text-slate-400 mt-1">{badge.description}</p>
               </div>
             ))}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Placeholder locked badges */}
             {[
               { name: 'First Interview', icon: '🎯', desc: 'Complete your first interview' },
               { name: '5 Day Streak', icon: '🔥', desc: 'Practice 5 days in a row' },
@@ -294,11 +293,11 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
             ].map((badge) => (
               <div
                 key={badge.name}
-                className="rounded-lg border border-slate-700 bg-slate-800/30 p-4 text-center opacity-50"
+                className="rounded-xl border border-[#3D3229]/8 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/30 p-4 text-center opacity-50"
               >
                 <span className="text-3xl grayscale">{badge.icon}</span>
-                <p className="font-medium text-slate-400 mt-2">{badge.name}</p>
-                <p className="text-xs text-slate-500 mt-1">{badge.desc}</p>
+                <p className="font-medium text-[#6B5744] dark:text-slate-400 mt-2">{badge.name}</p>
+                <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-1">{badge.desc}</p>
               </div>
             ))}
           </div>
@@ -324,27 +323,27 @@ function StatCard({
   color: 'blue' | 'purple' | 'green' | 'amber';
 }): React.JSX.Element {
   const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-500',
-    purple: 'bg-purple-500/10 text-purple-500',
-    green: 'bg-green-500/10 text-green-500',
-    amber: 'bg-amber-500/10 text-amber-500',
+    blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-500',
+    purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-500',
+    green: 'bg-green-500/10 text-green-600 dark:text-green-500',
+    amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-500',
   };
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+    <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5 shadow-sm">
       <div className="flex items-center gap-3 mb-3">
         <div className={cn('rounded-lg p-2', colorClasses[color])}>
           {icon}
         </div>
-        <p className="text-sm text-slate-400">{label}</p>
+        <p className="text-sm text-[#6B5744] dark:text-slate-400">{label}</p>
       </div>
       <div className="flex items-end justify-between">
-        <p className="text-2xl font-bold text-white">{value}</p>
+        <p className="text-2xl font-bold text-[#3D3229] dark:text-white">{value}</p>
         {change !== undefined && (
           <div
             className={cn(
               'flex items-center gap-1 text-sm',
-              change > 0 ? 'text-green-500' : change < 0 ? 'text-red-500' : 'text-slate-500'
+              change > 0 ? 'text-green-600 dark:text-green-500' : change < 0 ? 'text-red-500' : 'text-[#8B7355] dark:text-slate-500'
             )}
           >
             {change > 0 ? (
@@ -357,7 +356,7 @@ function StatCard({
             <span>{Math.abs(Math.round(change))}%</span>
           </div>
         )}
-        {subtext && <p className="text-xs text-slate-500">{subtext}</p>}
+        {subtext && <p className="text-xs text-[#8B7355] dark:text-slate-500">{subtext}</p>}
       </div>
     </div>
   );

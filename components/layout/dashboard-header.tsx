@@ -45,7 +45,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Eleme
   };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-stone-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-30 border-b border-[#3D3229]/8 dark:border-slate-800 bg-[#FAF8F5]/80 dark:bg-slate-950/80 backdrop-blur-sm">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left side - Search */}
         <div className="flex items-center gap-4 lg:pl-0 pl-12">
@@ -64,9 +64,9 @@ export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Eleme
             <button
               type="button"
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-[#3D3229]/5 dark:hover:bg-slate-800 transition-colors"
             >
-              <div className="relative h-8 w-8 rounded-full bg-stone-200 dark:bg-slate-700 flex items-center justify-center text-sm font-medium text-stone-700 dark:text-white overflow-hidden">
+              <div className="relative h-8 w-8 rounded-full bg-[#8B5A2B]/15 dark:bg-slate-700 flex items-center justify-center text-sm font-semibold text-[#8B5A2B] dark:text-white overflow-hidden">
                 {user.avatarUrl ? (
                   <Image
                     src={user.avatarUrl}
@@ -81,7 +81,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Eleme
               </div>
               <ChevronDown
                 className={cn(
-                  'h-4 w-4 text-stone-500 dark:text-slate-400 transition-transform',
+                  'h-4 w-4 text-[#8B7355] dark:text-slate-400 transition-transform',
                   dropdownOpen && 'rotate-180'
                 )}
               />
@@ -94,13 +94,13 @@ export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Eleme
                   className="fixed inset-0 z-10"
                   onClick={() => setDropdownOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-1 shadow-lg z-20">
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800 py-1 shadow-xl shadow-[#8B5A2B]/5 z-20">
                   {/* User info */}
-                  <div className="px-4 py-3 border-b border-stone-200 dark:border-slate-700">
-                    <p className="text-sm font-medium text-stone-900 dark:text-white truncate">
+                  <div className="px-4 py-3 border-b border-[#3D3229]/8 dark:border-slate-700">
+                    <p className="text-sm font-semibold text-[#3D3229] dark:text-white truncate">
                       {user.fullName ?? 'User'}
                     </p>
-                    <p className="text-xs text-stone-500 dark:text-slate-400 truncate">{user.email}</p>
+                    <p className="text-xs text-[#8B7355] dark:text-slate-400 truncate">{user.email}</p>
                   </div>
 
                   {/* Menu items */}
@@ -108,7 +108,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Eleme
                     <Link
                       href="/settings"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-stone-600 dark:text-slate-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-stone-900 dark:hover:text-white transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-[#6B5744] dark:text-slate-300 hover:bg-[#FAF8F5] dark:hover:bg-slate-700 hover:text-[#3D3229] dark:hover:text-white transition-colors"
                     >
                       <User className="h-4 w-4" />
                       Profile
@@ -116,7 +116,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Eleme
                     <Link
                       href="/settings"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-stone-600 dark:text-slate-300 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-stone-900 dark:hover:text-white transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-[#6B5744] dark:text-slate-300 hover:bg-[#FAF8F5] dark:hover:bg-slate-700 hover:text-[#3D3229] dark:hover:text-white transition-colors"
                     >
                       <Settings className="h-4 w-4" />
                       Settings
@@ -124,15 +124,15 @@ export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Eleme
                   </div>
 
                   {/* Sign out */}
-                  <div className="border-t border-stone-200 dark:border-slate-700 py-1">
+                  <div className="border-t border-[#3D3229]/8 dark:border-slate-700 py-1">
                     <button
                       type="button"
                       onClick={handleSignOut}
                       disabled={isSigningOut}
-                      className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-red-600 dark:hover:text-red-300 transition-colors disabled:opacity-50"
+                      className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-[#FAF8F5] dark:hover:bg-slate-700 hover:text-red-600 dark:hover:text-red-300 transition-colors disabled:opacity-50"
                     >
                       <LogOut className="h-4 w-4" />
-                      {isSigningOut ? 'Signing out...' : 'Sign out'}
+                      {isSigningOut ? 'Signing out…' : 'Sign out'}
                     </button>
                   </div>
                 </div>

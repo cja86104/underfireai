@@ -67,7 +67,7 @@ export function InterviewResults({
   };
 
   const getScoreColor = (score: number | null): string => {
-    if (score === null) return 'text-slate-400';
+    if (score === null) return 'text-[#6B5744] dark:text-slate-400';
     if (score >= 80) return 'text-green-500';
     if (score >= 60) return 'text-amber-500';
     return 'text-red-500';
@@ -93,8 +93,8 @@ export function InterviewResults({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-white">Interview Results</h1>
-          <p className="text-slate-200 mt-2 text-lg">
+          <h1 className="text-4xl font-bold text-[#3D3229] dark:text-white">Interview Results</h1>
+          <p className="text-[#3D3229] dark:text-slate-200 mt-2 text-lg">
             {format(new Date(session.startedAt), 'MMMM d, yyyy')} • {interviewer.name}
           </p>
         </div>
@@ -108,13 +108,13 @@ export function InterviewResults({
           </Link>
           <Link
             href="/history"
-            className="rounded-lg border border-slate-600 bg-slate-800/50 px-5 py-3 text-base font-medium text-slate-100 hover:bg-slate-800 transition-colors"
+            className="rounded-lg border border-[#3D3229]/20 dark:border-slate-600 bg-[#3D3229]/5 dark:bg-slate-800/50 px-5 py-3 text-base font-medium text-[#3D3229] dark:text-slate-100 hover:bg-[#FAF8F5] dark:bg-slate-800 transition-colors"
           >
             View History
           </Link>
           <Link
             href="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-5 py-3 text-base font-semibold text-white hover:bg-orange-600 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-5 py-3 text-base font-semibold text-[#3D3229] dark:text-white hover:bg-orange-600 transition-colors"
           >
             <Play className="h-4 w-4" />
             New Interview
@@ -123,7 +123,7 @@ export function InterviewResults({
       </div>
 
       {/* Overall Score Card */}
-      <div className="rounded-xl border border-slate-700 bg-slate-900/50 p-8">
+      <div className="rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-8">
         <div className="flex flex-col md:flex-row md:items-center gap-6">
           {/* Score Circle */}
           <div className="flex-shrink-0">
@@ -137,7 +137,7 @@ export function InterviewResults({
                 <p className={cn('text-5xl font-bold', getScoreColor(scores?.overallScore ?? null))}>
                   {scores?.overallScore ?? '—'}
                 </p>
-                <p className="text-base text-slate-300">Overall</p>
+                <p className="text-base text-[#6B5744] dark:text-slate-300">Overall</p>
               </div>
               {scores?.overallScore != null && (
                 <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100">
@@ -148,7 +148,7 @@ export function InterviewResults({
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="6"
-                    className="text-slate-700"
+                    className="text-[#6B5744] dark:text-slate-700"
                   />
                   <circle
                     cx="50"
@@ -170,33 +170,33 @@ export function InterviewResults({
           <div className="flex-1">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-base text-slate-300">Interview Type</p>
-                <p className="text-lg font-semibold text-white capitalize">
+                <p className="text-base text-[#6B5744] dark:text-slate-300">Interview Type</p>
+                <p className="text-lg font-semibold text-[#3D3229] dark:text-white capitalize">
                   {session.interviewType.replace('_', ' ')}
                 </p>
               </div>
               <div>
-                <p className="text-base text-slate-300">Duration</p>
-                <p className="font-medium text-white">
+                <p className="text-base text-[#6B5744] dark:text-slate-300">Duration</p>
+                <p className="font-medium text-[#3D3229] dark:text-white">
                   {session.durationSeconds ? formatDuration(session.durationSeconds) : '—'}
                 </p>
               </div>
               <div>
-                <p className="text-base text-slate-300">Difficulty</p>
-                <p className="font-medium text-white">{session.difficulty}/10</p>
+                <p className="text-base text-[#6B5744] dark:text-slate-300">Difficulty</p>
+                <p className="font-medium text-[#3D3229] dark:text-white">{session.difficulty}/10</p>
               </div>
               <div>
-                <p className="text-base text-slate-300">Questions</p>
-                <p className="font-medium text-white">
+                <p className="text-base text-[#6B5744] dark:text-slate-300">Questions</p>
+                <p className="font-medium text-[#3D3229] dark:text-white">
                   {messages.filter((m) => m.role === 'interviewer').length}
                 </p>
               </div>
             </div>
 
             {session.targetRole && (
-              <div className="mt-4 pt-4 border-t border-slate-700">
-                <p className="text-base text-slate-300">Target Position</p>
-                <p className="font-medium text-white">
+              <div className="mt-4 pt-4 border-t border-[#3D3229]/15 dark:border-slate-700">
+                <p className="text-base text-[#6B5744] dark:text-slate-300">Target Position</p>
+                <p className="font-medium text-[#3D3229] dark:text-white">
                   {session.targetRole}
                   {session.targetCompany && ` at ${session.targetCompany}`}
                 </p>
@@ -207,16 +207,16 @@ export function InterviewResults({
       </div>
 
       {/* Score Breakdown */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">Score Breakdown</h2>
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+        <h2 className="text-2xl font-bold text-[#3D3229] dark:text-white mb-6">Score Breakdown</h2>
         <div className="space-y-5">
           {scoreCategories.map((category) => (
             <div key={category.key} className="flex items-center gap-4">
               <div className="w-44 flex-shrink-0">
-                <p className="text-base text-slate-100">{category.label}</p>
+                <p className="text-base text-[#3D3229] dark:text-slate-100">{category.label}</p>
               </div>
               <div className="flex-1">
-                <div className="h-4 rounded-full bg-slate-700 overflow-hidden">
+                <div className="h-4 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 overflow-hidden">
                   <div
                     className={cn(
                       'h-full rounded-full transition-all duration-500',
@@ -245,62 +245,62 @@ export function InterviewResults({
       {/* Feedback Grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Strengths */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
           <div className="flex items-center gap-2 mb-4">
             <CheckCircle className="h-5 w-5 text-green-500" />
-            <h2 className="text-xl font-bold text-white">Strengths</h2>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Strengths</h2>
           </div>
           {scores?.strengths && scores.strengths.length > 0 ? (
             <ul className="space-y-3">
               {scores.strengths.map((strength) => (
                 <li key={strength} className="flex items-start gap-3">
                   <span className="mt-1 mt-1 h-2 w-2 rounded-full bg-green-400 flex-shrink-0" />
-                  <span className="text-base text-slate-100 leading-relaxed">{strength}</span>
+                  <span className="text-base text-[#3D3229] dark:text-slate-100 leading-relaxed">{strength}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-slate-300 text-base">No strengths identified</p>
+            <p className="text-[#6B5744] dark:text-slate-300 text-base">No strengths identified</p>
           )}
         </div>
 
         {/* Areas for Improvement */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Target className="h-5 w-5 text-amber-500" />
-            <h2 className="text-xl font-bold text-white">Areas for Improvement</h2>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Areas for Improvement</h2>
           </div>
           {scores?.improvements && scores.improvements.length > 0 ? (
             <ul className="space-y-3">
               {scores.improvements.map((improvement) => (
                 <li key={improvement} className="flex items-start gap-3">
                   <span className="mt-1 mt-1 h-2 w-2 rounded-full bg-amber-400 flex-shrink-0" />
-                  <span className="text-base text-slate-100 leading-relaxed">{improvement}</span>
+                  <span className="text-base text-[#3D3229] dark:text-slate-100 leading-relaxed">{improvement}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-slate-300 text-base">No improvements identified</p>
+            <p className="text-[#6B5744] dark:text-slate-300 text-base">No improvements identified</p>
           )}
         </div>
       </div>
 
       {/* AI Feedback */}
       {scores?.aiFeedback && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Lightbulb className="h-5 w-5 text-blue-500" />
-            <h2 className="text-xl font-bold text-white">AI Coach Feedback</h2>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">AI Coach Feedback</h2>
           </div>
-          <p className="text-slate-100 text-base leading-relaxed">{scores.aiFeedback}</p>
+          <p className="text-[#3D3229] dark:text-slate-100 text-base leading-relaxed">{scores.aiFeedback}</p>
         </div>
       )}
 
       {/* Interviewer Impression */}
       {scores?.interviewerImpression && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="relative h-14 w-14 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+            <div className="relative h-14 w-14 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
               {interviewer.avatarUrl ? (
                 <Image
                   src={interviewer.avatarUrl}
@@ -310,15 +310,15 @@ export function InterviewResults({
                   unoptimized
                 />
               ) : (
-                <span className="text-lg text-slate-100">{interviewer.name[0]}</span>
+                <span className="text-lg text-[#3D3229] dark:text-slate-100">{interviewer.name[0]}</span>
               )}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Interviewer&apos;s Perspective</h2>
-              <p className="text-base text-slate-200">{interviewer.name}</p>
+              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Interviewer&apos;s Perspective</h2>
+              <p className="text-base text-[#3D3229] dark:text-slate-200">{interviewer.name}</p>
             </div>
           </div>
-          <p className="text-slate-100 text-base leading-relaxed italic">
+          <p className="text-[#3D3229] dark:text-slate-100 text-base leading-relaxed italic">
             &ldquo;{scores.interviewerImpression}&rdquo;
           </p>
         </div>
@@ -326,8 +326,8 @@ export function InterviewResults({
 
       {/* Key Moments */}
       {scores?.keyMoments && scores.keyMoments.length > 0 && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-          <h2 className="text-xl font-bold text-white mb-5">Key Moments</h2>
+        <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+          <h2 className="text-xl font-bold text-[#3D3229] dark:text-white mb-5">Key Moments</h2>
           <div className="space-y-3">
             {scores.keyMoments.map((moment) => (
               <div
@@ -353,7 +353,7 @@ export function InterviewResults({
                 >
                   {moment.type === 'strong' ? 'Strong' : moment.type === 'weak' ? 'Weak' : 'Turning Point'}
                 </span>
-                <p className="text-slate-100 text-base">{moment.description}</p>
+                <p className="text-[#3D3229] dark:text-slate-100 text-base">{moment.description}</p>
               </div>
             ))}
           </div>
@@ -361,19 +361,19 @@ export function InterviewResults({
       )}
 
       {/* Transcript */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 overflow-hidden">
         <div className="flex items-center justify-between p-6">
           <button
             onClick={() => setShowTranscript(!showTranscript)}
-            className="flex items-center gap-2 hover:text-white transition-colors"
+            className="flex items-center gap-2 hover:text-[#3D3229] dark:hover:text-white transition-colors"
           >
-            <MessageSquare className="h-5 w-5 text-slate-400" />
-            <h2 className="text-xl font-bold text-white">Full Transcript</h2>
-            <span className="text-base text-slate-300">({messages.length} messages)</span>
+            <MessageSquare className="h-5 w-5 text-[#6B5744] dark:text-slate-400" />
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Full Transcript</h2>
+            <span className="text-base text-[#6B5744] dark:text-slate-300">({messages.length} messages)</span>
             {showTranscript ? (
-              <ChevronUp className="h-5 w-5 text-slate-400" />
+              <ChevronUp className="h-5 w-5 text-[#6B5744] dark:text-slate-400" />
             ) : (
-              <ChevronDown className="h-5 w-5 text-slate-400" />
+              <ChevronDown className="h-5 w-5 text-[#6B5744] dark:text-slate-400" />
             )}
           </button>
           <Link
@@ -386,7 +386,7 @@ export function InterviewResults({
         </div>
 
         {showTranscript && (
-          <div className="border-t border-slate-800 p-6 space-y-4 max-h-[600px] overflow-y-auto scrollbar-thin">
+          <div className="border-t border-[#3D3229]/10 dark:border-slate-800 p-6 space-y-4 max-h-[600px] overflow-y-auto scrollbar-thin">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -399,8 +399,8 @@ export function InterviewResults({
                   className={cn(
                     'h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs',
                     message.role === 'interviewer'
-                      ? 'bg-slate-600 text-slate-100'
-                      : 'bg-orange-500 text-white'
+                      ? 'bg-slate-600 text-[#3D3229] dark:text-slate-100'
+                      : 'bg-orange-500 text-[#3D3229] dark:text-white'
                   )}
                 >
                   {message.role === 'interviewer' ? interviewer.name[0] : 'You'}
@@ -409,7 +409,7 @@ export function InterviewResults({
                   className={cn(
                     'max-w-[80%] rounded-lg px-4 py-2',
                     message.role === 'interviewer'
-                      ? 'bg-slate-700 text-slate-50'
+                      ? 'bg-[#3D3229]/10 dark:bg-slate-700 text-slate-50'
                       : 'bg-orange-500/20 text-slate-50'
                   )}
                 >
@@ -423,21 +423,21 @@ export function InterviewResults({
 
       {/* Next Steps */}
       <div className="rounded-xl border border-orange-500/30 bg-orange-500/10 p-6">
-        <h2 className="text-xl font-bold text-white mb-3">What&apos;s Next?</h2>
-        <p className="text-slate-100 text-base mb-5">
+        <h2 className="text-xl font-bold text-[#3D3229] dark:text-white mb-3">What&apos;s Next?</h2>
+        <p className="text-[#3D3229] dark:text-slate-100 text-base mb-5">
           Keep practicing to improve your scores. Try different interview types and difficulty levels.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link
             href="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-6 py-3 text-base font-semibold text-white hover:bg-orange-600 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-6 py-3 text-base font-semibold text-[#3D3229] dark:text-white hover:bg-orange-600 transition-colors"
           >
             Practice Again
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             href="/progress"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-800/50 px-6 py-3 text-base font-medium text-slate-100 hover:bg-slate-800 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#3D3229]/20 dark:border-slate-600 bg-[#3D3229]/5 dark:bg-slate-800/50 px-6 py-3 text-base font-medium text-[#3D3229] dark:text-slate-100 hover:bg-[#FAF8F5] dark:bg-slate-800 transition-colors"
           >
             View Progress
           </Link>

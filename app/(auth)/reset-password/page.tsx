@@ -18,18 +18,15 @@ export default function ResetPasswordPage(): React.JSX.Element {
     confirmPassword: '',
   });
 
-  // Check if user has a valid session from the reset email
   useEffect(() => {
     const checkSession = async (): Promise<void> => {
       const supabase = getClient();
       const { data: { session } } = await supabase.auth.getSession();
-
       if (!session) {
         toast.error('Invalid or expired reset link. Please request a new one.');
         router.push('/login');
       }
     };
-
     void checkSession();
   }, [router]);
 
@@ -50,18 +47,11 @@ export default function ResetPasswordPage(): React.JSX.Element {
 
     try {
       const supabase = getClient();
-      const { error } = await supabase.auth.updateUser({
-        password: formData.password,
-      });
-
-      if (error) {
-        throw error;
-      }
+      const { error } = await supabase.auth.updateUser({ password: formData.password });
+      if (error) throw error;
 
       setIsSuccess(true);
       toast.success('Password updated successfully!');
-
-      // Redirect to dashboard after a short delay
       setTimeout(() => {
         router.push('/dashboard');
         router.refresh();
@@ -76,13 +66,16 @@ export default function ResetPasswordPage(): React.JSX.Element {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-8">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-white mb-2">Password Updated</h1>
-            <p className="text-slate-400">
-              Your password has been successfully updated. Redirecting you to the dashboard...
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8F5] px-4 relative overflow-hidden">
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-gradient-to-bl from-[#D4A574]/10 to-transparent blur-3xl" />
+        </div>
+        <div className="relative z-10 w-full max-w-md text-center">
+          <div className="rounded-2xl border border-green-200 bg-green-50 shadow-xl p-10">
+            <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-[#3D3229] mb-2">Password Updated</h1>
+            <p className="text-[#6B5744]">
+              Your password has been successfully updated. Redirecting you to the dashboard…
             </p>
           </div>
         </div>
@@ -91,28 +84,39 @@ export default function ResetPasswordPage(): React.JSX.Element {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF8F5] px-4 relative overflow-hidden">
+      {/* Warm background gradients */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-gradient-to-bl from-[#D4A574]/10 to-transparent blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[#8B5A2B]/8 to-transparent blur-3xl" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <Flame className="h-10 w-10 text-orange-500" />
-            <span className="text-2xl font-bold text-white">UnderFireAI</span>
+          <Link href="/" className="inline-flex items-center gap-3 mb-6 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+              <div className="relative p-3 rounded-xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A]">
+                <Flame className="h-7 w-7 text-white" />
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-[#3D3229]">UnderFireAI</span>
           </Link>
-          <h1 className="text-2xl font-bold text-white">Reset Your Password</h1>
-          <p className="text-slate-400 mt-2">Enter your new password below</p>
+          <h1 className="text-2xl font-bold text-[#3D3229]">Reset Your Password</h1>
+          <p className="text-[#6B5744] mt-2">Enter your new password below</p>
         </div>
 
         {/* Form Card */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-2xl border border-[#3D3229]/10 bg-white shadow-xl shadow-[#8B5A2B]/5 p-7">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* New Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-medium text-[#3D3229] mb-1.5">
                 New Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8B7355]" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -121,26 +125,26 @@ export default function ResetPasswordPage(): React.JSX.Element {
                   placeholder="Enter new password"
                   required
                   minLength={8}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800/50 pl-10 pr-10 py-2.5 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  className="w-full rounded-xl border border-[#3D3229]/15 bg-[#FAF8F5] pl-10 pr-12 py-2.5 text-[#3D3229] placeholder:text-[#8B7355] focus:border-[#8B5A2B] focus:outline-none focus:ring-1 focus:ring-[#8B5A2B]/30 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B7355] hover:text-[#6B5744] transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
-              <p className="text-xs text-slate-500 mt-1">Minimum 8 characters</p>
+              <p className="text-xs text-[#8B7355] mt-1">Minimum 8 characters</p>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#3D3229] mb-1.5">
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8B7355]" />
                 <input
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -149,28 +153,28 @@ export default function ResetPasswordPage(): React.JSX.Element {
                   placeholder="Confirm new password"
                   required
                   minLength={8}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800/50 pl-10 pr-10 py-2.5 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  className="w-full rounded-xl border border-[#3D3229]/15 bg-[#FAF8F5] pl-10 pr-12 py-2.5 text-[#3D3229] placeholder:text-[#8B7355] focus:border-[#8B5A2B] focus:outline-none focus:ring-1 focus:ring-[#8B5A2B]/30 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B7355] hover:text-[#6B5744] transition-colors"
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] py-3 text-sm font-semibold text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-lg shadow-[#8B5A2B]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Updating...
+                  Updating…
                 </>
               ) : (
                 'Update Password'
@@ -178,9 +182,8 @@ export default function ResetPasswordPage(): React.JSX.Element {
             </button>
           </form>
 
-          {/* Back to Login */}
           <div className="mt-6 text-center">
-            <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors">
+            <Link href="/login" className="text-sm text-[#8B7355] hover:text-[#6B5744] transition-colors">
               Back to sign in
             </Link>
           </div>

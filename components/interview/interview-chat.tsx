@@ -461,9 +461,9 @@ export function InterviewChat({
   };
 
   return (
-    <div className="flex flex-col h-full rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+    <div className="flex flex-col h-full rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-900">
         <div className="flex items-center gap-3">
           {isPanelMode ? (
             // Panel mode: show panel info with expandable roster
@@ -495,24 +495,24 @@ export function InterviewChat({
                   ))}
                 </div>
                 <div>
-                  <h2 className="font-semibold text-white">Panel Interview</h2>
-                  <p className="text-xs text-slate-400">
+                  <h2 className="font-semibold text-[#3D3229] dark:text-white">Panel Interview</h2>
+                  <p className="text-xs text-[#6B5744] dark:text-slate-400">
                     {panelMembers.length} interviewers
                     {targetRole && ` • ${targetRole}`}
                   </p>
                 </div>
               </div>
               {/* Panel member roster */}
-              <div className="hidden lg:flex items-center gap-4 ml-4 pl-4 border-l border-slate-700">
+              <div className="hidden lg:flex items-center gap-4 ml-4 pl-4 border-l border-[#3D3229]/15 dark:border-slate-700">
                 {panelMembers.map((member, idx) => {
                   const color = PANEL_COLORS[idx % PANEL_COLORS.length];
                   return (
                     <div key={member.id} className="flex items-center gap-2">
                       <div className={cn('h-2 w-2 rounded-full', color.bg)} />
                       <div className="text-xs">
-                        <span className="text-slate-300">{member.name}</span>
+                        <span className="text-[#6B5744] dark:text-slate-300">{member.name}</span>
                         {member.roleLabel && (
-                          <span className="text-slate-500 ml-1">({member.roleLabel})</span>
+                          <span className="text-[#8B7355] dark:text-slate-500 ml-1">({member.roleLabel})</span>
                         )}
                         {member.isLead && (
                           <span className="text-amber-400 ml-1">★</span>
@@ -526,7 +526,7 @@ export function InterviewChat({
           ) : (
             // Single interviewer mode
             <>
-              <div className="relative h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
+              <div className="relative h-10 w-10 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
                 {interviewer.avatarUrl ? (
                   <Image
                     src={interviewer.avatarUrl}
@@ -536,12 +536,12 @@ export function InterviewChat({
                     unoptimized
                   />
                 ) : (
-                  <span className="text-slate-300">{interviewer.name[0]}</span>
+                  <span className="text-[#6B5744] dark:text-slate-300">{interviewer.name[0]}</span>
                 )}
               </div>
               <div>
-                <h2 className="font-semibold text-white">{interviewer.name}</h2>
-                <p className="text-xs text-slate-400 capitalize">
+                <h2 className="font-semibold text-[#3D3229] dark:text-white">{interviewer.name}</h2>
+                <p className="text-xs text-[#6B5744] dark:text-slate-400 capitalize">
                   {interviewType.replace('_', ' ')} Interview
                   {targetRole && ` • ${targetRole}`}
                 </p>
@@ -559,7 +559,7 @@ export function InterviewChat({
                 'rounded-lg p-2 transition-colors',
                 voiceEnabled
                   ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  : 'text-[#6B5744] dark:text-slate-400 hover:bg-[#FAF8F5] dark:bg-slate-800 hover:text-[#3D3229] dark:hover:text-white'
               )}
               aria-label={voiceEnabled ? 'Disable voice mode' : 'Enable voice mode'}
             >
@@ -568,9 +568,9 @@ export function InterviewChat({
           )}
 
           {/* Timer */}
-          <div className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5">
-            <Clock className="h-4 w-4 text-slate-400" />
-            <span className="text-sm font-mono text-white">{formatTime(elapsedTime)}</span>
+          <div className="flex items-center gap-2 rounded-lg bg-[#FAF8F5] dark:bg-slate-800 px-3 py-1.5">
+            <Clock className="h-4 w-4 text-[#6B5744] dark:text-slate-400" />
+            <span className="text-sm font-mono text-[#3D3229] dark:text-white">{formatTime(elapsedTime)}</span>
           </div>
 
           {/* Message Counter */}
@@ -581,7 +581,7 @@ export function InterviewChat({
                 ? 'bg-red-500/20 text-red-400'
                 : isNearLimit
                 ? 'bg-amber-500/20 text-amber-400'
-                : 'bg-slate-800 text-slate-400'
+                : 'bg-[#FAF8F5] dark:bg-slate-800 text-[#6B5744] dark:text-slate-400'
             )}
             title={`${userMessageCount} of ${maxUserMessages} responses used`}
           >
@@ -606,7 +606,7 @@ export function InterviewChat({
           <div className="relative">
             <button
               onClick={() => setShowActions(!showActions)}
-              className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+              className="rounded-lg p-2 text-[#6B5744] dark:text-slate-400 hover:bg-[#FAF8F5] dark:bg-slate-800 hover:text-[#3D3229] dark:hover:text-white transition-colors"
             >
               <MoreVertical className="h-5 w-5" />
             </button>
@@ -617,7 +617,7 @@ export function InterviewChat({
                   className="fixed inset-0 z-10"
                   onClick={() => setShowActions(false)}
                 />
-                <div className="absolute right-0 mt-1 w-48 rounded-lg border border-slate-700 bg-slate-800 py-1 shadow-lg z-20">
+                <div className="absolute right-0 mt-1 w-48 rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800 py-1 shadow-lg z-20">
                   {sessionStatus === 'in_progress' && (
                     <>
                       <button
@@ -625,7 +625,7 @@ export function InterviewChat({
                           void pauseInterview();
                           setShowActions(false);
                         }}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-[#6B5744] dark:text-slate-300 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700"
                       >
                         <Pause className="h-4 w-4" />
                         Pause Interview
@@ -635,7 +635,7 @@ export function InterviewChat({
                           void endInterview();
                           setShowActions(false);
                         }}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-slate-700"
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700"
                       >
                         <Square className="h-4 w-4" />
                         End Interview
@@ -648,7 +648,7 @@ export function InterviewChat({
                         void resumeInterview();
                         setShowActions(false);
                       }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-[#6B5744] dark:text-slate-300 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700"
                     >
                       <Play className="h-4 w-4" />
                       Resume Interview
@@ -671,16 +671,16 @@ export function InterviewChat({
 
       {/* Mobile Panel Roster - shows on smaller screens */}
       {isPanelMode && (
-        <div className="lg:hidden px-4 py-2 border-b border-slate-800 bg-slate-900/50">
+        <div className="lg:hidden px-4 py-2 border-b border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50">
           <div className="flex flex-wrap gap-3">
             {panelMembers.map((member, idx) => {
               const color = PANEL_COLORS[idx % PANEL_COLORS.length];
               return (
                 <div key={member.id} className="flex items-center gap-1.5">
                   <div className={cn('h-2 w-2 rounded-full', color.bg)} />
-                  <span className="text-xs text-slate-300">{member.name}</span>
+                  <span className="text-xs text-[#6B5744] dark:text-slate-300">{member.name}</span>
                   {member.roleLabel && (
-                    <span className="text-xs text-slate-500">({member.roleLabel})</span>
+                    <span className="text-xs text-[#8B7355] dark:text-slate-500">({member.roleLabel})</span>
                   )}
                   {member.isLead && <span className="text-xs text-amber-400">★</span>}
                 </div>
@@ -715,8 +715,8 @@ export function InterviewChat({
                   message.role === 'interviewer'
                     ? isPanelMode && panelMember
                       ? cn(panelColor.bg, panelColor.text)
-                      : 'bg-slate-700 text-slate-300'
-                    : 'bg-orange-500 text-white'
+                      : 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#6B5744] dark:text-slate-300'
+                    : 'bg-orange-500 text-[#3D3229] dark:text-white'
                 )}
               >
                 {message.role === 'interviewer'
@@ -737,9 +737,9 @@ export function InterviewChat({
                     'rounded-2xl px-4 py-3',
                     message.role === 'interviewer'
                       ? isPanelMode && panelMember
-                        ? cn('bg-slate-800/80 border-l-4', panelColor.border, 'text-slate-100 rounded-tl-sm')
-                        : 'bg-slate-800 text-slate-100 rounded-tl-sm'
-                      : 'bg-orange-500 text-white rounded-tr-sm'
+                        ? cn('bg-[#FAF8F5] dark:bg-slate-800/80 border-l-4', panelColor.border, 'text-[#3D3229] dark:text-slate-100 rounded-tl-sm')
+                        : 'bg-[#FAF8F5] dark:bg-slate-800 text-[#3D3229] dark:text-slate-100 rounded-tl-sm'
+                      : 'bg-orange-500 text-[#3D3229] dark:text-white rounded-tr-sm'
                   )}
                 >
                   <p className="whitespace-pre-wrap">{message.content}</p>
@@ -759,18 +759,18 @@ export function InterviewChat({
           <div className="flex gap-3">
             <div className={cn(
               'h-8 w-8 rounded-full flex items-center justify-center text-sm',
-              isPanelMode ? 'bg-blue-600 text-blue-100' : 'bg-slate-700 text-slate-300'
+              isPanelMode ? 'bg-blue-600 text-blue-100' : 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#6B5744] dark:text-slate-300'
             )}>
               {isPanelMode ? '?' : interviewer.name[0]}
             </div>
-            <div className="bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-3">
+            <div className="bg-[#FAF8F5] dark:bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">
                   <span className="h-2 w-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="h-2 w-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="h-2 w-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-[#6B5744] dark:text-slate-400">
                   {isPanelMode ? 'panel is deliberating...' : 'thinking...'}
                 </span>
               </div>
@@ -802,7 +802,7 @@ export function InterviewChat({
 
       {/* Voice Mode Panel */}
       {sessionStatus === 'in_progress' && voiceEnabled && (
-        <div className="px-4 pt-4 border-t border-slate-800">
+        <div className="px-4 pt-4 border-t border-[#3D3229]/10 dark:border-slate-800">
           <VoiceMode
             sessionId={sessionId}
             isActive={sessionStatus === 'in_progress' && !isLoading}
@@ -817,7 +817,7 @@ export function InterviewChat({
 
       {/* Input */}
       {sessionStatus === 'in_progress' && (
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-[#3D3229]/10 dark:border-slate-800">
           {/* Session limit warning */}
           {isAtLimit && (
             <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
@@ -844,12 +844,12 @@ export function InterviewChat({
               placeholder={isAtLimit ? 'Response limit reached' : 'Type your response...'}
               disabled={isLoading || isAtLimit}
               rows={2}
-              className="flex-1 resize-none rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+              className="flex-1 resize-none rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-slate-900 dark:text-slate-100 placeholder:text-[#8B7355] dark:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
             />
             <button
               onClick={() => void sendMessage()}
               disabled={!inputValue.trim() || isLoading || isAtLimit}
-              className="self-end rounded-lg bg-orange-500 px-4 py-3 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="self-end rounded-lg bg-orange-500 px-4 py-3 text-[#3D3229] dark:text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -858,7 +858,7 @@ export function InterviewChat({
               )}
             </button>
           </div>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-[#8B7355] dark:text-slate-500">
             Press Enter to send, Shift+Enter for new line
           </p>
         </div>

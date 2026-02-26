@@ -53,8 +53,8 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const tierColors = {
-    free: 'text-stone-500 dark:text-slate-400',
-    pro: 'text-orange-600 dark:text-orange-500',
+    free: 'text-[#8B7355] dark:text-slate-400',
+    pro: 'text-[#8B5A2B] dark:text-orange-500',
     premium: 'text-amber-600 dark:text-amber-400',
   };
 
@@ -72,7 +72,7 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 rounded-lg bg-white dark:bg-slate-800 p-2 text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white shadow-md"
+        className="lg:hidden fixed top-4 left-4 z-50 rounded-lg bg-white dark:bg-slate-800 p-2 text-[#6B5744] dark:text-slate-400 hover:text-[#3D3229] dark:hover:text-white shadow-md border border-[#3D3229]/10 dark:border-slate-700"
       >
         <Menu className="h-6 w-6" />
       </button>
@@ -88,21 +88,26 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-[#FAF8F5] dark:bg-slate-900 border-r border-stone-200 dark:border-slate-800 transform transition-transform duration-200 ease-in-out lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-[#FAF8F5] dark:bg-slate-900 border-r border-[#3D3229]/10 dark:border-slate-800 transform transition-transform duration-200 ease-in-out lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-between px-4 border-b border-stone-200 dark:border-slate-800">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <Flame className="h-8 w-8 text-[#8B5A2B] dark:text-orange-500" />
-              <span className="text-xl font-bold text-[#3D3229] dark:text-white">UnderFireAI</span>
+          <div className="flex h-16 items-center justify-between px-4 border-b border-[#3D3229]/10 dark:border-slate-800">
+            <Link href="/dashboard" className="flex items-center gap-2.5 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] rounded-lg blur-md opacity-20 group-hover:opacity-40 transition-opacity" />
+                <div className="relative p-1.5 rounded-lg bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A]">
+                  <Flame className="h-5 w-5 text-[#3D3229] dark:text-white" />
+                </div>
+              </div>
+              <span className="text-lg font-bold text-[#3D3229] dark:text-white">UnderFireAI</span>
             </Link>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white"
+              className="lg:hidden text-[#6B5744] dark:text-slate-400 hover:text-[#3D3229] dark:hover:text-white"
             >
               <X className="h-6 w-6" />
             </button>
@@ -110,12 +115,9 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4 px-3">
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {navigation.map((item) => {
-                // Hide premium-only items for non-premium users in the nav
-                // (they still exist as pages, just not shown in the nav to reduce clutter)
                 if (item.premiumOnly && !isPremium) return null;
-
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                 return (
                   <li key={item.name}>
@@ -123,21 +125,21 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                         isActive
                           ? 'bg-[#8B5A2B]/10 dark:bg-orange-500/10 text-[#8B5A2B] dark:text-orange-500'
-                          : 'text-stone-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800 hover:text-stone-900 dark:hover:text-white'
+                          : 'text-[#6B5744] dark:text-slate-400 hover:bg-[#3D3229]/5 dark:hover:bg-slate-800 hover:text-[#3D3229] dark:hover:text-white'
                       )}
                     >
                       <item.icon className="h-5 w-5 shrink-0" />
                       <span className="flex-1">{item.name}</span>
                       {item.name === 'New Interview' && (
-                        <span className="ml-auto rounded bg-[#8B5A2B] dark:bg-orange-500 px-1.5 py-0.5 text-xs font-semibold text-white">
+                        <span className="ml-auto rounded bg-[#8B5A2B] dark:bg-orange-500 px-1.5 py-0.5 text-xs font-semibold text-[#3D3229] dark:text-white">
                           Start
                         </span>
                       )}
                       {item.premiumOnly && (
-                        <Crown className="h-3 w-3 text-amber-400 shrink-0" />
+                        <Crown className="h-3 w-3 text-amber-500 shrink-0" />
                       )}
                     </Link>
                   </li>
@@ -146,24 +148,24 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
             </ul>
           </nav>
 
-          {/* Streak, Tier & Theme Toggle */}
-          <div className="border-t border-stone-200 dark:border-slate-800 p-4 space-y-3">
+          {/* Bottom section */}
+          <div className="border-t border-[#3D3229]/10 dark:border-slate-800 p-4 space-y-3">
             {/* Current Streak */}
             {currentStreak > 0 && (
-              <div className="flex items-center gap-2 rounded-lg bg-stone-100 dark:bg-slate-800/50 px-3 py-2">
-                <Zap className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+              <div className="flex items-center gap-2 rounded-lg bg-[#8B5A2B]/8 dark:bg-slate-800/50 px-3 py-2 border border-[#8B5A2B]/15 dark:border-transparent">
+                <Zap className="h-5 w-5 text-amber-500" />
                 <div>
-                  <p className="text-xs text-stone-500 dark:text-slate-500">Current Streak</p>
-                  <p className="text-sm font-semibold text-stone-900 dark:text-white">{currentStreak} days</p>
+                  <p className="text-xs text-[#8B7355] dark:text-slate-500">Current Streak</p>
+                  <p className="text-sm font-semibold text-[#3D3229] dark:text-white">{currentStreak} days</p>
                 </div>
               </div>
             )}
 
             {/* Subscription Tier */}
-            <div className="flex items-center gap-2 rounded-lg bg-stone-100 dark:bg-slate-800/50 px-3 py-2">
+            <div className="flex items-center gap-2 rounded-lg bg-[#FAF8F5] dark:bg-slate-800/50 border border-[#3D3229]/10 dark:border-transparent px-3 py-2">
               <Crown className={cn('h-5 w-5', tierColors[subscriptionTier])} />
               <div className="flex-1">
-                <p className="text-xs text-stone-500 dark:text-slate-500">Plan</p>
+                <p className="text-xs text-[#8B7355] dark:text-slate-500">Plan</p>
                 <p className={cn('text-sm font-semibold', tierColors[subscriptionTier])}>
                   {tierLabels[subscriptionTier]}
                 </p>
@@ -171,7 +173,7 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
               {subscriptionTier === 'free' && (
                 <Link
                   href="/settings?tab=billing"
-                  className="rounded bg-[#8B5A2B] dark:bg-orange-500 px-2 py-1 text-xs font-semibold text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
+                  className="rounded-lg bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] px-2.5 py-1 text-xs font-semibold text-[#3D3229] dark:text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all"
                 >
                   Upgrade
                 </Link>
@@ -183,7 +185,7 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
 
             {/* User Info */}
             <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-              <div className="relative h-8 w-8 rounded-full bg-stone-200 dark:bg-slate-700 flex items-center justify-center text-sm font-medium text-stone-700 dark:text-white overflow-hidden">
+              <div className="relative h-8 w-8 rounded-full bg-[#8B5A2B]/15 dark:bg-slate-700 flex items-center justify-center text-sm font-semibold text-[#8B5A2B] dark:text-white overflow-hidden">
                 {user.avatarUrl ? (
                   <Image
                     src={user.avatarUrl}
@@ -197,10 +199,10 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-stone-900 dark:text-white truncate">
+                <p className="text-sm font-medium text-[#3D3229] dark:text-white truncate">
                   {user.fullName ?? 'User'}
                 </p>
-                <p className="text-xs text-stone-500 dark:text-slate-500 truncate">{user.email}</p>
+                <p className="text-xs text-[#8B7355] dark:text-slate-500 truncate">{user.email}</p>
               </div>
             </div>
           </div>

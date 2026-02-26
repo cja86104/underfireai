@@ -39,28 +39,28 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
       label: 'Total Sessions',
       value: progress?.total_sessions ?? 0,
       icon: MessageSquare,
-      color: 'text-blue-500',
+      color: 'text-blue-600 dark:text-blue-500',
       bgColor: 'bg-blue-500/10',
     },
     {
       label: 'Practice Hours',
       value: `${(progress?.total_hours ?? 0).toFixed(1)}h`,
       icon: Clock,
-      color: 'text-purple-500',
+      color: 'text-purple-600 dark:text-purple-500',
       bgColor: 'bg-purple-500/10',
     },
     {
       label: 'Average Score',
       value: progress?.avg_score ? `${progress.avg_score}%` : '—',
       icon: TrendingUp,
-      color: 'text-green-500',
+      color: 'text-green-600 dark:text-green-500',
       bgColor: 'bg-green-500/10',
     },
     {
       label: 'Current Streak',
       value: `${progress?.current_streak ?? 0} days`,
       icon: Zap,
-      color: 'text-amber-500',
+      color: 'text-amber-600 dark:text-amber-500',
       bgColor: 'bg-amber-500/10',
     },
   ];
@@ -70,14 +70,14 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
       {/* Welcome Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900 dark:text-white">Dashboard</h1>
-          <p className="text-stone-500 dark:text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-[#3D3229] dark:text-white">Dashboard</h1>
+          <p className="text-[#6B5744] dark:text-slate-400 mt-1">
             Track your progress and start practicing
           </p>
         </div>
         <Link
           href="/interview/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-[#8B5A2B] dark:bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] px-5 py-2.5 text-sm font-semibold text-[#3D3229] dark:text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-lg shadow-[#8B5A2B]/20"
         >
           <Play className="h-4 w-4" />
           Start Interview
@@ -86,24 +86,24 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
 
       {/* Subscription Banner (Free users) */}
       {subscription.tier === 'free' && (
-        <div className="rounded-xl border border-[#8B5A2B]/30 dark:border-orange-500/30 bg-[#8B5A2B]/10 dark:bg-orange-500/10 p-4 sm:p-6">
+        <div className="rounded-xl border border-[#8B5A2B]/25 dark:border-orange-500/30 bg-[#8B5A2B]/8 dark:bg-orange-500/10 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="rounded-lg bg-[#8B5A2B]/20 dark:bg-orange-500/20 p-2">
+              <div className="rounded-lg bg-[#8B5A2B]/15 dark:bg-orange-500/20 p-2">
                 <Target className="h-6 w-6 text-[#8B5A2B] dark:text-orange-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-stone-900 dark:text-white">
+                <h3 className="font-semibold text-[#3D3229] dark:text-white">
                   {subscription.interviewsRemaining} free interviews remaining this month
                 </h3>
-                <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">
+                <p className="text-sm text-[#6B5744] dark:text-slate-400 mt-1">
                   Upgrade to Pro for unlimited interviews and voice mode
                 </p>
               </div>
             </div>
             <Link
               href="/settings?tab=billing"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#8B5A2B] dark:border-orange-500 bg-transparent px-4 py-2 text-sm font-semibold text-[#8B5A2B] dark:text-orange-500 hover:bg-[#8B5A2B]/10 dark:hover:bg-orange-500/10 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#8B5A2B] dark:border-orange-500 bg-transparent px-4 py-2 text-sm font-semibold text-[#8B5A2B] dark:text-orange-500 hover:bg-[#8B5A2B]/10 dark:hover:bg-orange-500/10 transition-colors"
             >
               Upgrade Now
               <ArrowRight className="h-4 w-4" />
@@ -117,15 +117,15 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5"
+            className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5 shadow-sm"
           >
             <div className="flex items-center gap-3">
               <div className={`rounded-lg ${stat.bgColor} p-2`}>
                 <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
               <div>
-                <p className="text-sm text-stone-500 dark:text-slate-400">{stat.label}</p>
-                <p className="text-xl font-bold text-stone-900 dark:text-white">{stat.value}</p>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400">{stat.label}</p>
+                <p className="text-xl font-bold text-[#3D3229] dark:text-white">{stat.value}</p>
               </div>
             </div>
           </div>
@@ -133,29 +133,29 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
       </div>
 
       {/* Recent Sessions */}
-      <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900/50">
-        <div className="flex items-center justify-between p-5 border-b border-stone-200 dark:border-slate-800">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-white">Recent Sessions</h2>
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm">
+        <div className="flex items-center justify-between p-5 border-b border-[#3D3229]/8 dark:border-slate-800">
+          <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white">Recent Sessions</h2>
           <Link
             href="/history"
-            className="text-sm text-[#8B5A2B] dark:text-orange-500 hover:text-[#6B4420] dark:hover:text-orange-400 transition-colors"
+            className="text-sm text-[#8B5A2B] dark:text-orange-500 hover:text-[#5D3A1A] dark:hover:text-orange-400 transition-colors font-medium"
           >
             View all
           </Link>
         </div>
 
         {sessions && sessions.length > 0 ? (
-          <div className="divide-y divide-stone-200 dark:divide-slate-800">
+          <div className="divide-y divide-[#3D3229]/8 dark:divide-slate-800">
             {sessions.map((session) => (
               <Link
                 key={session.id}
                 href={session.status === 'completed'
                   ? `/interview/${session.id}/results`
                   : `/interview/${session.id}`}
-                className="flex items-center gap-4 p-5 hover:bg-stone-50 dark:hover:bg-slate-800/50 transition-colors"
+                className="flex items-center gap-4 p-5 hover:bg-[#FAF8F5] dark:hover:bg-slate-800/50 transition-colors"
               >
                 {/* Interviewer Avatar */}
-                <div className="relative h-10 w-10 rounded-full bg-stone-200 dark:bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
+                <div className="relative h-10 w-10 rounded-full bg-[#8B5A2B]/15 dark:bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
                   {session.interviewers?.avatar_url ? (
                     <Image
                       src={session.interviewers.avatar_url}
@@ -165,7 +165,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
                       unoptimized
                     />
                   ) : (
-                    <span className="text-stone-500 dark:text-slate-400">
+                    <span className="text-[#8B5A2B] dark:text-slate-400 font-semibold text-sm">
                       {session.interviewers?.name?.[0] || '?'}
                     </span>
                   )}
@@ -174,7 +174,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
                 {/* Session Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-stone-900 dark:text-white truncate">
+                    <p className="font-medium text-[#3D3229] dark:text-white truncate">
                       {session.interviewers?.name || 'Unknown Interviewer'}
                     </p>
                     <span
@@ -191,7 +191,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
                       {session.status.replace('_', ' ')}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 mt-1 text-sm text-stone-500 dark:text-slate-400">
+                  <div className="flex items-center gap-3 mt-1 text-sm text-[#6B5744] dark:text-slate-400">
                     <span className="capitalize">
                       {session.interview_type.replace('_', ' ')}
                     </span>
@@ -211,18 +211,18 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
                     <p
                       className={`text-lg font-bold ${
                         session.session_scores.overall_score >= 80
-                          ? 'text-green-500'
+                          ? 'text-green-600 dark:text-green-500'
                           : session.session_scores.overall_score >= 60
-                          ? 'text-amber-500'
+                          ? 'text-amber-600 dark:text-amber-500'
                           : 'text-red-500'
                       }`}
                     >
                       {session.session_scores.overall_score}%
                     </p>
                   ) : (
-                    <p className="text-lg font-bold text-stone-400 dark:text-slate-500">—</p>
+                    <p className="text-lg font-bold text-[#8B7355] dark:text-slate-500">—</p>
                   )}
-                  <p className="text-xs text-stone-400 dark:text-slate-500">
+                  <p className="text-xs text-[#8B7355] dark:text-slate-500">
                     {formatDistanceToNow(new Date(session.started_at), {
                       addSuffix: true,
                     })}
@@ -233,18 +233,18 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
           </div>
         ) : (
           <div className="p-10 text-center">
-            <div className="inline-flex items-center justify-center rounded-full bg-stone-100 dark:bg-slate-800 p-4 mb-4">
+            <div className="inline-flex items-center justify-center rounded-full bg-[#8B5A2B]/10 dark:bg-slate-800 p-4 mb-4">
               <Flame className="h-8 w-8 text-[#8B5A2B] dark:text-orange-500" />
             </div>
-            <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-2">
+            <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-2">
               No interviews yet
             </h3>
-            <p className="text-stone-500 dark:text-slate-400 mb-6">
+            <p className="text-[#6B5744] dark:text-slate-400 mb-6">
               Start your first mock interview to begin tracking your progress
             </p>
             <Link
               href="/interview/new"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#8B5A2B] dark:bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] px-5 py-2.5 text-sm font-semibold text-[#3D3229] dark:text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-lg shadow-[#8B5A2B]/20"
             >
               <Play className="h-4 w-4" />
               Start Your First Interview
@@ -295,14 +295,14 @@ function QuickTipCard({
   description: string;
 }): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5">
+    <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5 shadow-sm">
       <div className="flex items-center gap-3 mb-3">
         <div className="rounded-lg bg-[#8B5A2B]/10 dark:bg-orange-500/10 p-2 text-[#8B5A2B] dark:text-orange-500">
           {icon}
         </div>
-        <h3 className="font-medium text-stone-900 dark:text-white">{title}</h3>
+        <h3 className="font-semibold text-[#3D3229] dark:text-white">{title}</h3>
       </div>
-      <p className="text-sm text-stone-500 dark:text-slate-400">{description}</p>
+      <p className="text-sm text-[#6B5744] dark:text-slate-400">{description}</p>
     </div>
   );
 }
