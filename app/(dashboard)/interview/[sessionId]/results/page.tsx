@@ -106,6 +106,7 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
           technicalDepth: scores.technical_depth,
           starUsageScore: scores.star_usage_score,
           communicationScore: scores.communication_score,
+          relevanceScore: scores.relevance_score,
           strengths: scores.strengths,
           improvements: scores.improvements,
           aiFeedback: scores.ai_feedback,
@@ -113,6 +114,7 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
           keyMoments: scores.key_moments as { type: string; description: string }[] | null,
         } : null}
         messages={(messages ?? []) as unknown as InterviewMessage[]}
+        isPaidUser={isPaidUser}
       />
 
       {/* Resume Alignment Panel */}

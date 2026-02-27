@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import type { Json } from '@/types/database';
 
 // Derive the Supabase client type from the local factory so we don't depend on
 // @supabase/supabase-js directly at the type level.
@@ -380,7 +381,7 @@ export async function updateProgressAndAwardBadges(
 
   const { error: badgeError } = await supabase
     .from('user_progress')
-    .update({ badges: updatedBadges as unknown as Record<string, unknown>[] })
+    .update({ badges: updatedBadges as unknown as Json })
     .eq('user_id', userId);
 
   if (badgeError) {

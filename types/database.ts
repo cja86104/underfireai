@@ -1847,6 +1847,7 @@ export interface ResponseAnalysis {
   word_count: number;
   filler_words: string[];
   key_points: string[];
+  coaching_note?: string | null;
 }
 
 export interface KeyMoment {

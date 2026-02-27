@@ -433,6 +433,7 @@ export async function analyzeResponse(
   word_count: number;
   filler_words: string[];
   key_points: string[];
+  coaching_note: string | null;
 }> {
   const systemPrompt = `You are an expert interview coach analyzing a candidate's response.
 Analyze the following response and provide scores from 0-100 for each category.
@@ -447,7 +448,8 @@ Categories:
 
 Also identify:
 - filler_words: Array of filler words used (um, like, you know, etc.)
-- key_points: Array of 2-4 key takeaways from the response`;
+- key_points: Array of 2-4 key takeaways from the response
+- coaching_note: A specific, actionable 2-3 sentence coaching note written directly to the candidate about THIS particular answer. Reference what they actually said. Focus on the single most important thing they should improve or reinforce. If the answer was strong across all dimensions (all scores >= 70), return null.`;
 
   const userPrompt = `Question: ${question}
 
@@ -461,7 +463,8 @@ Analyze this response and return JSON:
   "relevance_score": <number>,
   "depth_score": <number>,
   "filler_words": [<strings>],
-  "key_points": [<strings>]
+  "key_points": [<strings>],
+  "coaching_note": <string or null>
 }`;
 
   try {
@@ -488,6 +491,7 @@ Analyze this response and return JSON:
       word_count: response.split(/\s+/).length,
       filler_words: (parsed.filler_words as string[]) ?? [],
       key_points: (parsed.key_points as string[]) ?? [],
+      coaching_note: typeof parsed.coaching_note === 'string' ? parsed.coaching_note.trim() || null : null,
     };
   } catch (error) {
     console.error('Error analyzing response:', error);
@@ -501,6 +505,7 @@ Analyze this response and return JSON:
       word_count: response.split(/\s+/).length,
       filler_words: [],
       key_points: [],
+      coaching_note: null,
     };
   }
 }
