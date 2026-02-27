@@ -48,7 +48,7 @@ async function sendEmail(to: string, subject: string, html: string) {
 }
 
 // ── Email templates ──
-function confirmationEmail(email: string): string {
+function confirmationEmail(_email: string): string {
   return `
 <!DOCTYPE html>
 <html>

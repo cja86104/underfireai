@@ -11,7 +11,9 @@ import {
   Check,
   Crown,
   ExternalLink,
+  Globe,
 } from 'lucide-react';
+import { WebhooksTab } from './webhooks-tab';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
 import { getClient } from '@/lib/client';
@@ -38,6 +40,7 @@ const tabs = [
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Security', icon: Shield },
+  { id: 'webhooks', label: 'Webhooks', icon: Globe },
 ];
 
 export function SettingsTabs({
@@ -87,6 +90,9 @@ export function SettingsTabs({
         )}
         {currentTab === 'security' && (
           <SecurityTab email={user.email} />
+        )}
+        {currentTab === 'webhooks' && (
+          <WebhooksTab />
         )}
       </div>
     </div>

@@ -1,6 +1,10 @@
 import type { NextConfig } from 'next';
 import type { Configuration as WebpackConfig } from 'webpack';
 
+const supabaseHostname = new URL(
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co'
+).hostname;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ['gsap'],
@@ -21,7 +25,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'nodkmtwchiivlwjktzis.supabase.co',
+        hostname: supabaseHostname,
         pathname: '/storage/v1/object/public/**',
       },
       {

@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import tailwindAnimate from 'tailwindcss-animate';
 
 /**
  * UNDERFIREAI TAILWIND CONFIG
@@ -305,7 +306,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindAnimate],
 };
 
 export default config;

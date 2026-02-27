@@ -55,8 +55,11 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     '/interviewers',
     '/history',
     '/resume',
+    '/resume-insights',
     '/progress',
     '/settings',
+    '/negotiate',
+    '/job-analysis',
   ];
 
   const authRoutes = ['/login', '/register', '/auth'];
