@@ -11,11 +11,12 @@ import {
   TrendingUp,
   ChevronRight,
   Briefcase,
+  Loader2,
+  Target,
+  Trophy,
+  Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils/cn';
 import type { NegotiationSession } from '@/types/database';
 
@@ -111,42 +112,52 @@ function SetupForm(): React.JSX.Element {
   };
 
   return (
-    <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 space-y-5">
-      <h2 className="text-base font-semibold text-[#3D3229] dark:text-white">New Negotiation Session</h2>
+    <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8 lg:p-10 space-y-8">
+      <div className="flex items-center gap-4">
+        <div className="rounded-xl bg-orange-500/10 p-3">
+          <Plus className="h-8 w-8 text-orange-500" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-[#3D3229] dark:text-white">New Negotiation Session</h2>
+          <p className="text-lg text-[#3D3229] dark:text-slate-200">Set up your scenario and start practicing</p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Target Role */}
-        <div className="sm:col-span-2 space-y-1.5">
-          <Label htmlFor="target-role" className="text-[#3D3229] dark:text-slate-300">Role <span className="text-red-400">*</span></Label>
-          <Input
+        <div className="lg:col-span-2 space-y-3">
+          <label htmlFor="target-role" className="block text-lg font-bold text-[#3D3229] dark:text-slate-200">
+            Role <span className="text-red-500">*</span>
+          </label>
+          <input
             id="target-role"
             value={targetRole}
             onChange={e => setTargetRole(e.target.value)}
             placeholder="e.g. Senior Software Engineer"
-            className="bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500"
+            className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-6 py-5 text-xl text-[#3D3229] dark:text-white placeholder:text-[#3D3229]/40 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
           />
         </div>
 
         {/* Company */}
-        <div className="space-y-1.5">
-          <Label htmlFor="company" className="text-[#3D3229] dark:text-slate-300">
-            Company <span className="text-[#8B7355] dark:text-slate-500 font-normal">(optional)</span>
-          </Label>
-          <Input
+        <div className="space-y-3">
+          <label htmlFor="company" className="block text-lg font-bold text-[#3D3229] dark:text-slate-200">
+            Company <span className="text-[#3D3229]/50 dark:text-slate-400 font-normal">(optional)</span>
+          </label>
+          <input
             id="company"
             value={companyName}
             onChange={e => setCompanyName(e.target.value)}
             placeholder="e.g. Acme Corp"
-            className="bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500"
+            className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-6 py-5 text-xl text-[#3D3229] dark:text-white placeholder:text-[#3D3229]/40 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
           />
         </div>
 
         {/* Experience */}
-        <div className="space-y-1.5">
-          <Label htmlFor="experience" className="text-[#3D3229] dark:text-slate-300">
-            Years of experience <span className="text-[#8B7355] dark:text-slate-500 font-normal">(optional)</span>
-          </Label>
-          <Input
+        <div className="space-y-3">
+          <label htmlFor="experience" className="block text-lg font-bold text-[#3D3229] dark:text-slate-200">
+            Years of experience <span className="text-[#3D3229]/50 dark:text-slate-400 font-normal">(optional)</span>
+          </label>
+          <input
             id="experience"
             type="number"
             min={0}
@@ -154,78 +165,78 @@ function SetupForm(): React.JSX.Element {
             value={experienceYears}
             onChange={e => setExperienceYears(e.target.value)}
             placeholder="e.g. 7"
-            className="bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500"
+            className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-6 py-5 text-xl text-[#3D3229] dark:text-white placeholder:text-[#3D3229]/40 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
           />
         </div>
 
         {/* Current offer */}
-        <div className="space-y-1.5">
-          <Label htmlFor="current-offer" className="text-[#3D3229] dark:text-slate-300">
-            Current offer (USD) <span className="text-red-400">*</span>
-          </Label>
+        <div className="space-y-3">
+          <label htmlFor="current-offer" className="block text-lg font-bold text-[#3D3229] dark:text-slate-200">
+            Current offer (USD) <span className="text-red-500">*</span>
+          </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B5744] dark:text-slate-400 text-sm">$</span>
-            <Input
+            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-xl text-[#3D3229] dark:text-slate-300 font-bold">$</span>
+            <input
               id="current-offer"
               value={currentOffer}
               onChange={e => setCurrentOffer(e.target.value)}
               onBlur={e => setCurrentOffer(formatAmountDisplay(e.target.value))}
               placeholder="120,000"
-              className="pl-7 bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500"
+              className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 pl-10 pr-6 py-5 text-xl text-[#3D3229] dark:text-white placeholder:text-[#3D3229]/40 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
         </div>
 
         {/* Target */}
-        <div className="space-y-1.5">
-          <Label htmlFor="target-amount" className="text-[#3D3229] dark:text-slate-300">
-            Your target (USD) <span className="text-red-400">*</span>
-          </Label>
+        <div className="space-y-3">
+          <label htmlFor="target-amount" className="block text-lg font-bold text-[#3D3229] dark:text-slate-200">
+            Your target (USD) <span className="text-red-500">*</span>
+          </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B5744] dark:text-slate-400 text-sm">$</span>
-            <Input
+            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-xl text-[#3D3229] dark:text-slate-300 font-bold">$</span>
+            <input
               id="target-amount"
               value={targetAmount}
               onChange={e => setTargetAmount(e.target.value)}
               onBlur={e => setTargetAmount(formatAmountDisplay(e.target.value))}
               placeholder="140,000"
-              className="pl-7 bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500"
+              className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 pl-10 pr-6 py-5 text-xl text-[#3D3229] dark:text-white placeholder:text-[#3D3229]/40 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
         </div>
 
         {/* Extra context */}
-        <div className="sm:col-span-2 space-y-1.5">
-          <Label htmlFor="context" className="text-[#3D3229] dark:text-slate-300">
-            Additional context <span className="text-[#8B7355] dark:text-slate-500 font-normal">(optional)</span>
-          </Label>
-          <Input
+        <div className="lg:col-span-2 space-y-3">
+          <label htmlFor="context" className="block text-lg font-bold text-[#3D3229] dark:text-slate-200">
+            Additional context <span className="text-[#3D3229]/50 dark:text-slate-400 font-normal">(optional)</span>
+          </label>
+          <input
             id="context"
             value={additionalContext}
             onChange={e => setAdditionalContext(e.target.value)}
             placeholder="e.g. I have a competing offer from another company for $135k"
-            className="bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500"
+            className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-6 py-5 text-xl text-[#3D3229] dark:text-white placeholder:text-[#3D3229]/40 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
           />
         </div>
       </div>
 
-      <Button
+      <button
         onClick={handleStart}
         disabled={isCreating || !targetRole.trim() || !currentOffer.trim() || !targetAmount.trim()}
-        className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-[#3D3229] dark:text-white"
+        className="inline-flex items-center gap-3 rounded-xl bg-orange-500 hover:bg-orange-600 px-10 py-5 text-xl font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isCreating ? (
-          <span className="flex items-center gap-2">
-            <Plus className="h-4 w-4 animate-spin" />
+          <>
+            <Loader2 className="h-6 w-6 animate-spin" />
             Starting…
-          </span>
+          </>
         ) : (
-          <span className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
+          <>
+            <Zap className="h-6 w-6" />
             Start Negotiation
-          </span>
+          </>
         )}
-      </Button>
+      </button>
     </div>
   );
 }
@@ -237,10 +248,10 @@ function SessionCard({ session }: { session: NegotiationSession }): React.JSX.El
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 
   const scoreColor = (score: number | null): string => {
-    if (score === null) return 'text-[#6B5744] dark:text-slate-400';
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-red-400';
+    if (score === null) return 'text-[#3D3229] dark:text-slate-400';
+    if (score >= 80) return 'text-green-600 dark:text-green-400';
+    if (score >= 60) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   const durationLabel = (secs: number | null): string => {
@@ -254,50 +265,50 @@ function SessionCard({ session }: { session: NegotiationSession }): React.JSX.El
   return (
     <Link
       href={`/negotiate/${session.id}`}
-      className="flex items-center gap-4 rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4 hover:border-slate-700 transition-colors"
+      className="flex items-center gap-6 rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all"
     >
-      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center">
-        <DollarSign className="h-5 w-5 text-orange-400" />
+      <div className="flex-shrink-0 h-16 w-16 rounded-xl bg-orange-500/10 flex items-center justify-center">
+        <DollarSign className="h-8 w-8 text-orange-500" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-[#3D3229] dark:text-white truncate">{session.target_role}</p>
-        <div className="flex items-center gap-3 mt-0.5 text-xs text-[#6B5744] dark:text-slate-400">
+        <p className="text-xl font-bold text-[#3D3229] dark:text-white truncate">{session.target_role}</p>
+        <div className="flex items-center gap-4 mt-2 text-lg text-[#3D3229] dark:text-slate-300">
           {session.company_name && (
-            <span className="flex items-center gap-1">
-              <Briefcase className="h-3 w-3" />
+            <span className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
               {session.company_name}
             </span>
           )}
-          <span>{formatAmount(session.current_offer_amount)} → {formatAmount(session.target_amount)}</span>
+          <span className="font-semibold">{formatAmount(session.current_offer_amount)} → {formatAmount(session.target_amount)}</span>
           {isCompleted && (
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+            <span className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
               {durationLabel(session.duration_seconds)}
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-5 flex-shrink-0">
         {isCompleted && session.overall_score !== null ? (
           <div className="text-right">
-            <p className={cn('text-sm font-semibold', scoreColor(session.overall_score))}>
+            <p className={cn('text-3xl font-bold', scoreColor(session.overall_score))}>
               {session.overall_score}
             </p>
-            <p className="text-xs text-[#8B7355] dark:text-slate-500">score</p>
+            <p className="text-base text-[#3D3229] dark:text-slate-400 font-medium">score</p>
           </div>
         ) : (
           <span className={cn(
-            'text-xs font-medium rounded-full px-2 py-0.5',
+            'text-lg font-bold rounded-full px-4 py-2',
             session.status === 'in_progress'
-              ? 'bg-orange-500/20 text-orange-400'
-              : 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#6B5744] dark:text-slate-400'
+              ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400'
+              : 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#3D3229] dark:text-slate-300'
           )}>
             {session.status === 'in_progress' ? 'In Progress' : 'Abandoned'}
           </span>
         )}
-        <ChevronRight className="h-4 w-4 text-[#8B7355] dark:text-slate-600" />
+        <ChevronRight className="h-7 w-7 text-[#3D3229] dark:text-slate-500" />
       </div>
     </Link>
   );
@@ -313,44 +324,55 @@ export function NegotiatePageClient({ isPremium, pastSessions }: NegotiatePageCl
 
   if (!isPremium) {
     return (
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-10 text-center max-w-md mx-auto">
-        <Crown className="h-10 w-10 text-amber-400 mx-auto mb-3" />
-        <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-2">Premium Feature</h3>
-        <p className="text-[#6B5744] dark:text-slate-300 text-sm mb-4">
-          Salary Negotiation Prep is available on the Premium plan.
+      <div className="rounded-2xl border-2 border-amber-500/30 bg-amber-500/10 p-12 lg:p-16 text-center max-w-2xl mx-auto">
+        <Crown className="h-16 w-16 text-amber-500 mx-auto mb-6" />
+        <h3 className="text-3xl font-bold text-[#3D3229] dark:text-white mb-4">Premium Feature</h3>
+        <p className="text-xl text-[#3D3229] dark:text-slate-200 mb-8">
+          Salary Negotiation Prep is available on the Premium plan. Practice against realistic AI recruiters and master the art of negotiation.
         </p>
-        <Link href="/settings?tab=billing">
-          <Button className="bg-amber-500 hover:bg-amber-600 text-[#3D3229] dark:text-white">
-            Upgrade to Premium
-          </Button>
+        <Link
+          href="/settings?tab=billing"
+          className="inline-flex items-center gap-3 rounded-xl bg-amber-500 hover:bg-amber-600 px-10 py-5 text-xl font-bold text-white transition-colors"
+        >
+          <Crown className="h-6 w-6" />
+          Upgrade to Premium
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-10 max-w-[1200px]">
       {/* Stats row (only after first session) */}
       {completedSessions.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4">
-            <p className="text-xs text-[#8B7355] dark:text-slate-500">Sessions</p>
-            <p className="text-2xl font-bold text-[#3D3229] dark:text-white mt-1">{completedSessions.length}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+            <div className="flex items-center gap-3 mb-3">
+              <Target className="h-6 w-6 text-blue-500" />
+              <p className="text-lg text-[#3D3229] dark:text-slate-300 font-medium">Sessions</p>
+            </div>
+            <p className="text-5xl font-bold text-[#3D3229] dark:text-white">{completedSessions.length}</p>
           </div>
           {avgScore !== null && (
-            <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4">
-              <p className="text-xs text-[#8B7355] dark:text-slate-500">Avg Score</p>
+            <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+              <div className="flex items-center gap-3 mb-3">
+                <TrendingUp className="h-6 w-6 text-purple-500" />
+                <p className="text-lg text-[#3D3229] dark:text-slate-300 font-medium">Avg Score</p>
+              </div>
               <p className={cn(
-                'text-2xl font-bold mt-1',
-                avgScore >= 80 ? 'text-green-400' : avgScore >= 60 ? 'text-yellow-400' : 'text-red-400'
+                'text-5xl font-bold',
+                avgScore >= 80 ? 'text-green-600 dark:text-green-400' : avgScore >= 60 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
               )}>
                 {avgScore}
               </p>
             </div>
           )}
-          <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4">
-            <p className="text-xs text-[#8B7355] dark:text-slate-500">Best Score</p>
-            <p className="text-2xl font-bold text-[#3D3229] dark:text-white mt-1">
+          <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+            <div className="flex items-center gap-3 mb-3">
+              <Trophy className="h-6 w-6 text-amber-500" />
+              <p className="text-lg text-[#3D3229] dark:text-slate-300 font-medium">Best Score</p>
+            </div>
+            <p className="text-5xl font-bold text-[#3D3229] dark:text-white">
               {Math.max(...completedSessions.map(s => s.overall_score ?? 0)) || '—'}
             </p>
           </div>
@@ -362,12 +384,12 @@ export function NegotiatePageClient({ isPremium, pastSessions }: NegotiatePageCl
 
       {/* Past sessions */}
       {pastSessions.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-[#6B5744] dark:text-slate-400" />
-            <h2 className="text-sm font-semibold text-[#6B5744] dark:text-slate-300">Past Sessions</h2>
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <TrendingUp className="h-7 w-7 text-[#3D3229] dark:text-slate-300" />
+            <h2 className="text-2xl font-bold text-[#3D3229] dark:text-white">Past Sessions</h2>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-4">
             {pastSessions.map(session => (
               <SessionCard key={session.id} session={session} />
             ))}

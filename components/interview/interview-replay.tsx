@@ -191,17 +191,17 @@ export function InterviewReplay({
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950">
+    <div className="flex flex-col h-full bg-[#FAF8F5] dark:bg-slate-950">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-lg text-slate-300">
+      <div className="flex items-center justify-between px-8 py-5 border-b border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 flex items-center justify-center text-2xl font-bold text-[#3D3229] dark:text-slate-200">
               {interviewer.name[0]}
             </div>
             <div>
-              <h2 className="font-semibold text-white">{interviewer.name}</h2>
-              <p className="text-sm text-slate-400 capitalize">
+              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">{interviewer.name}</h2>
+              <p className="text-lg text-[#3D3229] dark:text-slate-300 capitalize">
                 {interviewType.replace('_', ' ')} Interview
                 {targetRole && ` • ${targetRole}`}
               </p>
@@ -209,11 +209,11 @@ export function InterviewReplay({
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           {/* Overall Score */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800">
-            <Trophy className="h-5 w-5 text-orange-400" />
-            <span className="text-2xl font-bold text-orange-400">
+          <div className="flex items-center gap-3 px-6 py-3 rounded-xl bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/10 dark:border-slate-700">
+            <Trophy className="h-7 w-7 text-orange-500" />
+            <span className="text-3xl font-bold text-orange-500">
               {scores.overall_score ?? 0}%
             </span>
           </div>
@@ -222,13 +222,13 @@ export function InterviewReplay({
           <button
             onClick={() => setShowStats(!showStats)}
             className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
+              'flex items-center gap-2 px-5 py-3 rounded-xl text-lg font-semibold transition-colors',
               showStats
                 ? 'bg-orange-500 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white'
+                : 'bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/10 dark:border-slate-700 text-[#3D3229] dark:text-slate-300 hover:bg-[#3D3229]/5 dark:hover:bg-slate-700'
             )}
           >
-            <BarChart3 className="h-4 w-4" />
+            <BarChart3 className="h-5 w-5" />
             Stats
           </button>
         </div>
@@ -236,27 +236,27 @@ export function InterviewReplay({
 
       {/* Stats Bar (collapsible) */}
       {showStats && (
-        <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/50">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
+        <div className="px-8 py-4 border-b border-[#3D3229]/10 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex items-center gap-8">
               <StatItem label="STAR" value={averageScores.star} />
               <StatItem label="Clarity" value={averageScores.clarity} />
               <StatItem label="Confidence" value={averageScores.confidence} />
               <StatItem label="Relevance" value={averageScores.relevance} />
               <StatItem label="Depth" value={averageScores.depth} />
             </div>
-            <div className="flex items-center gap-4 text-sm text-slate-500">
-              <span className="flex items-center gap-1">
-                <MessageSquare className="h-4 w-4" />
+            <div className="flex items-center gap-6 text-lg text-[#3D3229] dark:text-slate-400">
+              <span className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
                 {messages.length} messages
               </span>
-              <span className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
+              <span className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
                 {formatDuration(totalDuration)}
               </span>
               {hasCodingChallenge && (
-                <span className="flex items-center gap-1 text-blue-400">
-                  <Code2 className="h-4 w-4" />
+                <span className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                  <Code2 className="h-5 w-5" />
                   {codeSubmissions.length} submission{codeSubmissions.length !== 1 ? 's' : ''}
                 </span>
               )}
@@ -266,7 +266,7 @@ export function InterviewReplay({
       )}
 
       {/* Timeline */}
-      <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/30">
+      <div className="px-8 py-5 border-b border-[#3D3229]/10 dark:border-slate-800 bg-white/30 dark:bg-slate-900/30">
         <InterviewTimeline
           messages={messages}
           keyMoments={keyMoments}
@@ -277,59 +277,59 @@ export function InterviewReplay({
       </div>
 
       {/* Playback Controls */}
-      <div className="flex items-center justify-center gap-4 px-6 py-3 border-b border-slate-800 bg-slate-900/50">
+      <div className="flex items-center justify-center gap-5 px-8 py-4 border-b border-[#3D3229]/10 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
         <button
           onClick={goToStart}
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="p-3 rounded-xl text-[#3D3229] dark:text-slate-400 hover:text-[#8B5A2B] dark:hover:text-white hover:bg-[#3D3229]/5 dark:hover:bg-slate-800 transition-colors"
           title="Go to start"
         >
-          <SkipBack className="h-5 w-5" />
+          <SkipBack className="h-6 w-6" />
         </button>
 
         <button
           onClick={goToPrevious}
           disabled={currentMessageIndex === 0}
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
+          className="p-3 rounded-xl text-[#3D3229] dark:text-slate-400 hover:text-[#8B5A2B] dark:hover:text-white hover:bg-[#3D3229]/5 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
           title="Previous message"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
 
         <button
           onClick={togglePlayback}
-          className="p-3 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+          className="p-4 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
           title={isPlaying ? 'Pause' : 'Play'}
         >
-          {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+          {isPlaying ? <Pause className="h-7 w-7" /> : <Play className="h-7 w-7" />}
         </button>
 
         <button
           onClick={goToNext}
           disabled={currentMessageIndex >= messages.length - 1}
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
+          className="p-3 rounded-xl text-[#3D3229] dark:text-slate-400 hover:text-[#8B5A2B] dark:hover:text-white hover:bg-[#3D3229]/5 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
           title="Next message"
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-6 w-6" />
         </button>
 
         <button
           onClick={goToEnd}
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="p-3 rounded-xl text-[#3D3229] dark:text-slate-400 hover:text-[#8B5A2B] dark:hover:text-white hover:bg-[#3D3229]/5 dark:hover:bg-slate-800 transition-colors"
           title="Go to end"
         >
-          <SkipForward className="h-5 w-5" />
+          <SkipForward className="h-6 w-6" />
         </button>
 
         <button
           onClick={cycleSpeed}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/10 dark:border-slate-700 text-lg font-semibold text-[#3D3229] dark:text-slate-200 hover:bg-[#3D3229]/5 dark:hover:bg-slate-700 transition-colors"
           title="Playback speed"
         >
-          <Zap className="h-4 w-4" />
+          <Zap className="h-5 w-5" />
           {playbackSpeed}x
         </button>
 
-        <span className="text-sm text-slate-500">
+        <span className="text-lg text-[#3D3229] dark:text-slate-400 font-medium">
           Message {currentMessageIndex + 1} of {messages.length}
         </span>
       </div>
@@ -338,7 +338,7 @@ export function InterviewReplay({
       <div
         ref={messagesContainerRef}
         className={cn(
-          'overflow-y-auto p-6 space-y-3 scrollbar-thin',
+          'overflow-y-auto p-8 space-y-4 scrollbar-thin',
           hasCodingChallenge ? 'flex-1 min-h-0' : 'flex-1'
         )}
       >
@@ -383,16 +383,16 @@ interface StatItemProps {
 
 function StatItem({ label, value }: StatItemProps): React.JSX.Element {
   const getColor = (v: number): string => {
-    if (v >= 80) return 'text-green-400';
-    if (v >= 60) return 'text-yellow-400';
-    if (v >= 40) return 'text-orange-400';
-    return 'text-red-400';
+    if (v >= 80) return 'text-green-600 dark:text-green-400';
+    if (v >= 60) return 'text-yellow-600 dark:text-yellow-400';
+    if (v >= 40) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-slate-500">{label}</span>
-      <span className={cn('text-sm font-semibold', getColor(value))}>{value}%</span>
+    <div className="flex items-center gap-3">
+      <span className="text-base text-[#3D3229] dark:text-slate-400 font-medium">{label}</span>
+      <span className={cn('text-xl font-bold', getColor(value))}>{value}%</span>
     </div>
   );
 }

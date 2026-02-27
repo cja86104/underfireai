@@ -273,21 +273,21 @@ export function InterviewSetupForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-10 max-w-[1200px] mx-auto">
 
       {/* ── Interview Type ───────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="rounded-lg bg-orange-500/10 p-2">
-            <MessageSquare className="h-5 w-5 text-orange-500" />
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="rounded-xl bg-orange-500/10 p-3">
+            <MessageSquare className="h-8 w-8 text-orange-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-[#3D3229] dark:text-white">Interview Type</h2>
-            <p className="text-sm text-[#6B5744] dark:text-slate-400">What kind of interview are you preparing for?</p>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Interview Type</h2>
+            <p className="text-lg text-[#3D3229] dark:text-slate-200">What kind of interview are you preparing for?</p>
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {INTERVIEW_TYPES.map((type) => {
             const isLocked = type.premiumOnly && subscriptionTier !== 'premium';
             return (
@@ -300,32 +300,32 @@ export function InterviewSetupForm({
                 }}
                 disabled={isLocked}
                 className={cn(
-                  'rounded-lg border p-4 text-left transition-colors relative',
+                  'rounded-xl border p-5 text-left transition-colors relative',
                   isLocked
                     ? 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/3 dark:bg-slate-800/30 cursor-not-allowed opacity-60'
                     : formData.interviewType === type.value
                     ? 'border-orange-500 bg-orange-500/10'
-                    : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 hover:border-slate-600'
+                    : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <p className="font-medium text-[#3D3229] dark:text-white">{type.label}</p>
+                  <p className="text-lg font-bold text-[#3D3229] dark:text-white">{type.label}</p>
                   {type.premiumOnly && (
                     <span className={cn(
-                      'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                      'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-base font-semibold',
                       isLocked
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'bg-amber-500/10 text-amber-500'
+                        ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                     )}>
-                      <Crown className="h-3 w-3" />
+                      <Crown className="h-4 w-4" />
                       Premium
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-[#6B5744] dark:text-slate-400">{type.description}</p>
+                <p className="text-lg text-[#3D3229] dark:text-slate-200 mt-1">{type.description}</p>
                 {isLocked && (
-                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900/50">
-                    <Lock className="h-5 w-5 text-[#8B7355] dark:text-slate-500" />
+                  <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80 dark:bg-slate-900/80">
+                    <Lock className="h-7 w-7 text-[#3D3229] dark:text-slate-400" />
                   </div>
                 )}
               </button>
@@ -335,28 +335,28 @@ export function InterviewSetupForm({
       </div>
 
       {/* ── Company Style ────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="rounded-lg bg-purple-500/10 p-2">
-            <Building2 className="h-5 w-5 text-purple-500" />
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="rounded-xl bg-purple-500/10 p-3">
+            <Building2 className="h-8 w-8 text-purple-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-[#3D3229] dark:text-white">Company Style</h2>
-            <p className="text-sm text-[#6B5744] dark:text-slate-400">Match the interview culture</p>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Company Style</h2>
+            <p className="text-lg text-[#3D3229] dark:text-slate-200">Match the interview culture</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {COMPANY_STYLES.map((style) => (
             <button
               key={style.value}
               type="button"
               onClick={() => setFormData({ ...formData, companyStyle: style.value })}
               className={cn(
-                'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                'rounded-full border px-6 py-3 text-lg font-semibold transition-colors',
                 formData.companyStyle === style.value
-                  ? 'border-purple-500 bg-purple-500/10 text-purple-400'
-                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 text-[#6B5744] dark:text-slate-300 hover:border-slate-600'
+                  ? 'border-purple-500 bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 text-[#3D3229] dark:text-slate-200 hover:border-[#8B5A2B]'
               )}
             >
               {style.label}
@@ -366,20 +366,20 @@ export function InterviewSetupForm({
       </div>
 
       {/* ── Target Position ──────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="rounded-lg bg-blue-500/10 p-2">
-            <Briefcase className="h-5 w-5 text-blue-500" />
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="rounded-xl bg-blue-500/10 p-3">
+            <Briefcase className="h-8 w-8 text-blue-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-[#3D3229] dark:text-white">Target Position</h2>
-            <p className="text-sm text-[#6B5744] dark:text-slate-400">Optional: Customize for specific roles</p>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Target Position</h2>
+            <p className="text-lg text-[#3D3229] dark:text-slate-200">Optional: Customize for specific roles</p>
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label htmlFor="targetRole" className="block text-sm font-medium text-[#6B5744] dark:text-slate-300 mb-1.5">
+            <label htmlFor="targetRole" className="block text-lg font-semibold text-[#3D3229] dark:text-slate-200 mb-2">
               Role / Title
             </label>
             <input
@@ -388,11 +388,11 @@ export function InterviewSetupForm({
               value={formData.targetRole}
               onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
               placeholder="e.g., Senior Software Engineer"
-              className="w-full rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 px-4 py-2.5 text-[#3D3229] dark:text-slate-900 dark:text-slate-100 placeholder:text-[#8B7355] dark:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-5 py-4 text-lg text-[#3D3229] dark:text-slate-100 placeholder:text-[#3D3229]/50 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
           <div>
-            <label htmlFor="targetCompany" className="block text-sm font-medium text-[#6B5744] dark:text-slate-300 mb-1.5">
+            <label htmlFor="targetCompany" className="block text-lg font-semibold text-[#3D3229] dark:text-slate-200 mb-2">
               Company (optional)
             </label>
             <input
@@ -401,25 +401,25 @@ export function InterviewSetupForm({
               value={formData.targetCompany}
               onChange={(e) => setFormData({ ...formData, targetCompany: e.target.value })}
               placeholder="e.g., Google, Stripe, etc."
-              className="w-full rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 px-4 py-2.5 text-[#3D3229] dark:text-slate-900 dark:text-slate-100 placeholder:text-[#8B7355] dark:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-5 py-4 text-lg text-[#3D3229] dark:text-slate-100 placeholder:text-[#3D3229]/50 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
             />
           </div>
         </div>
 
         {hasResume && resumeSkills.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-[#3D3229]/15 dark:border-slate-700">
-            <p className="text-sm text-[#6B5744] dark:text-slate-400 mb-2">From your resume:</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="mt-6 pt-6 border-t border-[#3D3229]/15 dark:border-slate-700">
+            <p className="text-lg text-[#3D3229] dark:text-slate-200 mb-3 font-medium">From your resume:</p>
+            <div className="flex flex-wrap gap-3">
               {resumeSkills.slice(0, 8).map((skill) => (
                 <span
                   key={skill}
-                  className="rounded-full bg-[#FAF8F5] dark:bg-slate-800 px-3 py-1 text-xs text-[#6B5744] dark:text-slate-300"
+                  className="rounded-full bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/10 dark:border-slate-700 px-4 py-2 text-base font-medium text-[#3D3229] dark:text-slate-200"
                 >
                   {skill}
                 </span>
               ))}
               {resumeSkills.length > 8 && (
-                <span className="text-xs text-[#8B7355] dark:text-slate-500">+{resumeSkills.length - 8} more</span>
+                <span className="text-base text-[#3D3229] dark:text-slate-300 font-medium">+{resumeSkills.length - 8} more</span>
               )}
             </div>
           </div>
@@ -427,101 +427,101 @@ export function InterviewSetupForm({
       </div>
 
       {/* ── Difficulty ───────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="rounded-lg bg-amber-500/10 p-2">
-            <Gauge className="h-5 w-5 text-amber-500" />
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="rounded-xl bg-amber-500/10 p-3">
+            <Gauge className="h-8 w-8 text-amber-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-[#3D3229] dark:text-white">Difficulty Level</h2>
-            <p className="text-sm text-[#6B5744] dark:text-slate-400">How challenging should this be?</p>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Difficulty Level</h2>
+            <p className="text-lg text-[#3D3229] dark:text-slate-200">How challenging should this be?</p>
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {DIFFICULTY_LEVELS.map((level) => (
             <button
               key={level.value}
               type="button"
               onClick={() => setFormData({ ...formData, difficulty: level.value })}
               className={cn(
-                'rounded-lg border p-3 text-left transition-colors',
+                'rounded-xl border p-5 text-left transition-colors',
                 formData.difficulty === level.value
                   ? 'border-amber-500 bg-amber-500/10'
-                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 hover:border-slate-600'
+                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
               )}
             >
-              <p className="font-medium text-[#3D3229] dark:text-white">{level.label}</p>
-              <p className="text-xs text-[#6B5744] dark:text-slate-400">{level.description}</p>
+              <p className="text-lg font-bold text-[#3D3229] dark:text-white">{level.label}</p>
+              <p className="text-base text-[#3D3229] dark:text-slate-200 mt-1">{level.description}</p>
             </button>
           ))}
         </div>
       </div>
 
       {/* ── Session Length ───────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="rounded-lg bg-emerald-500/10 p-2">
-            <Clock className="h-5 w-5 text-emerald-500" />
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="rounded-xl bg-emerald-500/10 p-3">
+            <Clock className="h-8 w-8 text-emerald-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-[#3D3229] dark:text-white">Session Length</h2>
-            <p className="text-sm text-[#6B5744] dark:text-slate-400">How long do you want to practice?</p>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Session Length</h2>
+            <p className="text-lg text-[#3D3229] dark:text-slate-200">How long do you want to practice?</p>
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3">
           {SESSION_LENGTHS.map((length) => (
             <button
               key={length.value}
               type="button"
               onClick={() => setFormData({ ...formData, sessionLength: length.value })}
               className={cn(
-                'rounded-lg border p-4 text-left transition-colors',
+                'rounded-xl border p-5 text-left transition-colors',
                 formData.sessionLength === length.value
                   ? 'border-emerald-500 bg-emerald-500/10'
-                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 hover:border-slate-600'
+                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
               )}
             >
-              <p className="font-medium text-[#3D3229] dark:text-white">{length.label}</p>
-              <p className="text-sm text-[#6B5744] dark:text-slate-400">{length.description}</p>
-              <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-1">{length.questions}</p>
+              <p className="text-lg font-bold text-[#3D3229] dark:text-white">{length.label}</p>
+              <p className="text-lg text-[#3D3229] dark:text-slate-200">{length.description}</p>
+              <p className="text-base text-[#3D3229]/70 dark:text-slate-300 mt-2">{length.questions}</p>
             </button>
           ))}
         </div>
       </div>
 
       {/* ── Interviewer Selection ────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="rounded-lg bg-green-500/10 p-2">
-            <Users className="h-5 w-5 text-green-500" />
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="rounded-xl bg-green-500/10 p-3">
+            <Users className="h-8 w-8 text-green-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-[#3D3229] dark:text-white">Interviewer</h2>
-            <p className="text-sm text-[#6B5744] dark:text-slate-400">Generate a new personality or use an existing one</p>
+            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Interviewer</h2>
+            <p className="text-lg text-[#3D3229] dark:text-slate-200">Generate a new personality or use an existing one</p>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <button
             type="button"
             onClick={() =>
               setFormData({ ...formData, generateNewInterviewer: true, selectedInterviewerId: null })
             }
             className={cn(
-              'w-full rounded-lg border p-4 text-left transition-colors flex items-center gap-4',
+              'w-full rounded-xl border p-5 text-left transition-colors flex items-center gap-5',
               formData.generateNewInterviewer
                 ? 'border-green-500 bg-green-500/10'
-                : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 hover:border-slate-600'
+                : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
             )}
           >
-            <div className="rounded-full bg-gradient-to-br from-orange-500 to-amber-500 p-2">
-              <Sparkles className="h-5 w-5 text-[#3D3229] dark:text-white" />
+            <div className="rounded-full bg-gradient-to-br from-orange-500 to-amber-500 p-3">
+              <Sparkles className="h-7 w-7 text-white" />
             </div>
             <div>
-              <p className="font-medium text-[#3D3229] dark:text-white">Generate New Interviewer</p>
-              <p className="text-sm text-[#6B5744] dark:text-slate-400">Create a fresh personality with hidden traits</p>
+              <p className="text-lg font-bold text-[#3D3229] dark:text-white">Generate New Interviewer</p>
+              <p className="text-lg text-[#3D3229] dark:text-slate-200">Create a fresh personality with hidden traits</p>
             </div>
           </button>
 
@@ -532,11 +532,11 @@ export function InterviewSetupForm({
                   <div className="w-full border-t border-[#3D3229]/15 dark:border-slate-700" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-[#FAF8F5] dark:bg-slate-900 px-3 text-sm text-[#8B7355] dark:text-slate-500">or select existing</span>
+                  <span className="bg-white dark:bg-slate-900 px-4 text-lg text-[#3D3229] dark:text-slate-300 font-medium">or select existing</span>
                 </div>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {interviewers.slice(0, 4).map((interviewer) => (
                   <button
                     key={interviewer.id}
@@ -549,14 +549,14 @@ export function InterviewSetupForm({
                       })
                     }
                     className={cn(
-                      'rounded-lg border p-3 text-left transition-colors flex items-center gap-3',
+                      'rounded-xl border p-5 text-left transition-colors flex items-center gap-4',
                       !formData.generateNewInterviewer &&
                         formData.selectedInterviewerId === interviewer.id
                         ? 'border-green-500 bg-green-500/10'
-                        : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 hover:border-slate-600'
+                        : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
                     )}
                   >
-                    <div className="relative h-10 w-10 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 flex items-center justify-center text-sm font-medium text-[#3D3229] dark:text-white overflow-hidden">
+                    <div className="relative h-14 w-14 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 flex items-center justify-center text-xl font-bold text-[#3D3229] dark:text-white overflow-hidden">
                       {interviewer.avatar_url ? (
                         <Image
                           src={interviewer.avatar_url}
@@ -570,8 +570,8 @@ export function InterviewSetupForm({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-[#3D3229] dark:text-white truncate">{interviewer.name}</p>
-                      <p className="text-xs text-[#6B5744] dark:text-slate-400 capitalize">
+                      <p className="text-lg font-bold text-[#3D3229] dark:text-white truncate">{interviewer.name}</p>
+                      <p className="text-base text-[#3D3229] dark:text-slate-200 capitalize">
                         {interviewer.interview_type.replace('_', ' ')} •{' '}
                         {interviewer.total_sessions} sessions
                       </p>
@@ -585,19 +585,19 @@ export function InterviewSetupForm({
       </div>
 
       {/* ── Voice Mode ───────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn('rounded-lg p-2', voiceModeEnabled ? 'bg-cyan-500/10' : 'bg-[#FAF8F5] dark:bg-slate-800')}>
+          <div className="flex items-center gap-4">
+            <div className={cn('rounded-xl p-3', voiceModeEnabled ? 'bg-cyan-500/10' : 'bg-[#FAF8F5] dark:bg-slate-800')}>
               {voiceModeEnabled ? (
-                <Mic className="h-5 w-5 text-cyan-500" />
+                <Mic className="h-8 w-8 text-cyan-500" />
               ) : (
-                <Lock className="h-5 w-5 text-[#8B7355] dark:text-slate-500" />
+                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
               )}
             </div>
             <div>
-              <h2 className="font-semibold text-[#3D3229] dark:text-white">Voice Mode</h2>
-              <p className="text-sm text-[#6B5744] dark:text-slate-400">
+              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Voice Mode</h2>
+              <p className="text-lg text-[#3D3229] dark:text-slate-200">
                 {voiceModeEnabled
                   ? 'Practice speaking your answers out loud'
                   : 'Upgrade to Pro for voice interviews'}
@@ -610,21 +610,21 @@ export function InterviewSetupForm({
               type="button"
               onClick={() => setFormData({ ...formData, useVoiceMode: !formData.useVoiceMode })}
               className={cn(
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                'relative inline-flex h-8 w-14 items-center rounded-full transition-colors',
                 formData.useVoiceMode ? 'bg-cyan-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
               )}
             >
               <span
                 className={cn(
-                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                  formData.useVoiceMode ? 'translate-x-6' : 'translate-x-1'
+                  'inline-block h-6 w-6 transform rounded-full bg-white transition-transform',
+                  formData.useVoiceMode ? 'translate-x-7' : 'translate-x-1'
                 )}
               />
             </button>
           ) : (
             <a
               href="/settings?tab=billing"
-              className="text-sm text-orange-500 hover:text-orange-400 font-medium"
+              className="text-lg text-orange-500 hover:text-orange-400 font-semibold"
             >
               Upgrade
             </a>
@@ -634,33 +634,33 @@ export function InterviewSetupForm({
 
       {/* ── Premium: Resume Targeting ────────────────────────────────────── */}
       {subscriptionTier === 'premium' ? (
-        <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-lg bg-purple-500/10 p-2">
-              <Shield className="h-5 w-5 text-purple-400" />
+        <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="rounded-xl bg-purple-500/10 p-3">
+              <Shield className="h-8 w-8 text-purple-500" />
             </div>
             <div>
-              <h2 className="font-semibold text-[#3D3229] dark:text-white flex items-center gap-2">
+              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white flex items-center gap-3">
                 Resume Targeting
-                <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-xs font-medium text-purple-400">
+                <span className="rounded-full bg-purple-500/20 px-3 py-1 text-base font-semibold text-purple-600 dark:text-purple-400">
                   Premium
                 </span>
               </h2>
-              <p className="text-sm text-[#6B5744] dark:text-slate-400">
+              <p className="text-lg text-[#3D3229] dark:text-slate-200">
                 Focus the interview on your resume weak points or job-specific gaps
               </p>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Target Resume Weak Spots */}
             {hasVulnerabilityScan && vulnerabilityCount > 0 && (
-              <div className="flex items-center justify-between p-4 rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-400" />
+              <div className="flex items-center justify-between p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50">
+                <div className="flex items-center gap-4">
+                  <AlertTriangle className="h-7 w-7 text-amber-500" />
                   <div>
-                    <p className="font-medium text-[#3D3229] dark:text-white">Target Resume Weak Spots</p>
-                    <p className="text-sm text-[#6B5744] dark:text-slate-400">
+                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">Target Resume Weak Spots</p>
+                    <p className="text-lg text-[#3D3229] dark:text-slate-200">
                       Interviewer will probe {vulnerabilityCount} vulnerable claims from your resume
                     </p>
                   </div>
@@ -669,14 +669,14 @@ export function InterviewSetupForm({
                   type="button"
                   onClick={() => setTargetResumeWeakSpots(!targetResumeWeakSpots)}
                   className={cn(
-                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                    'relative inline-flex h-8 w-14 items-center rounded-full transition-colors',
                     targetResumeWeakSpots ? 'bg-purple-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
                   )}
                 >
                   <span
                     className={cn(
-                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                      targetResumeWeakSpots ? 'translate-x-6' : 'translate-x-1'
+                      'inline-block h-6 w-6 transform rounded-full bg-white transition-transform',
+                      targetResumeWeakSpots ? 'translate-x-7' : 'translate-x-1'
                     )}
                   />
                 </button>
@@ -684,13 +684,13 @@ export function InterviewSetupForm({
             )}
 
             {!hasVulnerabilityScan && hasResume && (
-              <div className="p-4 rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 text-center">
-                <p className="text-sm text-[#6B5744] dark:text-slate-400">
+              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-center">
+                <p className="text-lg text-[#3D3229] dark:text-slate-200">
                   Run a vulnerability scan on your resume to enable targeted practice.
                 </p>
                 <a
                   href="/dashboard"
-                  className="text-sm text-purple-400 hover:text-purple-300 mt-2 inline-block"
+                  className="text-lg text-purple-500 hover:text-purple-400 mt-3 inline-block font-semibold"
                 >
                   Go to Dashboard →
                 </a>
@@ -699,29 +699,29 @@ export function InterviewSetupForm({
 
             {/* Target Job Description */}
             {savedJobDescriptions.length > 0 && (
-              <div className="p-4 rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50">
-                <div className="flex items-center gap-3 mb-3">
-                  <Target className="h-5 w-5 text-blue-400" />
+              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50">
+                <div className="flex items-center gap-4 mb-4">
+                  <Target className="h-7 w-7 text-blue-500" />
                   <div>
-                    <p className="font-medium text-[#3D3229] dark:text-white">Practice for Job</p>
-                    <p className="text-sm text-[#6B5744] dark:text-slate-400">
+                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">Practice for Job</p>
+                    <p className="text-lg text-[#3D3229] dark:text-slate-200">
                       Target gaps from a saved job description
                     </p>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <button
                     type="button"
                     onClick={() => setTargetJobDescriptionId(null)}
                     className={cn(
-                      'w-full text-left rounded-lg border p-3 transition-colors',
+                      'w-full text-left rounded-xl border p-4 transition-colors',
                       targetJobDescriptionId === null
                         ? 'border-blue-500 bg-blue-500/10'
-                        : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#3D3229]/3 dark:bg-slate-800/30 hover:border-slate-500'
+                        : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#FAF8F5] dark:bg-slate-800/30 hover:border-[#8B5A2B]'
                     )}
                   >
-                    <p className="text-sm font-medium text-[#3D3229] dark:text-white">No specific job</p>
-                    <p className="text-xs text-[#6B5744] dark:text-slate-400">General interview practice</p>
+                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">No specific job</p>
+                    <p className="text-base text-[#3D3229] dark:text-slate-200">General interview practice</p>
                   </button>
                   {savedJobDescriptions.slice(0, 3).map((jd) => (
                     <button
@@ -729,30 +729,30 @@ export function InterviewSetupForm({
                       type="button"
                       onClick={() => setTargetJobDescriptionId(jd.id)}
                       className={cn(
-                        'w-full text-left rounded-lg border p-3 transition-colors',
+                        'w-full text-left rounded-xl border p-4 transition-colors',
                         targetJobDescriptionId === jd.id
                           ? 'border-blue-500 bg-blue-500/10'
-                          : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#3D3229]/3 dark:bg-slate-800/30 hover:border-slate-500'
+                          : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#FAF8F5] dark:bg-slate-800/30 hover:border-[#8B5A2B]'
                       )}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-[#3D3229] dark:text-white">
+                          <p className="text-lg font-bold text-[#3D3229] dark:text-white">
                             {jd.roleTitle ?? 'Unknown Role'}
                           </p>
-                          <p className="text-xs text-[#6B5744] dark:text-slate-400">
+                          <p className="text-base text-[#3D3229] dark:text-slate-200">
                             {jd.companyName ?? 'Unknown Company'}
                           </p>
                         </div>
                         {jd.matchPercentage !== null && (
                           <span
                             className={cn(
-                              'text-xs font-medium px-2 py-0.5 rounded',
+                              'text-base font-bold px-3 py-1 rounded-lg',
                               jd.matchPercentage >= 80
-                                ? 'bg-green-500/20 text-green-400'
+                                ? 'bg-green-500/20 text-green-600 dark:text-green-400'
                                 : jd.matchPercentage >= 60
-                                ? 'bg-amber-500/20 text-amber-400'
-                                : 'bg-red-500/20 text-red-400'
+                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                                : 'bg-red-500/20 text-red-600 dark:text-red-400'
                             )}
                           >
                             {jd.matchPercentage}% match
@@ -764,7 +764,7 @@ export function InterviewSetupForm({
                   {savedJobDescriptions.length > 3 && (
                     <a
                       href="/job-analysis"
-                      className="block text-center text-sm text-blue-400 hover:text-blue-300 py-2"
+                      className="block text-center text-lg text-blue-500 hover:text-blue-400 py-3 font-semibold"
                     >
                       View all {savedJobDescriptions.length} jobs →
                     </a>
@@ -774,13 +774,13 @@ export function InterviewSetupForm({
             )}
 
             {savedJobDescriptions.length === 0 && (
-              <div className="p-4 rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 text-center">
-                <p className="text-sm text-[#6B5744] dark:text-slate-400">
+              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-center">
+                <p className="text-lg text-[#3D3229] dark:text-slate-200">
                   Save job descriptions to practice for specific roles.
                 </p>
                 <a
                   href="/job-analysis"
-                  className="text-sm text-blue-400 hover:text-blue-300 mt-2 inline-block"
+                  className="text-lg text-blue-500 hover:text-blue-400 mt-3 inline-block font-semibold"
                 >
                   Analyze a Job Description →
                 </a>
@@ -789,16 +789,16 @@ export function InterviewSetupForm({
 
             {/* Active targeting summary */}
             {(targetResumeWeakSpots || targetJobDescriptionId) && (
-              <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                <p className="text-xs font-medium text-purple-400 mb-1">Targeting active</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+              <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+                <p className="text-base font-bold text-purple-600 dark:text-purple-400 mb-2">Targeting active</p>
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
                   {targetResumeWeakSpots && (
-                    <p className="text-xs text-purple-300">
+                    <p className="text-base text-purple-600 dark:text-purple-300">
                       Resume vulnerabilities: {vulnerabilityCount} claims
                     </p>
                   )}
                   {targetJobDescriptionId && (
-                    <p className="text-xs text-purple-300">
+                    <p className="text-base text-purple-600 dark:text-purple-300">
                       Job: {savedJobDescriptions.find(j => j.id === targetJobDescriptionId)?.roleTitle ?? 'Selected'}
                     </p>
                   )}
@@ -809,27 +809,27 @@ export function InterviewSetupForm({
         </div>
       ) : (
         /* Locked teaser for non-premium users */
-        <div className="rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/30 dark:bg-slate-900/30 p-6">
+        <div className="rounded-2xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/50 dark:bg-slate-900/30 p-8">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-[#FAF8F5] dark:bg-slate-800 p-2">
-                <Lock className="h-5 w-5 text-[#8B7355] dark:text-slate-500" />
+            <div className="flex items-center gap-4">
+              <div className="rounded-xl bg-[#FAF8F5] dark:bg-slate-800 p-3">
+                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
               </div>
               <div>
-                <h2 className="font-semibold text-[#6B5744] dark:text-slate-400 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-[#3D3229] dark:text-slate-300 flex items-center gap-3">
                   Resume Targeting
-                  <span className="rounded-full bg-[#3D3229]/10 dark:bg-slate-700 px-2 py-0.5 text-xs text-[#6B5744] dark:text-slate-400">
+                  <span className="rounded-full bg-[#3D3229]/10 dark:bg-slate-700 px-3 py-1 text-base text-[#3D3229] dark:text-slate-300">
                     Premium
                   </span>
                 </h2>
-                <p className="text-sm text-[#8B7355] dark:text-slate-500">
+                <p className="text-lg text-[#3D3229] dark:text-slate-300">
                   Practice defending your resume weak spots and job-specific gaps
                 </p>
               </div>
             </div>
             <a
               href="/settings?tab=billing"
-              className="flex-shrink-0 text-sm text-purple-500 hover:text-purple-400 font-medium"
+              className="flex-shrink-0 text-lg text-purple-500 hover:text-purple-400 font-semibold"
             >
               Upgrade
             </a>
@@ -839,21 +839,21 @@ export function InterviewSetupForm({
 
       {/* ── Premium: Custom Scenario Builder ─────────────────────────────── */}
       {subscriptionTier === 'premium' ? (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 space-y-8">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-8 space-y-10">
 
           {/* Header */}
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-amber-500/10 p-2">
-              <Wand2 className="h-5 w-5 text-amber-400" />
+          <div className="flex items-center gap-4">
+            <div className="rounded-xl bg-amber-500/10 p-3">
+              <Wand2 className="h-8 w-8 text-amber-500" />
             </div>
             <div>
-              <h2 className="font-semibold text-[#3D3229] dark:text-white flex items-center gap-2">
+              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white flex items-center gap-3">
                 Custom Scenario Builder
-                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-400">
+                <span className="rounded-full bg-amber-500/20 px-3 py-1 text-base font-semibold text-amber-600 dark:text-amber-400">
                   Premium
                 </span>
               </h2>
-              <p className="text-sm text-[#6B5744] dark:text-slate-400">
+              <p className="text-lg text-[#3D3229] dark:text-slate-200">
                 Hand-pick archetype, add constraints, and dial individual traits
               </p>
             </div>
@@ -861,21 +861,21 @@ export function InterviewSetupForm({
 
           {/* Active scenario summary banner */}
           {(archetypeMix.length > 0 || constraints.length > 0 || activeTraits.size > 0) && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-              <p className="text-xs font-medium text-amber-400 mb-1">Custom scenario active</p>
-              <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+              <p className="text-base font-bold text-amber-600 dark:text-amber-400 mb-2">Custom scenario active</p>
+              <div className="flex flex-wrap gap-x-6 gap-y-1">
                 {archetypeMix.length > 0 && (
-                  <p className="text-xs text-amber-300">
+                  <p className="text-base text-amber-600 dark:text-amber-300">
                     Archetypes: {archetypeMix.join(' + ')}
                   </p>
                 )}
                 {constraints.length > 0 && (
-                  <p className="text-xs text-amber-300">
+                  <p className="text-base text-amber-600 dark:text-amber-300">
                     Constraints: {constraints.join(', ')}
                   </p>
                 )}
                 {activeTraits.size > 0 && (
-                  <p className="text-xs text-amber-300">
+                  <p className="text-base text-amber-600 dark:text-amber-300">
                     Trait overrides: {activeTraits.size} active
                   </p>
                 )}
@@ -885,21 +885,21 @@ export function InterviewSetupForm({
 
           {/* Archetype Mix */}
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Brain className="h-4 w-4 text-amber-400" />
-              <h3 className="text-sm font-medium text-[#3D3229] dark:text-white">Archetype Mix</h3>
+            <div className="flex items-center gap-3 mb-2">
+              <Brain className="h-6 w-6 text-amber-500" />
+              <h3 className="text-lg font-bold text-[#3D3229] dark:text-white">Archetype Mix</h3>
               {archetypeMix.length > 0 && (
-                <span className="text-xs text-[#8B7355] dark:text-slate-500">
+                <span className="text-base text-[#3D3229] dark:text-slate-300">
                   ({archetypeMix.length}/2 selected
                   {archetypeMix.length === 2 ? ' — personalities blended' : ''})
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#8B7355] dark:text-slate-500 mb-3">
+            <p className="text-base text-[#3D3229] dark:text-slate-200 mb-4">
               Select up to 2 — first is the primary personality; second is blended in.
               Leave empty for a random archetype (default Pro behaviour).
             </p>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {ARCHETYPE_OPTIONS.map((archetype) => {
                 const selectedIdx = archetypeMix.indexOf(archetype.value);
                 const isSelected  = selectedIdx !== -1;
@@ -911,22 +911,22 @@ export function InterviewSetupForm({
                     onClick={() => toggleArchetype(archetype.value)}
                     disabled={isDisabled || togglingArchetype === archetype.value}
                     className={cn(
-                      'relative rounded-lg border p-3 text-left transition-all duration-150',
+                      'relative rounded-xl border p-4 text-left transition-all duration-150',
                       togglingArchetype === archetype.value && 'scale-95 opacity-70',
                       isSelected
                         ? 'border-amber-500 bg-amber-500/10'
                         : isDisabled
                           ? 'border-[#3D3229]/10 dark:border-slate-800 bg-[#3D3229]/3 dark:bg-slate-800/30 opacity-40 cursor-not-allowed'
-                          : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 hover:border-slate-600'
+                          : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-amber-400'
                     )}
                   >
                     {isSelected && (
-                      <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-black">
+                      <span className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-black">
                         {selectedIdx + 1}
                       </span>
                     )}
-                    <p className="font-medium text-[#3D3229] dark:text-white text-sm pr-4">{archetype.label}</p>
-                    <p className="text-xs text-[#6B5744] dark:text-slate-400 mt-0.5">{archetype.description}</p>
+                    <p className="text-lg font-bold text-[#3D3229] dark:text-white pr-6">{archetype.label}</p>
+                    <p className="text-base text-[#3D3229] dark:text-slate-200 mt-1">{archetype.description}</p>
                   </button>
                 );
               })}
@@ -935,14 +935,14 @@ export function InterviewSetupForm({
 
           {/* Constraints */}
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle className="h-4 w-4 text-amber-400" />
-              <h3 className="text-sm font-medium text-[#3D3229] dark:text-white">Behavioural Constraints</h3>
+            <div className="flex items-center gap-3 mb-2">
+              <AlertTriangle className="h-6 w-6 text-amber-500" />
+              <h3 className="text-lg font-bold text-[#3D3229] dark:text-white">Behavioural Constraints</h3>
             </div>
-            <p className="text-xs text-[#8B7355] dark:text-slate-500 mb-3">
+            <p className="text-base text-[#3D3229] dark:text-slate-200 mb-4">
               Add modifiers that shape how the interviewer behaves throughout the session.
             </p>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {CONSTRAINT_OPTIONS.map((constraint) => {
                 const isActive = constraints.includes(constraint.value);
                 return (
@@ -952,15 +952,15 @@ export function InterviewSetupForm({
                     onClick={() => toggleConstraint(constraint.value)}
                     disabled={togglingConstraint === constraint.value}
                     className={cn(
-                      'rounded-lg border p-3 text-left transition-all duration-150',
+                      'rounded-xl border p-4 text-left transition-all duration-150',
                       togglingConstraint === constraint.value && 'scale-95 opacity-70',
                       isActive
                         ? 'border-orange-500 bg-orange-500/10'
-                        : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 hover:border-slate-600'
+                        : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-amber-400'
                     )}
                   >
-                    <p className="font-medium text-[#3D3229] dark:text-white text-sm">{constraint.label}</p>
-                    <p className="text-xs text-[#6B5744] dark:text-slate-400 mt-0.5">{constraint.description}</p>
+                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">{constraint.label}</p>
+                    <p className="text-base text-[#3D3229] dark:text-slate-200 mt-1">{constraint.description}</p>
                   </button>
                 );
               })}
@@ -969,33 +969,33 @@ export function InterviewSetupForm({
 
           {/* Trait Overrides */}
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <SlidersHorizontal className="h-4 w-4 text-amber-400" />
-              <h3 className="text-sm font-medium text-[#3D3229] dark:text-white">Trait Overrides</h3>
+            <div className="flex items-center gap-3 mb-2">
+              <SlidersHorizontal className="h-6 w-6 text-amber-500" />
+              <h3 className="text-lg font-bold text-[#3D3229] dark:text-white">Trait Overrides</h3>
             </div>
-            <p className="text-xs text-[#8B7355] dark:text-slate-500 mb-3">
+            <p className="text-base text-[#3D3229] dark:text-slate-200 mb-4">
               Enable individual traits to override the archetype defaults. Disabled traits use
               archetype + difficulty values.
             </p>
-            <div className="space-y-4">
+            <div className="space-y-5">
               {TRAIT_SLIDERS.map((trait) => {
                 const isActive    = activeTraits.has(trait.key);
                 const sliderValue = traitOverrides[trait.key] ?? 50;
                 return (
-                  <div key={trait.key} className="flex items-center gap-4">
+                  <div key={trait.key} className="flex items-center gap-5">
                     {/* Enable toggle */}
                     <button
                       type="button"
                       onClick={() => toggleTrait(trait.key)}
                       className={cn(
-                        'relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors',
+                        'relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors',
                         isActive ? 'bg-amber-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
                       )}
                     >
                       <span
                         className={cn(
-                          'inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform',
-                          isActive ? 'translate-x-4' : 'translate-x-0.5'
+                          'inline-block h-5 w-5 transform rounded-full bg-white transition-transform',
+                          isActive ? 'translate-x-6' : 'translate-x-1'
                         )}
                       />
                     </button>
@@ -1003,8 +1003,8 @@ export function InterviewSetupForm({
                     {/* Trait label */}
                     <span
                       className={cn(
-                        'w-28 text-sm font-medium flex-shrink-0',
-                        isActive ? 'text-[#3D3229] dark:text-white' : 'text-[#8B7355] dark:text-slate-500'
+                        'w-36 text-lg font-semibold flex-shrink-0',
+                        isActive ? 'text-[#3D3229] dark:text-white' : 'text-[#3D3229]/50 dark:text-slate-500'
                       )}
                     >
                       {trait.label}
@@ -1013,11 +1013,11 @@ export function InterviewSetupForm({
                     {/* Slider + labels */}
                     <div
                       className={cn(
-                        'flex flex-1 items-center gap-2 transition-opacity',
+                        'flex flex-1 items-center gap-3 transition-opacity',
                         isActive ? 'opacity-100' : 'opacity-30 pointer-events-none'
                       )}
                     >
-                      <span className="text-xs text-[#8B7355] dark:text-slate-500 w-16 text-right flex-shrink-0">
+                      <span className="text-base text-[#3D3229] dark:text-slate-300 w-20 text-right flex-shrink-0">
                         {trait.lowLabel}
                       </span>
                       <input
@@ -1028,12 +1028,12 @@ export function InterviewSetupForm({
                         value={sliderValue}
                         onChange={(e) => setTraitValue(trait.key, Number(e.target.value))}
                         disabled={!isActive}
-                        className="flex-1 accent-amber-500"
+                        className="flex-1 accent-amber-500 h-2"
                       />
-                      <span className="text-xs text-[#8B7355] dark:text-slate-500 w-16 flex-shrink-0">
+                      <span className="text-base text-[#3D3229] dark:text-slate-300 w-20 flex-shrink-0">
                         {trait.highLabel}
                       </span>
-                      <span className="text-xs text-amber-400 font-mono w-8 text-right flex-shrink-0">
+                      <span className="text-base text-amber-600 dark:text-amber-400 font-bold font-mono w-10 text-right flex-shrink-0">
                         {sliderValue}
                       </span>
                     </div>
@@ -1045,27 +1045,27 @@ export function InterviewSetupForm({
         </div>
       ) : (
         /* Locked teaser for non-premium users */
-        <div className="rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/30 dark:bg-slate-900/30 p-6">
+        <div className="rounded-2xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/50 dark:bg-slate-900/30 p-8">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-[#FAF8F5] dark:bg-slate-800 p-2">
-                <Lock className="h-5 w-5 text-[#8B7355] dark:text-slate-500" />
+            <div className="flex items-center gap-4">
+              <div className="rounded-xl bg-[#FAF8F5] dark:bg-slate-800 p-3">
+                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
               </div>
               <div>
-                <h2 className="font-semibold text-[#6B5744] dark:text-slate-400 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-[#3D3229] dark:text-slate-300 flex items-center gap-3">
                   Custom Scenario Builder
-                  <span className="rounded-full bg-[#3D3229]/10 dark:bg-slate-700 px-2 py-0.5 text-xs text-[#6B5744] dark:text-slate-400">
+                  <span className="rounded-full bg-[#3D3229]/10 dark:bg-slate-700 px-3 py-1 text-base text-[#3D3229] dark:text-slate-300">
                     Premium
                   </span>
                 </h2>
-                <p className="text-sm text-[#8B7355] dark:text-slate-500">
+                <p className="text-lg text-[#3D3229] dark:text-slate-300">
                   Hand-pick archetypes, add constraints, and dial individual personality traits
                 </p>
               </div>
             </div>
             <a
               href="/settings?tab=billing"
-              className="flex-shrink-0 text-sm text-amber-500 hover:text-amber-400 font-medium"
+              className="flex-shrink-0 text-lg text-amber-500 hover:text-amber-400 font-semibold"
             >
               Upgrade
             </a>
@@ -1074,25 +1074,25 @@ export function InterviewSetupForm({
       )}
 
       {/* ── Submit ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between pt-4">
-        <p className="text-sm text-[#8B7355] dark:text-slate-500">
+      <div className="flex items-center justify-between pt-6">
+        <p className="text-lg text-[#3D3229] dark:text-slate-300">
           {subscriptionTier === 'free' && 'Uses 1 of your 3 monthly interviews'}
         </p>
         <button
           type="submit"
           disabled={isLoading}
-          className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-3 rounded-xl bg-orange-500 px-8 py-4 text-xl font-bold text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-6 w-6 animate-spin" />
               Creating...
             </>
           ) : (
             <>
-              <Flame className="h-4 w-4" />
+              <Flame className="h-6 w-6" />
               Start Interview
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-6 w-6" />
             </>
           )}
         </button>

@@ -81,10 +81,10 @@ export default async function NewInterviewPage(): Promise<React.JSX.Element> {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Start New Interview</h1>
-        <p className="text-slate-400 mt-1">
+    <div className="w-full">
+      <div className="mb-10 text-center">
+        <h1 className="text-3xl lg:text-4xl font-bold text-[#3D3229] dark:text-white">Start New Interview</h1>
+        <p className="text-xl text-[#3D3229] dark:text-slate-200 mt-2">
           Configure your mock interview session
         </p>
       </div>

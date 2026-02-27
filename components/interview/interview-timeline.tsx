@@ -69,13 +69,13 @@ export function InterviewTimeline({
   const getMomentIcon = (type: KeyMoment['type']): React.JSX.Element => {
     switch (type) {
       case 'strong':
-        return <Star className="h-3 w-3" />;
+        return <Star className="h-4 w-4" />;
       case 'weak':
-        return <AlertTriangle className="h-3 w-3" />;
+        return <AlertTriangle className="h-4 w-4" />;
       case 'turning_point':
-        return <TrendingUp className="h-3 w-3" />;
+        return <TrendingUp className="h-4 w-4" />;
       default:
-        return <Star className="h-3 w-3" />;
+        return <Star className="h-4 w-4" />;
     }
   };
 
@@ -88,16 +88,16 @@ export function InterviewTimeline({
       case 'turning_point':
         return 'bg-blue-500 border-blue-400';
       default:
-        return 'bg-slate-500 border-slate-400';
+        return 'bg-[#3D3229]/50 dark:bg-slate-500 border-[#3D3229]/30 dark:border-slate-400';
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Timeline Bar */}
       <div className="relative">
         {/* Track */}
-        <div className="h-2 bg-slate-700 rounded-full relative">
+        <div className="h-3 bg-[#3D3229]/10 dark:bg-slate-700 rounded-full relative">
           {/* Progress indicator */}
           <div
             className="absolute h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-300"
@@ -112,14 +112,14 @@ export function InterviewTimeline({
               key={`msg-${pos.index}`}
               onClick={() => onMessageSelect(pos.index)}
               className={cn(
-                'absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full transition-all duration-200',
+                'absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full transition-all duration-200',
                 'hover:scale-150 hover:z-10',
                 pos.role === 'interviewer'
-                  ? 'bg-slate-500 hover:bg-slate-400'
+                  ? 'bg-[#3D3229]/40 dark:bg-slate-500 hover:bg-[#3D3229]/60 dark:hover:bg-slate-400'
                   : 'bg-orange-500 hover:bg-orange-400',
-                pos.index === currentMessageIndex && 'ring-2 ring-white scale-125 z-10'
+                pos.index === currentMessageIndex && 'ring-2 ring-[#3D3229] dark:ring-white scale-150 z-10'
               )}
-              style={{ left: `${pos.position}%`, marginLeft: '-6px' }}
+              style={{ left: `${pos.position}%`, marginLeft: '-8px' }}
               title={`Message ${pos.index + 1} (${pos.role})`}
             />
           ))}
@@ -130,12 +130,12 @@ export function InterviewTimeline({
               key={`${moment.type}-${moment.position}-${moment.description}`}
               onClick={() => onMessageSelect(findMessageForMoment(moment))}
               className={cn(
-                'absolute -top-4 w-6 h-6 rounded-full border-2 flex items-center justify-center',
+                'absolute -top-5 w-8 h-8 rounded-full border-2 flex items-center justify-center',
                 'transition-all duration-200 hover:scale-125 hover:z-20',
                 getMomentColor(moment.type),
                 'text-white'
               )}
-              style={{ left: `${moment.position}%`, marginLeft: '-12px' }}
+              style={{ left: `${moment.position}%`, marginLeft: '-16px' }}
               title={moment.description}
             >
               {getMomentIcon(moment.type)}
@@ -144,7 +144,7 @@ export function InterviewTimeline({
         </div>
 
         {/* Time labels */}
-        <div className="flex justify-between mt-2 text-xs text-slate-500">
+        <div className="flex justify-between mt-3 text-base text-[#3D3229] dark:text-slate-400 font-medium">
           <span>0:00</span>
           <span>{formatDuration(totalDuration)}</span>
         </div>
@@ -152,20 +152,20 @@ export function InterviewTimeline({
 
       {/* Key Moments Legend */}
       {keyMoments.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {keyMoments.map((moment) => (
             <button
               key={`legend-${moment.type}-${moment.timestamp}-${moment.description}`}
               onClick={() => onMessageSelect(findMessageForMoment(moment))}
               className={cn(
-                'flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-colors',
-                moment.type === 'strong' && 'bg-green-500/20 text-green-400 hover:bg-green-500/30',
-                moment.type === 'weak' && 'bg-red-500/20 text-red-400 hover:bg-red-500/30',
-                moment.type === 'turning_point' && 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                'flex items-center gap-2 px-4 py-2 rounded-full text-base font-medium transition-colors',
+                moment.type === 'strong' && 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30',
+                moment.type === 'weak' && 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30',
+                moment.type === 'turning_point' && 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-500/30'
               )}
             >
               {getMomentIcon(moment.type)}
-              <span className="truncate max-w-[150px]">{moment.description}</span>
+              <span className="truncate max-w-[200px]">{moment.description}</span>
             </button>
           ))}
         </div>

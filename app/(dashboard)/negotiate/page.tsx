@@ -35,22 +35,20 @@ export default async function NegotiatePage(): Promise<React.JSX.Element> {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#3D3229] dark:text-white flex items-center gap-2">
-            <DollarSign className="h-7 w-7 text-orange-400" />
-            Salary Negotiation Prep
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
-              <Crown className="h-3 w-3" />
-              Premium
-            </span>
-          </h1>
-          <p className="text-[#3D3229]/70 dark:text-slate-400 mt-1 text-base">
-            Practice negotiating your offer against a realistic AI recruiter. Get scored on confidence, framing, and strategy.
-          </p>
-        </div>
+      <div className="mb-10">
+        <h1 className="text-3xl lg:text-4xl font-bold text-[#3D3229] dark:text-white flex items-center gap-4">
+          <DollarSign className="h-10 w-10 text-orange-500" />
+          Salary Negotiation Prep
+          <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 px-4 py-2 text-lg font-bold text-amber-600 dark:text-amber-400">
+            <Crown className="h-5 w-5" />
+            Premium
+          </span>
+        </h1>
+        <p className="text-xl text-[#3D3229] dark:text-slate-200 mt-3 max-w-3xl">
+          Practice negotiating your offer against a realistic AI recruiter. Get scored on confidence, framing, and strategy.
+        </p>
       </div>
 
       <NegotiatePageClient isPremium={isPremium} pastSessions={pastSessions} />

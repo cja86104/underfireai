@@ -141,7 +141,7 @@ Return JSON:
       "claim": "Exact text or paraphrase from resume",
       "evidence": "What happened in the interview that contradicts this",
       "severity": "high|medium|low",
-      "suggestion": "How to address this gap"
+      "suggestion": "SPECIFIC action - see rules below"
     }
   ],
   "confirmations": [
@@ -161,7 +161,23 @@ Return JSON:
   ]
 }
 
-Be specific and actionable. Focus on the most impactful discrepancies and suggestions.
+CRITICAL RULES FOR SUGGESTIONS:
+1. NEVER say "prepare a STAR response" - this is useless generic advice
+2. NEVER say "practice explaining" or "be prepared to discuss" - they already know this
+3. Instead, give SPECIFIC RESUME EDITS like:
+   - "Change 'Led team of 5' to 'Led team of 5 engineers, delivering 3 features in Q2 2024'"
+   - "Remove 'Expert in React' - demonstrated intermediate knowledge; change to 'Proficient in React'"
+   - "Add bullet: 'Reduced API response time by 40% using Redis caching' (mentioned in interview but not on resume)"
+4. Each suggestion must be a CONCRETE TEXT CHANGE they can copy-paste into their resume
+5. Reference SPECIFIC things they said in the interview, not vague advice
+
+BAD suggestion: "Prepare a STAR response about your Kirra project"
+GOOD suggestion: "Add to Kirra Companion bullet: 'Implemented persistent memory system using vector embeddings, reducing context lookup time by 60%' - you explained this well but it's missing from resume"
+
+BAD suggestion: "Be more specific about your leadership experience"  
+GOOD suggestion: "Change 'Managed development team' to 'Managed 4-person development team across 2 time zones, shipping weekly releases for 8 months'"
+
+Focus on the most impactful changes. Give them TEXT they can use, not advice about what to practice.
 Return ONLY valid JSON.`;
 
   try {

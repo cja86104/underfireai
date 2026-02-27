@@ -122,7 +122,7 @@ Return JSON:
       "priority": "high|medium|low",
       "section": "summary|experience|skills|education|projects|achievements|other",
       "currentText": "Current resume text (null for 'add')",
-      "suggestedText": "New or improved text",
+      "suggestedText": "New or improved text - MUST be actual resume text they can copy-paste",
       "reason": "Why this improves the resume",
       "sourceQuote": "Quote from interview that supports this (null if not applicable)"
     }
@@ -131,7 +131,24 @@ Return JSON:
   "topPriority": ["Top 3 most impactful changes to make"]
 }
 
-Be specific - use exact quotes and numbers from the interviews.
+CRITICAL - READ CAREFULLY:
+1. suggestedText MUST be ACTUAL RESUME TEXT - a bullet point, skill, or phrase they can copy-paste
+2. NEVER give advice like "prepare a STAR response" or "practice discussing" - that's useless
+3. NEVER say "add metrics" generically - give them THE ACTUAL TEXT with the metrics included
+4. Every suggestion must be immediately usable resume content
+
+GOOD suggestedText examples:
+- "Architected microservices migration reducing deployment time from 2 hours to 15 minutes"
+- "Led cross-functional team of 6 engineers and 2 designers shipping 4 major features in Q3"
+- "Skills: Python (5 years), React (3 years), PostgreSQL (4 years), AWS (Lambda, S3, RDS)"
+
+BAD suggestedText examples (NEVER DO THESE):
+- "Add more metrics to your experience" (not actual text)
+- "Prepare a STAR response for your project" (advice, not resume content)
+- "Be more specific about your role" (vague instruction)
+- "Include quantifiable achievements" (generic advice)
+
+If you can't extract specific numbers or details from the interview, use the structure from their strong responses to rewrite their existing bullets with better action verbs and clearer outcomes.
 Return ONLY valid JSON.`;
 
   try {
