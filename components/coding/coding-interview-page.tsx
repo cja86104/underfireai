@@ -291,9 +291,9 @@ export function CodingInterviewPage({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-900">
         <div className="flex items-center gap-4">
-          <h2 className="font-semibold text-white">{challenge.title}</h2>
+          <h2 className="font-semibold text-[#3D3229] dark:text-white">{challenge.title}</h2>
           <span
             className={cn(
               'px-2 py-0.5 rounded text-xs font-medium',
@@ -308,12 +308,12 @@ export function CodingInterviewPage({
 
         <div className="flex items-center gap-3">
           {/* View Mode Toggle */}
-          <div className="flex rounded-lg border border-slate-700 overflow-hidden">
+          <div className="flex rounded-lg border border-[#3D3229]/15 dark:border-slate-700 overflow-hidden">
             <button
               onClick={() => setViewMode('code')}
               className={cn(
                 'px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors',
-                viewMode === 'code' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                viewMode === 'code' ? 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#3D3229] dark:text-white' : 'text-[#6B5744] dark:text-slate-400 hover:text-[#3D3229] dark:hover:text-white'
               )}
             >
               <Code2 className="h-4 w-4" />
@@ -323,7 +323,7 @@ export function CodingInterviewPage({
               onClick={() => setViewMode('split')}
               className={cn(
                 'px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors',
-                viewMode === 'split' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                viewMode === 'split' ? 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#3D3229] dark:text-white' : 'text-[#6B5744] dark:text-slate-400 hover:text-[#3D3229] dark:hover:text-white'
               )}
             >
               Split
@@ -332,7 +332,7 @@ export function CodingInterviewPage({
               onClick={() => setViewMode('chat')}
               className={cn(
                 'px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors',
-                viewMode === 'chat' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                viewMode === 'chat' ? 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#3D3229] dark:text-white' : 'text-[#6B5744] dark:text-slate-400 hover:text-[#3D3229] dark:hover:text-white'
               )}
             >
               <MessageSquare className="h-4 w-4" />
@@ -341,9 +341,9 @@ export function CodingInterviewPage({
           </div>
 
           {/* Timer */}
-          <div className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5">
-            <Clock className="h-4 w-4 text-slate-400" />
-            <span className="text-sm font-mono text-white">{formatTime(elapsedTime)}</span>
+          <div className="flex items-center gap-2 rounded-lg bg-[#FAF8F5] dark:bg-slate-800 px-3 py-1.5">
+            <Clock className="h-4 w-4 text-[#6B5744] dark:text-slate-400" />
+            <span className="text-sm font-mono text-[#3D3229] dark:text-white">{formatTime(elapsedTime)}</span>
           </div>
 
           {/* Status Badge */}
@@ -362,7 +362,7 @@ export function CodingInterviewPage({
           <div className="relative">
             <button
               onClick={() => setShowActions(!showActions)}
-              className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+              className="rounded-lg p-2 text-[#6B5744] dark:text-slate-400 hover:bg-[#FAF8F5] dark:hover:bg-slate-800 hover:text-[#3D3229] dark:hover:text-white transition-colors"
             >
               <MoreVertical className="h-5 w-5" />
             </button>
@@ -370,19 +370,19 @@ export function CodingInterviewPage({
             {showActions && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowActions(false)} />
-                <div className="absolute right-0 mt-1 w-48 rounded-lg border border-slate-700 bg-slate-800 py-1 shadow-lg z-20">
+                <div className="absolute right-0 mt-1 w-48 rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800 py-1 shadow-lg z-20">
                   {sessionStatus === 'in_progress' && (
                     <>
                       <button
                         onClick={() => { void pauseInterview(); setShowActions(false); }}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-[#6B5744] dark:text-slate-300 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700"
                       >
                         <Pause className="h-4 w-4" />
                         Pause Interview
                       </button>
                       <button
                         onClick={() => { void endInterview(); setShowActions(false); }}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-slate-700"
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700"
                       >
                         <Square className="h-4 w-4" />
                         End Interview
@@ -392,7 +392,7 @@ export function CodingInterviewPage({
                   {sessionStatus === 'paused' && (
                     <button
                       onClick={() => { void resumeInterview(); setShowActions(false); }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-[#6B5744] dark:text-slate-300 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700"
                     >
                       <Play className="h-4 w-4" />
                       Resume Interview
@@ -425,7 +425,7 @@ export function CodingInterviewPage({
         {(viewMode === 'chat' || viewMode === 'split') && (
           <div
             className={cn(
-              'flex flex-col border-l border-slate-800 bg-slate-900/50',
+              'flex flex-col border-l border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50',
               viewMode === 'split' ? 'lg:w-1/3' : 'flex-1'
             )}
           >
@@ -443,8 +443,8 @@ export function CodingInterviewPage({
                     className={cn(
                       'h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm',
                       message.role === 'interviewer'
-                        ? 'bg-slate-700 text-slate-300'
-                        : 'bg-orange-500 text-white'
+                        ? 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#6B5744] dark:text-slate-300'
+                        : 'bg-orange-500 text-[#3D3229] dark:text-white'
                     )}
                   >
                     {message.role === 'interviewer' ? interviewer.name[0] : 'Y'}
@@ -454,8 +454,8 @@ export function CodingInterviewPage({
                     className={cn(
                       'max-w-[85%] rounded-2xl px-4 py-3',
                       message.role === 'interviewer'
-                        ? 'bg-slate-800 text-slate-100 rounded-tl-sm'
-                        : 'bg-orange-500 text-white rounded-tr-sm'
+                        ? 'bg-[#FAF8F5] dark:bg-slate-800 text-[#3D3229] dark:text-slate-100 rounded-tl-sm'
+                        : 'bg-orange-500 text-[#3D3229] dark:text-white rounded-tr-sm'
                     )}
                   >
                     <p className="whitespace-pre-wrap text-sm">{message.content}</p>
@@ -465,10 +465,10 @@ export function CodingInterviewPage({
 
               {isLoading && (
                 <div className="flex gap-3">
-                  <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm text-slate-300">
+                  <div className="h-8 w-8 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 flex items-center justify-center text-sm text-[#6B5744] dark:text-slate-300">
                     {interviewer.name[0]}
                   </div>
-                  <div className="bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-3">
+                  <div className="bg-[#FAF8F5] dark:bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="flex gap-1">
                         <span className="h-2 w-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -485,7 +485,7 @@ export function CodingInterviewPage({
 
             {/* Input */}
             {sessionStatus === 'in_progress' && (
-              <div className="p-3 border-t border-slate-800">
+              <div className="p-3 border-t border-[#3D3229]/10 dark:border-slate-800">
                 <div className="flex gap-2">
                   <textarea
                     ref={textareaRef}
@@ -495,12 +495,12 @@ export function CodingInterviewPage({
                     placeholder="Ask a question or discuss your approach..."
                     disabled={isLoading}
                     rows={2}
-                    className="flex-1 resize-none rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none disabled:opacity-50"
+                    className="flex-1 resize-none rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 px-3 py-2 text-sm text-[#3D3229] dark:text-slate-100 placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none disabled:opacity-50"
                   />
                   <button
                     onClick={() => void sendMessage()}
                     disabled={!inputValue.trim() || isLoading}
-                    className="self-end rounded-lg bg-orange-500 px-3 py-2 text-white hover:bg-orange-600 transition-colors disabled:opacity-50"
+                    className="self-end rounded-lg bg-orange-500 px-3 py-2 text-[#3D3229] dark:text-white hover:bg-orange-600 transition-colors disabled:opacity-50"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

@@ -122,10 +122,12 @@ function BadgeCard({ badge, onClick }: BadgeCardProps): React.JSX.Element {
       type="button"
       onClick={onClick}
       className={cn(
-        'relative flex flex-col items-center p-4 rounded-xl border transition-all duration-300',
+        'relative flex flex-col items-center p-4 rounded-xl border transition-all duration-300 hover:-translate-y-0.5',
+        tier.bgColor,
+        tier.borderColor,
         isEarned
-          ? cn(tier.bgColor, tier.borderColor, 'hover:shadow-lg hover:-translate-y-1')
-          : 'bg-stone-50 border-stone-200 opacity-50 hover:opacity-70'
+          ? 'hover:shadow-lg'
+          : 'opacity-50 hover:opacity-75 grayscale hover:grayscale-0'
       )}
       style={
         isEarned
@@ -136,8 +138,8 @@ function BadgeCard({ badge, onClick }: BadgeCardProps): React.JSX.Element {
       {/* Tier indicator */}
       <div
         className={cn(
-          'absolute -top-2 -right-2 rounded-full px-2 py-0.5 text-xs font-bold uppercase',
-          isEarned ? cn(tier.bgColor, tier.color, 'border', tier.borderColor) : 'bg-stone-200 text-stone-400'
+          'absolute -top-2 -right-2 rounded-full px-2 py-0.5 text-xs font-bold uppercase border',
+          tier.bgColor, tier.color, tier.borderColor
         )}
       >
         {badge.tier}
@@ -146,26 +148,32 @@ function BadgeCard({ badge, onClick }: BadgeCardProps): React.JSX.Element {
       {/* Icon */}
       <div
         className={cn(
-          'rounded-full p-3 mb-2',
-          isEarned ? tier.bgColor : 'bg-stone-100'
+          'rounded-full p-3 mb-2 bg-white/60',
         )}
       >
         {isEarned ? (
           <Icon className={cn('h-8 w-8', tier.color)} />
         ) : (
-          <Lock className="h-8 w-8 text-stone-400" />
+          <Lock className={cn('h-8 w-8', tier.color)} />
         )}
       </div>
 
       {/* Name */}
-      <h4
-        className={cn(
-          'font-semibold text-sm text-center',
-          isEarned ? 'text-charcoal-900' : 'text-charcoal-400'
-        )}
-      >
+      <h4 className="font-semibold text-sm text-center text-charcoal-900">
         {badge.name}
       </h4>
+
+      {/* Description — always visible */}
+      <p className="text-xs text-center mt-1 leading-snug text-charcoal-500">
+        {badge.description}
+      </p>
+
+      {/* Earned date */}
+      {isEarned && badge.earnedAt && (
+        <p className="text-xs text-center mt-1.5 font-medium text-green-600">
+          ✓ {formatDate(badge.earnedAt)}
+        </p>
+      )}
 
       {/* Progress bar for locked badges */}
       {!isEarned && badge.progress !== undefined && badge.progress > 0 && (

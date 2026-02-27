@@ -30,19 +30,19 @@ export function HistorySearch(): React.JSX.Element {
 
   return (
     <form onSubmit={handleSubmit} className="relative flex-1 max-w-md">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8B7355] dark:text-slate-500" />
       <input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search by interviewer, role, company..."
-        className="w-full rounded-lg border border-slate-700 bg-slate-800/50 pl-10 pr-10 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none"
+        className="w-full rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 pl-10 pr-10 py-2 text-sm text-[#3D3229] dark:text-slate-100 placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none"
       />
       {value && (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B7355] dark:text-slate-500 hover:text-[#6B5744] dark:hover:text-slate-300"
         >
           <X className="h-4 w-4" />
         </button>

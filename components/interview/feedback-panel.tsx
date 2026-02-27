@@ -344,7 +344,7 @@ export function FeedbackPanel({
             <div className="rounded-lg border border-fire-200 bg-fire-50 p-4">
               <div className="flex items-start gap-3">
                 <div className="rounded-full bg-fire-500 p-2 shadow-glow-fire">
-                  <MessageSquare className="h-5 w-5 text-white" />
+                  <MessageSquare className="h-5 w-5 text-[#3D3229] dark:text-white" />
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-charcoal-500 mb-2">

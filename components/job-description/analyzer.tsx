@@ -80,16 +80,16 @@ export function JobDescriptionAnalyzer({
   };
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+    <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="rounded-lg bg-blue-500/10 p-2">
           <FileText className="h-5 w-5 text-blue-400" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white">
             Analyze Job Description
           </h2>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-[#6B5744] dark:text-slate-400">
             Paste a job description to find gaps and generate targeted practice
           </p>
         </div>
@@ -100,7 +100,7 @@ export function JobDescriptionAnalyzer({
         <div>
           <label
             htmlFor="jd-text"
-            className="block text-sm font-medium text-slate-300 mb-1.5"
+            className="block text-sm font-medium text-[#6B5744] dark:text-slate-300 mb-1.5"
           >
             Job Description
           </label>
@@ -111,12 +111,12 @@ export function JobDescriptionAnalyzer({
             placeholder="Paste the full job description here..."
             rows={10}
             className={cn(
-              'w-full rounded-lg border bg-slate-800/50 px-4 py-3 text-sm text-white placeholder:text-slate-500',
+              'w-full rounded-lg border bg-white dark:bg-slate-800/50 px-4 py-3 text-sm text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500',
               'focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
-              'border-slate-700'
+              'border-[#3D3229]/15 dark:border-slate-700'
             )}
           />
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-1">
             {rawText.length} characters
             {rawText.length > 0 && rawText.length < 50 && ' (minimum 50)'}
           </p>
@@ -126,10 +126,10 @@ export function JobDescriptionAnalyzer({
         <div>
           <label
             htmlFor="source-url"
-            className="block text-sm font-medium text-slate-300 mb-1.5"
+            className="block text-sm font-medium text-[#6B5744] dark:text-slate-300 mb-1.5"
           >
             Source URL{' '}
-            <span className="text-slate-500 font-normal">(optional)</span>
+            <span className="text-[#8B7355] dark:text-slate-500 font-normal">(optional)</span>
           </label>
           <input
             id="source-url"
@@ -138,9 +138,9 @@ export function JobDescriptionAnalyzer({
             onChange={(e) => setSourceUrl(e.target.value)}
             placeholder="https://linkedin.com/jobs/..."
             className={cn(
-              'w-full rounded-lg border bg-slate-800/50 px-4 py-2.5 text-sm text-white placeholder:text-slate-500',
+              'w-full rounded-lg border bg-white dark:bg-slate-800/50 px-4 py-2.5 text-sm text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500',
               'focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
-              'border-slate-700'
+              'border-[#3D3229]/15 dark:border-slate-700'
             )}
           />
         </div>
@@ -159,7 +159,7 @@ export function JobDescriptionAnalyzer({
           disabled={loading || rawText.trim().length < 50}
           className={cn(
             'w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors',
-            'bg-blue-500 text-white hover:bg-blue-600',
+            'bg-blue-500 text-[#3D3229] dark:text-white hover:bg-blue-600',
             'disabled:opacity-50 disabled:cursor-not-allowed'
           )}
         >
@@ -179,21 +179,21 @@ export function JobDescriptionAnalyzer({
 
       {/* Preview hints */}
       {rawText.length >= 50 && !loading && (
-        <div className="mt-4 pt-4 border-t border-slate-800">
-          <p className="text-xs text-slate-500 mb-2">Preview detected:</p>
+        <div className="mt-4 pt-4 border-t border-[#3D3229]/10 dark:border-slate-800">
+          <p className="text-xs text-[#8B7355] dark:text-slate-500 mb-2">Preview detected:</p>
           <div className="flex flex-wrap gap-2">
             {detectPreviewInfo(rawText).map((item, i) => (
               <div
                 key={i}
-                className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-2.5 py-1 text-xs"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#FAF8F5] dark:bg-slate-800 px-2.5 py-1 text-xs"
               >
                 {item.type === 'company' && (
-                  <Building2 className="h-3 w-3 text-slate-400" />
+                  <Building2 className="h-3 w-3 text-[#6B5744] dark:text-slate-400" />
                 )}
                 {item.type === 'role' && (
-                  <Briefcase className="h-3 w-3 text-slate-400" />
+                  <Briefcase className="h-3 w-3 text-[#6B5744] dark:text-slate-400" />
                 )}
-                <span className="text-slate-300">{item.value}</span>
+                <span className="text-[#6B5744] dark:text-slate-300">{item.value}</span>
               </div>
             ))}
           </div>

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS, SCORING_WEIGHTS } from '@/lib/ai/config';
+import { updateProgressAndAwardBadges } from '@/lib/progress/badge-service';
 import type { ResponseAnalysis } from '@/types/database';
 
 interface EndInterviewRequest {
@@ -275,10 +276,20 @@ Return ONLY valid JSON, no markdown or additional text.`;
       );
     }
 
+    // Update user_progress avg_score (DB trigger runs before scores are saved,
+    // so the avg is stale) and award any newly earned badges.
+    const newlyAwardedBadges = await updateProgressAndAwardBadges(
+      supabase,
+      user.id,
+      sessionId,
+      scores.overall_score > 0 ? scores.overall_score : null
+    );
+
     return NextResponse.json({
       success: true,
       scores,
       feedback,
+      newlyAwardedBadges,
       message: 'Interview completed and scored',
     });
 

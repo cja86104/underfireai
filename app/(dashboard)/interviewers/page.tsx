@@ -80,7 +80,7 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
           {isPremium ? (
             <Link
               href="/interviewers/create"
-              className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-amber-600 transition-colors"
             >
               <Wand2 className="h-4 w-4" />
               Create Custom
@@ -96,7 +96,7 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
           )}
           <Link
             href="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#8B5A2B] dark:bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#8B5A2B] dark:bg-orange-500 px-4 py-2 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
           >
             <Sparkles className="h-4 w-4" />
             Generate New
@@ -183,15 +183,15 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="rounded-lg bg-stone-100 dark:bg-slate-800/50 p-2">
-                        <p className="text-xs text-stone-500 dark:text-slate-500">Difficulty</p>
-                        <p className="font-medium text-stone-900 dark:text-white">
+                      <div className="rounded-lg bg-[#FAF8F5] border border-[#3D3229]/8 p-2">
+                        <p className="text-xs text-[#8B7355]">Difficulty</p>
+                        <p className="font-medium text-[#3D3229]">
                           {interviewer.difficulty_level}/10
                         </p>
                       </div>
-                      <div className="rounded-lg bg-slate-800/50 p-2">
-                        <p className="text-xs text-stone-500 dark:text-slate-500">Style</p>
-                        <p className="font-medium text-stone-900 dark:text-white capitalize">
+                      <div className="rounded-lg bg-[#FAF8F5] border border-[#3D3229]/8 p-2">
+                        <p className="text-xs text-[#8B7355]">Style</p>
+                        <p className="font-medium text-[#3D3229] capitalize">
                           {interviewer.company_style?.replace('_', ' ') ?? 'General'}
                         </p>
                       </div>
@@ -220,14 +220,14 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
         </div>
       ) : (
         <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-12 text-center">
-          <Users className="h-12 w-12 text-slate-600 mx-auto mb-4" />
+          <Users className="h-12 w-12 text-[#8B7355] dark:text-slate-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-2">No interviewers yet</h3>
           <p className="text-stone-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
             Start an interview to generate your first AI interviewer with a unique hidden personality.
           </p>
           <Link
             href="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#8B5A2B] dark:bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#8B5A2B] dark:bg-orange-500 px-4 py-2 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
           >
             <Sparkles className="h-4 w-4" />
             Generate First Interviewer

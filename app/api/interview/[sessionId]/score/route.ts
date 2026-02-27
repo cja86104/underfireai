@@ -4,6 +4,7 @@ import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS, SCORING_WEIGHTS } from '@/lib/ai/config';
 import { sendSessionCompletedWebhook } from '@/lib/webhooks';
 import { generateAndSaveAlignmentAnalysis } from '@/lib/resume/insights-service';
+import { updateProgressAndAwardBadges } from '@/lib/progress/badge-service';
 import type { ResponseAnalysis } from '@/types/database';
 
 /** Parsed JSON structure from AI feedback generation */
@@ -281,6 +282,15 @@ Return ONLY valid JSON, no markdown or additional text.`;
       );
     }
 
+    // Update user_progress avg_score (the DB trigger runs before scores are
+    // saved, so avg is stale) and evaluate + award any newly earned badges.
+    const newlyAwardedBadges = await updateProgressAndAwardBadges(
+      supabase,
+      user.id,
+      sessionId,
+      scores.overall_score > 0 ? scores.overall_score : null
+    );
+
     // Send webhook notification (async, non-blocking)
     const webhookResult = await sendSessionCompletedWebhook({
       session_id: sessionId,
@@ -351,6 +361,7 @@ Return ONLY valid JSON, no markdown or additional text.`;
       alreadyScored: false,
       scores,
       feedback,
+      newlyAwardedBadges,
       messageCount: messages.length,
       candidateResponseCount: candidateMessages.length,
       analyzedResponseCount: analyses.length,

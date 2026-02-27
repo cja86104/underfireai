@@ -104,22 +104,22 @@ export function ResumeHealthScore({
 
   const getTrendIcon = (score: number): React.ReactNode => {
     if (score >= 70) return <TrendingUp className="h-4 w-4 text-green-400" />;
-    if (score >= 50) return <Minus className="h-4 w-4 text-slate-400" />;
+    if (score >= 50) return <Minus className="h-4 w-4 text-[#6B5744] dark:text-slate-400" />;
     return <TrendingDown className="h-4 w-4 text-red-400" />;
   };
 
   // Locked state for free users
   if (!isPaidUser) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-purple-400" />
-            <h3 className="font-semibold text-white">Resume Health</h3>
+            <h3 className="font-semibold text-[#3D3229] dark:text-white">Resume Health</h3>
           </div>
-          <Lock className="h-4 w-4 text-slate-500" />
+          <Lock className="h-4 w-4 text-[#8B7355] dark:text-slate-500" />
         </div>
-        <p className="text-sm text-slate-400 mb-3">
+        <p className="text-sm text-[#6B5744] dark:text-slate-400 mb-3">
           Track how your resume performs across interviews.
         </p>
         <Link
@@ -135,13 +135,13 @@ export function ResumeHealthScore({
   // Loading state
   if (loading) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5">
         <div className="flex items-center gap-2 mb-3">
           <Activity className="h-5 w-5 text-purple-400" />
-          <h3 className="font-semibold text-white">Resume Health</h3>
+          <h3 className="font-semibold text-[#3D3229] dark:text-white">Resume Health</h3>
         </div>
         <div className="flex items-center justify-center py-4">
-          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-[#6B5744] dark:text-slate-400" />
         </div>
       </div>
     );
@@ -150,12 +150,12 @@ export function ResumeHealthScore({
   // No data state
   if (!health || health.insightsCount === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5">
         <div className="flex items-center gap-2 mb-3">
           <Activity className="h-5 w-5 text-purple-400" />
-          <h3 className="font-semibold text-white">Resume Health</h3>
+          <h3 className="font-semibold text-[#3D3229] dark:text-white">Resume Health</h3>
         </div>
-        <p className="text-sm text-slate-400 mb-3">
+        <p className="text-sm text-[#6B5744] dark:text-slate-400 mb-3">
           Complete interviews to build your resume health score.
         </p>
         <Link
@@ -169,11 +169,11 @@ export function ResumeHealthScore({
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+    <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-purple-400" />
-          <h3 className="font-semibold text-white">Resume Health</h3>
+          <h3 className="font-semibold text-[#3D3229] dark:text-white">Resume Health</h3>
         </div>
         {getTrendIcon(health.score)}
       </div>
@@ -189,7 +189,7 @@ export function ResumeHealthScore({
               fill="none"
               stroke="currentColor"
               strokeWidth="3"
-              className="text-slate-700"
+              className="text-[#6B5744] dark:text-slate-700"
             />
             <circle
               cx="18"
@@ -213,7 +213,7 @@ export function ResumeHealthScore({
           <p className={cn('text-lg font-semibold', getScoreColor(health.score))}>
             {getScoreLabel(health.score)}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#8B7355] dark:text-slate-500">
             Based on {health.insightsCount} insight{health.insightsCount !== 1 ? 's' : ''}
           </p>
         </div>
@@ -223,7 +223,7 @@ export function ResumeHealthScore({
       <div className="space-y-2">
         {health.alignmentAvg !== null && (
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-slate-400">
+            <div className="flex items-center gap-2 text-[#6B5744] dark:text-slate-400">
               <FileText className="h-4 w-4" />
               <span>Alignment</span>
             </div>
@@ -244,7 +244,7 @@ export function ResumeHealthScore({
 
         {health.vulnerabilityScore !== null && (
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-slate-400">
+            <div className="flex items-center gap-2 text-[#6B5744] dark:text-slate-400">
               <Shield className="h-4 w-4" />
               <span>Defense</span>
             </div>
@@ -265,9 +265,9 @@ export function ResumeHealthScore({
       </div>
 
       {/* Quick Action */}
-      <div className="mt-4 pt-4 border-t border-slate-800">
+      <div className="mt-4 pt-4 border-t border-[#3D3229]/10 dark:border-slate-800">
         <Link
-          href="/dashboard/resume-insights"
+          href="/resume-insights"
           className="text-sm text-orange-400 hover:text-orange-300 transition-colors"
         >
           View detailed insights

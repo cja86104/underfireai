@@ -111,8 +111,8 @@ const DEFAULT_PERSONALITY: PersonalityBase = {
 function SectionHeading({ title, description }: { title: string; description: string }): React.JSX.Element {
   return (
     <div className="mb-4">
-      <h2 className="text-base font-semibold text-white">{title}</h2>
-      <p className="text-sm text-slate-400 mt-0.5">{description}</p>
+      <h2 className="text-base font-semibold text-[#3D3229] dark:text-white">{title}</h2>
+      <p className="text-sm text-[#6B5744] dark:text-slate-400 mt-0.5">{description}</p>
     </div>
   );
 }
@@ -129,7 +129,7 @@ function PersonalitySlider({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-sm text-slate-300">{trait.label}</Label>
+        <Label className="text-sm text-[#3D3229] dark:text-slate-300">{trait.label}</Label>
         <span className="text-sm font-mono text-orange-400">{value}</span>
       </div>
       <Slider
@@ -140,7 +140,7 @@ function PersonalitySlider({
         onValueChange={([v]) => onChange(trait.key, v)}
         className="[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500 [&_.bg-primary]:bg-orange-500"
       />
-      <div className="flex justify-between text-xs text-slate-500">
+      <div className="flex justify-between text-xs text-[#8B7355] dark:text-slate-500">
         <span>{trait.lowLabel}</span>
         <span>{trait.highLabel}</span>
       </div>
@@ -172,8 +172,8 @@ function TagListEditor({
   return (
     <div className="space-y-2">
       <div>
-        <Label className="text-sm text-slate-300">{label}</Label>
-        <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+        <Label className="text-sm text-[#3D3229] dark:text-slate-300">{label}</Label>
+        <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-0.5">{description}</p>
       </div>
       <div className="flex gap-2">
         <Input
@@ -181,7 +181,7 @@ function TagListEditor({
           onChange={e => setInputValue(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
           placeholder={placeholder}
-          className="flex-1 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 text-sm"
+          className="flex-1 bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500 text-sm"
         />
         <Button
           type="button"
@@ -189,7 +189,7 @@ function TagListEditor({
           size="sm"
           onClick={addTag}
           disabled={!inputValue.trim() || tags.length >= 8}
-          className="border-slate-700 text-slate-300 hover:text-white shrink-0"
+          className="border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-slate-300 hover:text-[#3D3229] dark:hover:text-white shrink-0"
         >
           Add
         </Button>
@@ -334,12 +334,12 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
     return (
       <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-8 text-center max-w-md mx-auto">
         <Crown className="h-10 w-10 text-amber-400 mx-auto mb-3" />
-        <h3 className="text-lg font-semibold text-white mb-2">Premium Feature</h3>
-        <p className="text-slate-300 text-sm mb-4">
+        <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-2">Premium Feature</h3>
+        <p className="text-[#3D3229] dark:text-slate-300 text-sm mb-4">
           Custom Interviewer Creator is available on the Premium plan.
         </p>
         <Link href="/settings?tab=billing">
-          <Button className="bg-amber-500 hover:bg-amber-600 text-white">
+          <Button className="bg-amber-500 hover:bg-amber-600 text-[#3D3229] dark:text-white">
             Upgrade to Premium
           </Button>
         </Link>
@@ -353,7 +353,7 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
     <div className="max-w-3xl space-y-8">
 
       {/* ── Section 1: Identity ─────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <section className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
         <SectionHeading
           title="Identity"
           description="Name your interviewer and set the interview context."
@@ -361,30 +361,30 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Name */}
           <div className="sm:col-span-2 space-y-1.5">
-            <Label htmlFor="name" className="text-slate-300">Interviewer Name</Label>
+            <Label htmlFor="name" className="text-[#3D3229] dark:text-slate-300">Interviewer Name</Label>
             <Input
               id="name"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Sarah Mitchell"
               maxLength={80}
-              className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+              className="bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500"
             />
           </div>
 
           {/* Interview Type */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Interview Type</Label>
+            <Label className="text-[#3D3229] dark:text-slate-300">Interview Type</Label>
             <Select
               value={interviewType}
               onValueChange={v => setInterviewType(v as InterviewType)}
             >
-              <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+              <SelectTrigger className="bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-700">
+              <SelectContent className="bg-white dark:bg-slate-900 border-[#3D3229]/15 dark:border-slate-700">
                 {INTERVIEW_TYPE_OPTIONS.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-slate-200 focus:bg-slate-800">
+                  <SelectItem key={opt.value} value={opt.value} className="text-[#3D3229] dark:text-slate-200 focus:bg-[#FAF8F5] dark:focus:bg-slate-800">
                     {opt.label}
                   </SelectItem>
                 ))}
@@ -394,18 +394,18 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
 
           {/* Company Style */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Company Style</Label>
+            <Label className="text-[#3D3229] dark:text-slate-300">Company Style</Label>
             <Select
               value={companyStyle ?? 'none'}
               onValueChange={v => setCompanyStyle(v === 'none' ? null : v as CompanyStyle)}
             >
-              <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+              <SelectTrigger className="bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white">
                 <SelectValue placeholder="General (none)" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-700">
-                <SelectItem value="none" className="text-slate-400 focus:bg-slate-800">General (none)</SelectItem>
+              <SelectContent className="bg-white dark:bg-slate-900 border-[#3D3229]/15 dark:border-slate-700">
+                <SelectItem value="none" className="text-[#3D3229] dark:text-slate-400 focus:bg-[#FAF8F5] dark:focus:bg-slate-800">General (none)</SelectItem>
                 {COMPANY_STYLE_OPTIONS.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-slate-200 focus:bg-slate-800">
+                  <SelectItem key={opt.value} value={opt.value} className="text-[#3D3229] dark:text-slate-200 focus:bg-[#FAF8F5] dark:focus:bg-slate-800">
                     {opt.label}
                   </SelectItem>
                 ))}
@@ -415,20 +415,20 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
 
           {/* Role Focus */}
           <div className="sm:col-span-2 space-y-1.5">
-            <Label htmlFor="role-focus" className="text-slate-300">Role Focus <span className="text-slate-500 font-normal">(optional)</span></Label>
+            <Label htmlFor="role-focus" className="text-[#3D3229] dark:text-slate-300">Role Focus <span className="text-[#8B7355] dark:text-slate-500 font-normal">(optional)</span></Label>
             <Input
               id="role-focus"
               value={roleFocus}
               onChange={e => setRoleFocus(e.target.value)}
               placeholder="e.g. Senior Software Engineer"
-              className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+              className="bg-white dark:bg-slate-800/50 border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500"
             />
           </div>
         </div>
       </section>
 
       {/* ── Section 2: Archetype ─────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <section className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
         <SectionHeading
           title="Archetype Base"
           description="Choose a starting personality. You can fine-tune every trait below."
@@ -443,22 +443,22 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
                 'text-left rounded-lg border p-3 transition-all',
                 archetype === key
                   ? 'border-orange-500 bg-orange-500/10'
-                  : 'border-slate-700 bg-slate-800/30 hover:border-slate-600'
+                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/3 dark:bg-slate-800/30 hover:border-slate-600'
               )}
             >
-              <p className="text-sm font-semibold text-white">{data.name}</p>
-              <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{data.description}</p>
+              <p className="text-sm font-semibold text-[#3D3229] dark:text-white">{data.name}</p>
+              <p className="text-xs text-[#6B5744] dark:text-slate-400 mt-0.5 line-clamp-2">{data.description}</p>
             </button>
           ))}
         </div>
-        <p className="text-xs text-slate-500 mt-3 flex items-center gap-1.5">
+        <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-3 flex items-center gap-1.5">
           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
           Selecting an archetype loads its default personality, voice, and tags — you can change everything after.
         </p>
       </section>
 
       {/* ── Section 3: Personality ───────────────────────────────────────────── */}
-      <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <section className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
         <SectionHeading
           title="Personality Traits"
           description="Fine-tune how this interviewer behaves on a 0–100 scale."
@@ -476,7 +476,7 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
       </section>
 
       {/* ── Section 4: Communication & Difficulty ────────────────────────────── */}
-      <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <section className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
         <SectionHeading
           title="Communication Style & Difficulty"
           description="Set how they communicate and how hard the session will be."
@@ -484,7 +484,7 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
         <div className="space-y-6">
           {/* Communication style */}
           <div className="space-y-2">
-            <Label className="text-slate-300">Communication Style</Label>
+            <Label className="text-[#3D3229] dark:text-slate-300">Communication Style</Label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {COMMUNICATION_STYLE_OPTIONS.map(opt => (
                 <button
@@ -495,11 +495,11 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
                     'rounded-lg border p-2.5 text-left transition-all',
                     commStyle === opt.value
                       ? 'border-orange-500 bg-orange-500/10'
-                      : 'border-slate-700 bg-slate-800/30 hover:border-slate-600'
+                      : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/3 dark:bg-slate-800/30 hover:border-slate-600'
                   )}
                 >
-                  <p className="text-xs font-semibold text-white">{opt.label}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{opt.description}</p>
+                  <p className="text-xs font-semibold text-[#3D3229] dark:text-white">{opt.label}</p>
+                  <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-0.5">{opt.description}</p>
                 </button>
               ))}
             </div>
@@ -509,21 +509,21 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-sm text-slate-300">Formality</Label>
+                <Label className="text-sm text-[#3D3229] dark:text-slate-300">Formality</Label>
                 <span className="text-sm font-mono text-orange-400">{formality}</span>
               </div>
               <Slider min={0} max={100} step={5} value={[formality]} onValueChange={([v]) => setFormality(v)}
                 className="[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500 [&_.bg-primary]:bg-orange-500" />
-              <div className="flex justify-between text-xs text-slate-500"><span>Casual</span><span>Very Formal</span></div>
+              <div className="flex justify-between text-xs text-[#8B7355] dark:text-slate-500"><span>Casual</span><span>Very Formal</span></div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-sm text-slate-300">Verbosity</Label>
+                <Label className="text-sm text-[#3D3229] dark:text-slate-300">Verbosity</Label>
                 <span className="text-sm font-mono text-orange-400">{verbosity}</span>
               </div>
               <Slider min={0} max={100} step={5} value={[verbosity]} onValueChange={([v]) => setVerbosity(v)}
                 className="[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500 [&_.bg-primary]:bg-orange-500" />
-              <div className="flex justify-between text-xs text-slate-500"><span>Brief</span><span>Detailed</span></div>
+              <div className="flex justify-between text-xs text-[#8B7355] dark:text-slate-500"><span>Brief</span><span>Detailed</span></div>
             </div>
           </div>
 
@@ -536,7 +536,7 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
             ]).map(p => (
               <div key={p.key} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm text-slate-300">{p.label}</Label>
+                  <Label className="text-sm text-[#3D3229] dark:text-slate-300">{p.label}</Label>
                   <span className="text-sm font-mono text-orange-400">{questionPatterns[p.key]}</span>
                 </div>
                 <Slider
@@ -545,7 +545,7 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
                   onValueChange={([v]) => setQuestionPatterns(prev => ({ ...prev, [p.key]: v }))}
                   className="[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500 [&_.bg-primary]:bg-orange-500"
                 />
-                <div className="flex justify-between text-xs text-slate-500"><span>{p.low}</span><span>{p.high}</span></div>
+                <div className="flex justify-between text-xs text-[#8B7355] dark:text-slate-500"><span>{p.low}</span><span>{p.high}</span></div>
               </div>
             ))}
           </div>
@@ -553,20 +553,20 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
           {/* Difficulty */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-slate-300">Difficulty</Label>
+              <Label className="text-[#3D3229] dark:text-slate-300">Difficulty</Label>
               <span className={cn('text-sm font-semibold', difficultyInfo.color)}>
                 {difficultyLevel}/10 — {difficultyInfo.label}
               </span>
             </div>
             <Slider min={1} max={10} step={1} value={[difficultyLevel]} onValueChange={([v]) => setDifficultyLevel(v)}
               className="[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500 [&_.bg-primary]:bg-orange-500" />
-            <div className="flex justify-between text-xs text-slate-500"><span>Very Easy</span><span>Expert</span></div>
+            <div className="flex justify-between text-xs text-[#8B7355] dark:text-slate-500"><span>Very Easy</span><span>Expert</span></div>
           </div>
         </div>
       </section>
 
       {/* ── Section 5: Voice ──────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <section className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
         <SectionHeading
           title="Voice"
           description="Choose the voice used when voice mode is active."
@@ -581,19 +581,19 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
                 'rounded-lg border p-3 text-left transition-all',
                 voiceId === voice.id
                   ? 'border-orange-500 bg-orange-500/10'
-                  : 'border-slate-700 bg-slate-800/30 hover:border-slate-600'
+                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/3 dark:bg-slate-800/30 hover:border-slate-600'
               )}
             >
-              <p className="text-sm font-semibold text-white">{voice.name}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{voice.description}</p>
-              <p className="text-xs text-slate-500 mt-0.5 capitalize">{voice.tone} · {voice.gender}</p>
+              <p className="text-sm font-semibold text-[#3D3229] dark:text-white">{voice.name}</p>
+              <p className="text-xs text-[#6B5744] dark:text-slate-400 mt-0.5">{voice.description}</p>
+              <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-0.5 capitalize">{voice.tone} · {voice.gender}</p>
             </button>
           ))}
         </div>
       </section>
 
       {/* ── Section 6: Behaviour Flags ───────────────────────────────────────── */}
-      <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+      <section className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
         <SectionHeading
           title="Behaviour Flags"
           description="What triggers this interviewer's reactions. Up to 8 per category."
@@ -637,7 +637,7 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
       {/* ── Actions ───────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4 pb-8">
         <Link href="/interviewers">
-          <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white">
+          <Button variant="outline" className="border-[#3D3229]/15 dark:border-slate-700 text-[#3D3229] dark:text-slate-300 hover:text-[#3D3229] dark:hover:text-white">
             <ChevronLeft className="h-4 w-4" />
             Cancel
           </Button>
@@ -645,7 +645,7 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
         <Button
           onClick={handleSubmit}
           disabled={isSaving || !name.trim()}
-          className="bg-orange-500 hover:bg-orange-600 text-white min-w-32"
+          className="bg-orange-500 hover:bg-orange-600 text-[#3D3229] dark:text-white min-w-32"
         >
           {isSaving ? (
             <span className="flex items-center gap-2">
@@ -669,8 +669,8 @@ export default function CreateInterviewerFormPage(): React.JSX.Element {
   return (
     <div className="flex items-center justify-center min-h-[50vh]">
       <div className="text-center">
-        <User className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-        <p className="text-slate-400">Loading…</p>
+        <User className="h-8 w-8 text-[#8B7355] dark:text-slate-600 mx-auto mb-3" />
+        <p className="text-[#6B5744] dark:text-slate-400">Loading…</p>
       </div>
     </div>
   );

@@ -129,7 +129,7 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps): R
             ? 'border-orange-500 bg-orange-500/10'
             : selectedFile
             ? 'border-green-500/50 bg-green-500/5'
-            : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/50'
+            : 'border-[#3D3229]/15 dark:border-slate-700 hover:border-slate-600 hover:bg-[#FAF8F5] dark:hover:bg-slate-800/50'
         )}
       >
         <input
@@ -144,8 +144,8 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps): R
           <div className="flex items-center justify-center gap-3">
             <FileText className="h-8 w-8 text-green-500" />
             <div className="text-left">
-              <p className="font-medium text-white">{selectedFile.name}</p>
-              <p className="text-sm text-slate-400">
+              <p className="font-medium text-[#3D3229] dark:text-white">{selectedFile.name}</p>
+              <p className="text-sm text-[#6B5744] dark:text-slate-400">
                 {(selectedFile.size / 1024).toFixed(1)} KB
               </p>
             </div>
@@ -155,18 +155,18 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps): R
                 e.stopPropagation();
                 clearFile();
               }}
-              className="ml-4 rounded-full p-1 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+              className="ml-4 rounded-full p-1 text-[#6B5744] dark:text-slate-400 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700 hover:text-[#3D3229] dark:hover:text-white transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         ) : (
           <>
-            <Upload className="h-10 w-10 text-slate-500 mx-auto mb-3" />
-            <p className="text-slate-300 font-medium">
+            <Upload className="h-10 w-10 text-[#8B7355] dark:text-slate-500 mx-auto mb-3" />
+            <p className="text-[#6B5744] dark:text-slate-300 font-medium">
               Drop your resume here or click to browse
             </p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-[#8B7355] dark:text-slate-500 mt-1">
               PDF, TXT, DOC, or DOCX up to 5MB
             </p>
           </>
@@ -183,8 +183,8 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps): R
 
       {/* Target Role (Optional) */}
       <div>
-        <label htmlFor="targetRole" className="block text-sm font-medium text-slate-300 mb-1.5">
-          Target Role <span className="text-slate-500">(optional)</span>
+        <label htmlFor="targetRole" className="block text-sm font-medium text-[#6B5744] dark:text-slate-300 mb-1.5">
+          Target Role <span className="text-[#8B7355] dark:text-slate-500">(optional)</span>
         </label>
         <input
           id="targetRole"
@@ -192,9 +192,9 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps): R
           value={targetRole}
           onChange={(e) => setTargetRole(e.target.value)}
           placeholder="e.g., Senior Software Engineer"
-          className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+          className="w-full rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 px-4 py-2.5 text-[#3D3229] dark:text-slate-900 dark:text-slate-100 placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
         />
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-1">
           This helps tailor questions to your career goals
         </p>
       </div>
@@ -203,7 +203,7 @@ export function ResumeUploadForm({ existingResumeId }: ResumeUploadFormProps): R
       <button
         type="submit"
         disabled={!selectedFile || isUploading}
-        className="w-full rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isUploading ? (
           <>

@@ -39,7 +39,7 @@ export default async function NegotiatePage(): Promise<React.JSX.Element> {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#3D3229] dark:text-white flex items-center gap-2">
             <DollarSign className="h-7 w-7 text-orange-400" />
             Salary Negotiation Prep
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
@@ -47,7 +47,7 @@ export default async function NegotiatePage(): Promise<React.JSX.Element> {
               Premium
             </span>
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-[#3D3229]/70 dark:text-slate-400 mt-1 text-base">
             Practice negotiating your offer against a realistic AI recruiter. Get scored on confidence, framing, and strategy.
           </p>
         </div>

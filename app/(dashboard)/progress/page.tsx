@@ -15,6 +15,9 @@ import {
 import { getCurrentUser, getUserProgress, getUserSessions } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils/cn';
 import { format, startOfWeek, eachDayOfInterval } from 'date-fns';
+import { buildFullBadgeList } from '@/lib/progress/badge-service';
+import { BadgeGrid } from '@/components/gamification/badge-grid';
+import type { StoredBadge } from '@/lib/progress/badge-service';
 
 export const metadata: Metadata = {
   title: 'Progress',
@@ -100,8 +103,9 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
     avgScore: data.scoredCount > 0 ? Math.round(data.totalScore / data.scoredCount) : 0,
   })).sort((a, b) => b.count - a.count);
 
-  // Badges
-  const badges = progress?.badges ?? [];
+  // Badges — build full catalog with earned status merged in
+  const earnedBadges = (progress?.badges as StoredBadge[] | null) ?? [];
+  const allBadges = buildFullBadgeList(earnedBadges);
 
   return (
     <div className="space-y-6">
@@ -155,9 +159,9 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
               <p className="text-xs text-[#8B7355] dark:text-slate-500 mb-2">{day.day}</p>
               <div
                 className={cn(
-                  'aspect-square rounded-lg flex items-center justify-center text-sm font-medium',
+                  'h-10 w-full rounded-lg flex items-center justify-center text-sm font-medium',
                   day.count === 0
-                    ? 'bg-[#FAF8F5] dark:bg-slate-800 text-[#8B7355] dark:text-slate-500 border border-[#3D3229]/8 dark:border-transparent'
+                    ? 'bg-[#EDE8E0] dark:bg-slate-800 text-[#8B7355] dark:text-slate-500'
                     : day.count === 1
                     ? 'bg-[#8B5A2B]/15 text-[#8B5A2B] dark:bg-orange-500/20 dark:text-orange-400'
                     : day.count === 2
@@ -270,38 +274,11 @@ export default async function ProgressPage(): Promise<React.JSX.Element> {
           <Award className="h-5 w-5 text-[#8B5A2B] dark:text-slate-400" />
           <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white">Badges</h2>
         </div>
-        {badges.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {badges.map((badge) => (
-              <div
-                key={badge.id}
-                className="rounded-xl border border-[#3D3229]/10 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 p-4 text-center"
-              >
-                <span className="text-3xl">{badge.icon}</span>
-                <p className="font-semibold text-[#3D3229] dark:text-white mt-2">{badge.name}</p>
-                <p className="text-xs text-[#6B5744] dark:text-slate-400 mt-1">{badge.description}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { name: 'First Interview', icon: '🎯', desc: 'Complete your first interview' },
-              { name: '5 Day Streak', icon: '🔥', desc: 'Practice 5 days in a row' },
-              { name: 'Score 80+', icon: '⭐', desc: 'Get 80% or higher' },
-              { name: 'Hour Master', icon: '⏱️', desc: 'Practice for 10+ hours' },
-            ].map((badge) => (
-              <div
-                key={badge.name}
-                className="rounded-xl border border-[#3D3229]/8 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/30 p-4 text-center opacity-50"
-              >
-                <span className="text-3xl grayscale">{badge.icon}</span>
-                <p className="font-medium text-[#6B5744] dark:text-slate-400 mt-2">{badge.name}</p>
-                <p className="text-xs text-[#8B7355] dark:text-slate-500 mt-1">{badge.desc}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        <BadgeGrid
+          badges={allBadges}
+          showLocked={true}
+          columns={4}
+        />
       </div>
     </div>
   );
