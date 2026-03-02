@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     config.resolve = config.resolve ?? {};
     config.resolve.alias = {
       ...(config.resolve.alias as Record<string, unknown>),
-      canvas: false,
+      canvas: false as unknown as string,
     };
     return config;
   },

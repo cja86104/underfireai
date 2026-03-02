@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Flame, Loader2, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { signInWithEmail, signUpWithEmail, signInWithOAuth } from '@/lib/client';
+import { signInWithEmail, signUpWithEmail } from '@/lib/client';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -51,17 +51,6 @@ export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
       const message = error instanceof Error ? error.message : 'Something went wrong';
       toast.error(message);
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOAuthSignIn = async (provider: 'google' | 'github'): Promise<void> => {
-    setIsLoading(true);
-    try {
-      await signInWithOAuth(provider);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Something went wrong';
-      toast.error(message);
       setIsLoading(false);
     }
   };
