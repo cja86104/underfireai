@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
@@ -52,6 +52,7 @@ interface InterviewSetupFormProps {
   hasVulnerabilityScan?: boolean;
   vulnerabilityCount?: number;
   savedJobDescriptions?: SavedJobDescription[];
+  focusClaim?: string | null;
 }
 
 const INTERVIEW_TYPES: { value: InterviewType; label: string; description: string; premiumOnly?: boolean }[] = [
@@ -146,6 +147,7 @@ export function InterviewSetupForm({
   hasVulnerabilityScan = false,
   vulnerabilityCount = 0,
   savedJobDescriptions = [],
+  focusClaim = null,
 }: InterviewSetupFormProps): React.JSX.Element {
   const router  = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -153,6 +155,13 @@ export function InterviewSetupForm({
   // ── Resume targeting state (Premium) ────────────────────────────────────────
   const [targetResumeWeakSpots, setTargetResumeWeakSpots] = useState(false);
   const [targetJobDescriptionId, setTargetJobDescriptionId] = useState<string | null>(null);
+
+  // Auto-enable resume weak spot targeting when arriving from the vulnerability card
+  useEffect(() => {
+    if (focusClaim && subscriptionTier === 'premium') {
+      setTargetResumeWeakSpots(true);
+    }
+  }, [focusClaim, subscriptionTier]);
 
   // ── Standard form state ────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
@@ -274,6 +283,32 @@ export function InterviewSetupForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10 max-w-[1200px] mx-auto">
+
+      {/* ── Focus Claim Banner (from vulnerability card deep-link) ─────────── */}
+      {focusClaim && (
+        <div className="flex items-start gap-4 rounded-2xl border border-amber-400/50 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600/40 px-6 py-5">
+          <div className="flex-shrink-0 rounded-xl bg-amber-100 dark:bg-amber-900/50 p-2.5 mt-0.5">
+            <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-amber-900 dark:text-amber-300 text-sm">
+              Practicing a resume vulnerability
+            </p>
+            <p className="text-amber-800 dark:text-amber-400/90 text-sm mt-1 italic truncate">
+              &ldquo;{focusClaim}&rdquo;
+            </p>
+            {subscriptionTier === 'premium' ? (
+              <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
+                Resume targeting has been enabled automatically — the interviewer will probe this claim.
+              </p>
+            ) : (
+              <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
+                Upgrade to Premium to have the AI specifically probe this claim during your session.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Interview Type ───────────────────────────────────────────────── */}
       <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">

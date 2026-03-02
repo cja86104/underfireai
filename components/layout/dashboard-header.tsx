@@ -106,7 +106,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps): React.JSX.Eleme
                   {/* Menu items */}
                   <div className="py-1">
                     <Link
-                      href="/settings"
+                      href="/settings?tab=profile"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-2 text-sm text-[#6B5744] dark:text-slate-300 hover:bg-[#FAF8F5] dark:hover:bg-slate-700 hover:text-[#3D3229] dark:hover:text-white transition-colors"
                     >

@@ -67,7 +67,7 @@ export function InterviewerActions({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-800 hover:text-white transition-colors"
+        className="rounded-lg p-1.5 text-[#8B7355] dark:text-slate-500 hover:bg-[#3D3229]/8 dark:hover:bg-slate-800 hover:text-[#3D3229] dark:hover:text-white transition-colors"
         disabled={isDeleting}
       >
         <MoreVertical className="h-4 w-4" />
@@ -79,11 +79,11 @@ export function InterviewerActions({
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-1 w-48 rounded-lg border border-slate-700 bg-slate-800 py-1 shadow-lg z-20">
+          <div className="absolute right-0 mt-1 w-48 rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800 py-1 shadow-lg z-20">
             <button
               type="button"
               onClick={handleStartInterview}
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[#3D3229] dark:text-slate-300 hover:bg-[#FAF8F5] dark:hover:bg-slate-700 hover:text-[#3D3229] dark:hover:text-white transition-colors"
             >
               <MessageSquare className="h-4 w-4" />
               Start Interview
@@ -94,7 +94,7 @@ export function InterviewerActions({
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className={cn(
-                  'flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 transition-colors',
+                  'flex w-full items-center gap-2 px-3 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-[#FAF8F5] dark:hover:bg-slate-700 hover:text-red-600 dark:hover:text-red-300 transition-colors',
                   isDeleting && 'opacity-50 cursor-not-allowed'
                 )}
               >

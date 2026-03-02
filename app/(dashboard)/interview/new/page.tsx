@@ -16,7 +16,17 @@ export const metadata: Metadata = {
   description: 'Start a new mock interview session.',
 };
 
-export default async function NewInterviewPage(): Promise<React.JSX.Element> {
+export default async function NewInterviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}): Promise<React.JSX.Element> {
+  const resolvedParams = await searchParams;
+  const focusClaim =
+    resolvedParams.focus === 'vulnerability' && resolvedParams.claim
+      ? decodeURIComponent(resolvedParams.claim)
+      : null;
+
   const user = await getCurrentUser();
 
   if (!user) {
@@ -142,6 +152,7 @@ export default async function NewInterviewPage(): Promise<React.JSX.Element> {
         hasVulnerabilityScan={hasVulnerabilityScan}
         vulnerabilityCount={vulnerabilityCount}
         savedJobDescriptions={savedJobDescriptions}
+        focusClaim={focusClaim}
       />
     </div>
   );

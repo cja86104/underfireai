@@ -94,7 +94,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-[#3D3229] dark:text-white">
-                  {subscription.interviewsRemaining} free interviews remaining this month
+                  {subscription.interviewsRemaining ?? 0} free interviews remaining this month
                 </h3>
                 <p className="text-lg text-[#3D3229] dark:text-slate-200 mt-2">
                   Upgrade to Pro for unlimited interviews and voice mode

@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'segmind.com',
+        hostname: 'images.unsplash.com',
         pathname: '/**',
       },
     ],

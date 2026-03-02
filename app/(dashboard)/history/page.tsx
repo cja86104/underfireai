@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import {
   Clock,
   Calendar,
   TrendingUp,
   ChevronRight,
   MessageSquare,
+  Search,
 } from 'lucide-react';
 import { getCurrentUser, getUserSessions } from '@/lib/supabase/server';
 import { format } from 'date-fns';
@@ -56,7 +58,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps): P
           completedSessions.reduce(
             (acc, s) => acc + (s.session_scores?.overall_score ?? 0),
             0
-          ) / (completedSessions.filter((s) => s.session_scores?.overall_score).length || 1)
+          ) / (completedSessions.filter((s) => s.session_scores?.overall_score != null).length || 1)
         )
       : 0;
 
@@ -129,7 +131,18 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps): P
       <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 overflow-hidden shadow-sm">
         <div className="p-4 border-b border-[#3D3229]/8 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <HistorySearch />
+            <Suspense
+              fallback={
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8B7355] dark:text-slate-500" />
+                  <div className="w-full rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 pl-10 pr-4 py-2 text-sm text-[#8B7355] dark:text-slate-500">
+                    Search by interviewer, role, company...
+                  </div>
+                </div>
+              }
+            >
+              <HistorySearch />
+            </Suspense>
             {searchQuery && (
               <span className="text-sm text-[#6B5744] dark:text-slate-400">
                 {sessions.length} result{sessions.length !== 1 ? 's' : ''} for &quot;{searchQuery}&quot;

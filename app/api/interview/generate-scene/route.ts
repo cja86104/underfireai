@@ -3,13 +3,22 @@ import { getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
 import { COMPANY_STYLE_MODIFIERS } from '@/types/interviewer';
-import { isSegmindConfigured, generateSceneImage } from '@/lib/image/segmind';
 import type { CompanyStyle, InterviewType } from '@/types/database';
+
+// ── Stock scene images (one per company style) ────────────────────────────────
+// Curated Unsplash photos — replace with local /public/scenes/<style>.jpg if preferred
+const SCENE_STOCK_IMAGES: Record<CompanyStyle, string> = {
+  faang:       'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+  startup:     'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+  consulting:  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
+  enterprise:  'https://images.unsplash.com/photo-1568992687947-868a62a9f521?auto=format&fit=crop&w=1200&q=80',
+  agency:      'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=1200&q=80',
+  government:  'https://images.unsplash.com/photo-1477925518523-ad7de26ede5b?auto=format&fit=crop&w=1200&q=80',
+};
 
 interface GenerateSceneRequest {
   companyStyle: CompanyStyle;
   interviewType: InterviewType;
-  generateImage?: boolean;
 }
 
 interface SceneData {
@@ -39,7 +48,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const body = await request.json() as GenerateSceneRequest;
-    const { companyStyle, interviewType, generateImage = true } = body;
+    const { companyStyle, interviewType } = body;
 
     // Validate company style
     const validCompanyStyles: CompanyStyle[] = [
@@ -115,29 +124,12 @@ Return ONLY valid JSON.`;
       scene = getDefaultScene(companyStyle);
     }
 
-    // Generate image if requested and Segmind is configured
-    let imageData: { base64: string; seed: number } | null = null;
-
-    if (generateImage && isSegmindConfigured()) {
-      try {
-        const imagePrompt = `${scene.description} ${scene.details.join('. ')}`;
-        imageData = await generateSceneImage(imagePrompt, companyStyle);
-      } catch (imageError) {
-        console.error('Error generating scene image:', imageError);
-        // Continue without image - don't fail the whole request
-      }
-    }
+    // Return stock image URL for this company style
+    const imageUrl = SCENE_STOCK_IMAGES[companyStyle];
 
     return NextResponse.json({
       scene,
-      image: imageData ? {
-        base64: imageData.base64,
-        seed: imageData.seed,
-        format: 'png',
-        width: 1024,
-        height: 768,
-      } : null,
-      imageAvailable: isSegmindConfigured(),
+      imageUrl,
     });
 
   } catch (error) {

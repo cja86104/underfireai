@@ -183,15 +183,15 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="rounded-lg bg-[#FAF8F5] border border-[#3D3229]/8 p-2">
-                        <p className="text-xs text-[#8B7355]">Difficulty</p>
-                        <p className="font-medium text-[#3D3229]">
+                      <div className="rounded-lg bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/8 dark:border-slate-700 p-2">
+                        <p className="text-xs text-[#8B7355] dark:text-slate-400">Difficulty</p>
+                        <p className="font-medium text-[#3D3229] dark:text-white">
                           {interviewer.difficulty_level}/10
                         </p>
                       </div>
-                      <div className="rounded-lg bg-[#FAF8F5] border border-[#3D3229]/8 p-2">
-                        <p className="text-xs text-[#8B7355]">Style</p>
-                        <p className="font-medium text-[#3D3229] capitalize">
+                      <div className="rounded-lg bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/8 dark:border-slate-700 p-2">
+                        <p className="text-xs text-[#8B7355] dark:text-slate-400">Style</p>
+                        <p className="font-medium text-[#3D3229] dark:text-white capitalize">
                           {interviewer.company_style?.replace('_', ' ') ?? 'General'}
                         </p>
                       </div>

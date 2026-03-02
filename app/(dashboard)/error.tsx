@@ -22,10 +22,10 @@ export default function DashboardError({
           <AlertTriangle className="h-10 w-10 text-amber-500" />
         </div>
 
-        <h2 className="text-xl font-semibold text-white mb-2">
+        <h2 className="text-xl font-semibold text-[#3D3229] dark:text-white mb-2">
           Something went wrong
         </h2>
-        <p className="text-slate-400 mb-6">
+        <p className="text-[#8B7355] dark:text-slate-400 mb-6">
           We had trouble loading this page. This might be a temporary issue.
         </p>
 
@@ -47,7 +47,7 @@ export default function DashboardError({
         </div>
 
         {error.digest && (
-          <p className="mt-6 text-xs text-slate-500 font-mono">
+          <p className="mt-6 text-xs text-[#8B7355] dark:text-slate-500 font-mono">
             Reference: {error.digest}
           </p>
         )}
