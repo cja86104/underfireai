@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Flame,
   Loader2,
@@ -46,7 +47,6 @@ interface InterviewSetupFormProps {
   interviewers: Interviewer[];
   hasResume: boolean;
   resumeSkills: string[];
-  /** True if user has purchased credits (unlocks all features) */
   hasPurchased: boolean;
   voiceModeEnabled: boolean;
   hasVulnerabilityScan?: boolean;
@@ -106,7 +106,6 @@ const SESSION_LENGTHS: {
   },
 ];
 
-// ── Premium: archetype options ─────────────────────────────────────────────────
 const ARCHETYPE_OPTIONS: { value: InterviewerArchetype; label: string; description: string }[] = [
   { value: 'skeptic',          label: 'Skeptic',          description: 'Doubts everything, wants proof' },
   { value: 'griller',          label: 'Griller',          description: '5 levels deep on any topic' },
@@ -118,7 +117,6 @@ const ARCHETYPE_OPTIONS: { value: InterviewerArchetype; label: string; descripti
   { value: 'executive',        label: 'Executive',        description: 'Big picture & strategy' },
 ];
 
-// ── Premium: constraint options ────────────────────────────────────────────────
 const CONSTRAINT_OPTIONS: { value: string; label: string; description: string }[] = [
   { value: 'behavioral-only',   label: 'Behavioural Only',    description: 'No technical questions' },
   { value: 'compensation-push', label: 'Compensation Pushback', description: 'Challenges salary expectations' },
@@ -128,7 +126,6 @@ const CONSTRAINT_OPTIONS: { value: string; label: string; description: string }[
   { value: 'panel-dynamic',     label: 'Panel Dynamic',       description: 'Switches between supportive and critical' },
 ];
 
-// ── Premium: trait slider config ───────────────────────────────────────────────
 const TRAIT_SLIDERS: { key: keyof PersonalityBase; label: string; lowLabel: string; highLabel: string }[] = [
   { key: 'directness',       label: 'Directness',      lowLabel: 'Diplomatic', highLabel: 'Blunt' },
   { key: 'depth_preference', label: 'Depth',           lowLabel: 'Surface',    highLabel: 'Deep dives' },
@@ -152,18 +149,15 @@ export function InterviewSetupForm({
   const router  = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  // ── Resume targeting state ──────────────────────────────────────────────────
   const [targetResumeWeakSpots, setTargetResumeWeakSpots] = useState(false);
   const [targetJobDescriptionId, setTargetJobDescriptionId] = useState<string | null>(null);
 
-  // Auto-enable resume weak spot targeting when arriving from the vulnerability card
   useEffect(() => {
     if (focusClaim && hasPurchased) {
       setTargetResumeWeakSpots(true);
     }
   }, [focusClaim, hasPurchased]);
 
-  // ── Standard form state ────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
     interviewType:          'behavioral' as InterviewType,
     companyStyle:           'startup' as CompanyStyle,
@@ -176,19 +170,13 @@ export function InterviewSetupForm({
     generateNewInterviewer: true,
   });
 
-  // ── Advanced customization state ───────────────────────────────────────────
-  // archetype_mix: up to 2 selections; first is primary, second is blended in
   const [archetypeMix,   setArchetypeMix]   = useState<InterviewerArchetype[]>([]);
   const [constraints,    setConstraints]    = useState<string[]>([]);
-  // trait overrides: only the keys the user explicitly touches are sent
   const [traitOverrides, setTraitOverrides] = useState<Partial<PersonalityBase>>({});
-  // track which traits the user has enabled for override
   const [activeTraits,   setActiveTraits]   = useState<Set<keyof PersonalityBase>>(new Set());
-  // brief visual loading feedback on toggle actions
   const [togglingArchetype,   setTogglingArchetype]   = useState<InterviewerArchetype | null>(null);
   const [togglingConstraint,  setTogglingConstraint]  = useState<string | null>(null);
 
-  // ── Archetype toggle (max 2) ───────────────────────────────────────────────
   function toggleArchetype(value: InterviewerArchetype): void {
     setTogglingArchetype(value);
     setArchetypeMix((prev) => {
@@ -199,7 +187,6 @@ export function InterviewSetupForm({
     setTimeout(() => setTogglingArchetype(null), 150);
   }
 
-  // ── Constraint toggle ──────────────────────────────────────────────────────
   function toggleConstraint(value: string): void {
     setTogglingConstraint(value);
     setConstraints((prev) =>
@@ -208,7 +195,6 @@ export function InterviewSetupForm({
     setTimeout(() => setTogglingConstraint(null), 150);
   }
 
-  // ── Trait toggle + value change ────────────────────────────────────────────
   function toggleTrait(key: keyof PersonalityBase): void {
     setActiveTraits((prev) => {
       const next = new Set(prev);
@@ -231,7 +217,6 @@ export function InterviewSetupForm({
     setTraitOverrides((prev) => ({ ...prev, [key]: value }));
   }
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
@@ -249,12 +234,10 @@ export function InterviewSetupForm({
         generate_new_interviewer: formData.generateNewInterviewer,
       };
 
-      // Attach advanced customization fields when user has purchased and set values
       if (hasPurchased) {
         if (archetypeMix.length > 0)           payload.archetype_mix    = archetypeMix;
         if (constraints.length > 0)            payload.constraints      = constraints;
         if (Object.keys(traitOverrides).length > 0) payload.trait_overrides = traitOverrides;
-        // Resume targeting
         if (targetResumeWeakSpots)             payload.target_resume_weak_spots = true;
         if (targetJobDescriptionId)            payload.target_job_description_id = targetJobDescriptionId;
       }
@@ -282,814 +265,554 @@ export function InterviewSetupForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-10 max-w-[1200px] mx-auto">
+    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto">
 
-      {/* ── Focus Claim Banner (from vulnerability card deep-link) ─────────── */}
+      {/* Focus Claim Banner */}
       {focusClaim && (
-        <div className="flex items-start gap-4 rounded-2xl border border-amber-400/50 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600/40 px-6 py-5">
+        <div className="flex items-start gap-4 rounded-2xl border border-amber-400/50 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600/40 px-6 py-5 mb-8">
           <div className="flex-shrink-0 rounded-xl bg-amber-100 dark:bg-amber-900/50 p-2.5 mt-0.5">
             <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-amber-900 dark:text-amber-300 text-sm">
-              Practicing a resume vulnerability
+            <p className="font-semibold text-amber-900 dark:text-amber-300 text-sm">Practicing a resume vulnerability</p>
+            <p className="text-amber-800 dark:text-amber-400/90 text-sm mt-1 italic truncate">&ldquo;{focusClaim}&rdquo;</p>
+            <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
+              {hasPurchased ? 'Resume targeting has been enabled automatically.' : 'Purchase interview credits to have the AI specifically probe this claim.'}
             </p>
-            <p className="text-amber-800 dark:text-amber-400/90 text-sm mt-1 italic truncate">
-              &ldquo;{focusClaim}&rdquo;
-            </p>
-            {hasPurchased ? (
-              <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
-                Resume targeting has been enabled automatically — the interviewer will probe this claim.
-              </p>
-            ) : (
-              <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
-                Purchase interview credits to have the AI specifically probe this claim during your session.
-              </p>
-            )}
           </div>
         </div>
       )}
 
-      {/* ── Interview Type ───────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="rounded-xl bg-orange-500/10 p-3">
-            <MessageSquare className="h-8 w-8 text-orange-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Interview Type</h2>
-            <p className="text-lg text-[#3D3229] dark:text-slate-200">What kind of interview are you preparing for?</p>
-          </div>
-        </div>
+      {/* ══════════════════════════════════════════════════════════════════════
+          TWO COLUMN LAYOUT - Core Settings
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="grid lg:grid-cols-2 gap-8">
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {INTERVIEW_TYPES.map((type) => (
-            <button
-              key={type.value}
-              type="button"
-              onClick={() => setFormData({ ...formData, interviewType: type.value })}
-              className={cn(
-                'rounded-xl border p-5 text-left transition-colors relative',
-                formData.interviewType === type.value
-                  ? 'border-orange-500 bg-orange-500/10'
-                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
-              )}
-            >
-              <p className="text-lg font-bold text-[#3D3229] dark:text-white">{type.label}</p>
-              <p className="text-lg text-[#3D3229] dark:text-slate-200 mt-1">{type.description}</p>
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* ════════════════════════════════════════════════════════════════════
+            LEFT COLUMN
+        ════════════════════════════════════════════════════════════════════ */}
+        <div className="space-y-6">
 
-      {/* ── Company Style ────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="rounded-xl bg-purple-500/10 p-3">
-            <Building2 className="h-8 w-8 text-purple-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Company Style</h2>
-            <p className="text-lg text-[#3D3229] dark:text-slate-200">Match the interview culture</p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          {COMPANY_STYLES.map((style) => (
-            <button
-              key={style.value}
-              type="button"
-              onClick={() => setFormData({ ...formData, companyStyle: style.value })}
-              className={cn(
-                'rounded-full border px-6 py-3 text-lg font-semibold transition-colors',
-                formData.companyStyle === style.value
-                  ? 'border-purple-500 bg-purple-500/10 text-purple-600 dark:text-purple-400'
-                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 text-[#3D3229] dark:text-slate-200 hover:border-[#8B5A2B]'
-              )}
-            >
-              {style.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Target Position ──────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="rounded-xl bg-blue-500/10 p-3">
-            <Briefcase className="h-8 w-8 text-blue-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Target Position</h2>
-            <p className="text-lg text-[#3D3229] dark:text-slate-200">Optional: Customize for specific roles</p>
-          </div>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor="targetRole" className="block text-lg font-semibold text-[#3D3229] dark:text-slate-200 mb-2">
-              Role / Title
-            </label>
-            <input
-              id="targetRole"
-              type="text"
-              value={formData.targetRole}
-              onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
-              placeholder="e.g., Senior Software Engineer"
-              className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-5 py-4 text-lg text-[#3D3229] dark:text-slate-100 placeholder:text-[#3D3229]/50 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-            />
-          </div>
-          <div>
-            <label htmlFor="targetCompany" className="block text-lg font-semibold text-[#3D3229] dark:text-slate-200 mb-2">
-              Company (optional)
-            </label>
-            <input
-              id="targetCompany"
-              type="text"
-              value={formData.targetCompany}
-              onChange={(e) => setFormData({ ...formData, targetCompany: e.target.value })}
-              placeholder="e.g., Google, Stripe, etc."
-              className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-5 py-4 text-lg text-[#3D3229] dark:text-slate-100 placeholder:text-[#3D3229]/50 dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-            />
-          </div>
-        </div>
-
-        {hasResume && resumeSkills.length > 0 && (
-          <div className="mt-6 pt-6 border-t border-[#3D3229]/15 dark:border-slate-700">
-            <p className="text-lg text-[#3D3229] dark:text-slate-200 mb-3 font-medium">From your resume:</p>
-            <div className="flex flex-wrap gap-3">
-              {resumeSkills.slice(0, 8).map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded-full bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/10 dark:border-slate-700 px-4 py-2 text-base font-medium text-[#3D3229] dark:text-slate-200"
+          {/* Interview Type */}
+          <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-xl bg-orange-500/10 p-2">
+                <MessageSquare className="h-6 w-6 text-orange-500" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Interview Type</h2>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400">What kind of interview are you preparing for?</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {INTERVIEW_TYPES.map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, interviewType: type.value })}
+                  className={cn(
+                    'rounded-xl border px-4 py-3 text-left transition-colors',
+                    formData.interviewType === type.value
+                      ? 'border-orange-500 bg-orange-500/5 border-2'
+                      : 'border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#3D3229]/30'
+                  )}
                 >
-                  {skill}
-                </span>
+                  <p className={cn('font-semibold text-[#3D3229] dark:text-white', formData.interviewType === type.value && 'text-orange-600 dark:text-orange-400')}>{type.label}</p>
+                  <p className="text-sm text-[#6B5744] dark:text-slate-400">{type.description}</p>
+                </button>
               ))}
-              {resumeSkills.length > 8 && (
-                <span className="text-base text-[#3D3229] dark:text-slate-300 font-medium">+{resumeSkills.length - 8} more</span>
-              )}
             </div>
           </div>
-        )}
-      </div>
 
-      {/* ── Difficulty ───────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="rounded-xl bg-amber-500/10 p-3">
-            <Gauge className="h-8 w-8 text-amber-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Difficulty Level</h2>
-            <p className="text-lg text-[#3D3229] dark:text-slate-200">How challenging should this be?</p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {DIFFICULTY_LEVELS.map((level) => (
-            <button
-              key={level.value}
-              type="button"
-              onClick={() => setFormData({ ...formData, difficulty: level.value })}
-              className={cn(
-                'rounded-xl border p-5 text-left transition-colors',
-                formData.difficulty === level.value
-                  ? 'border-amber-500 bg-amber-500/10'
-                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
-              )}
-            >
-              <p className="text-lg font-bold text-[#3D3229] dark:text-white">{level.label}</p>
-              <p className="text-base text-[#3D3229] dark:text-slate-200 mt-1">{level.description}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Session Length ───────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="rounded-xl bg-emerald-500/10 p-3">
-            <Clock className="h-8 w-8 text-emerald-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Session Length</h2>
-            <p className="text-lg text-[#3D3229] dark:text-slate-200">How long do you want to practice?</p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          {SESSION_LENGTHS.map((length) => (
-            <button
-              key={length.value}
-              type="button"
-              onClick={() => setFormData({ ...formData, sessionLength: length.value })}
-              className={cn(
-                'rounded-xl border p-5 text-left transition-colors',
-                formData.sessionLength === length.value
-                  ? 'border-emerald-500 bg-emerald-500/10'
-                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
-              )}
-            >
-              <p className="text-lg font-bold text-[#3D3229] dark:text-white">{length.label}</p>
-              <p className="text-lg text-[#3D3229] dark:text-slate-200">{length.description}</p>
-              <p className="text-base text-[#3D3229]/70 dark:text-slate-300 mt-2">{length.questions}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Interviewer Selection ────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="rounded-xl bg-green-500/10 p-3">
-            <Users className="h-8 w-8 text-green-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Interviewer</h2>
-            <p className="text-lg text-[#3D3229] dark:text-slate-200">Generate a new personality or use an existing one</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <button
-            type="button"
-            onClick={() =>
-              setFormData({ ...formData, generateNewInterviewer: true, selectedInterviewerId: null })
-            }
-            className={cn(
-              'w-full rounded-xl border p-5 text-left transition-colors flex items-center gap-5',
-              formData.generateNewInterviewer
-                ? 'border-green-500 bg-green-500/10'
-                : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
-            )}
-          >
-            <div className="rounded-full bg-gradient-to-br from-orange-500 to-amber-500 p-3">
-              <Sparkles className="h-7 w-7 text-white" />
+          {/* Company Style */}
+          <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-xl bg-blue-500/10 p-2">
+                <Building2 className="h-6 w-6 text-blue-500" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Company Style</h2>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400">Match the interview culture</p>
+              </div>
             </div>
-            <div>
-              <p className="text-lg font-bold text-[#3D3229] dark:text-white">Generate New Interviewer</p>
-              <p className="text-lg text-[#3D3229] dark:text-slate-200">Create a fresh personality with hidden traits</p>
+            <div className="flex flex-wrap gap-2">
+              {COMPANY_STYLES.map((style) => (
+                <button
+                  key={style.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, companyStyle: style.value })}
+                  className={cn(
+                    'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                    formData.companyStyle === style.value
+                      ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 border-2'
+                      : 'border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-[#3D3229] dark:text-slate-300 hover:border-[#3D3229]/30'
+                  )}
+                >
+                  {style.label}
+                </button>
+              ))}
             </div>
-          </button>
+          </div>
 
-          {interviewers.length > 0 && (
-            <>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[#3D3229]/15 dark:border-slate-700" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white dark:bg-slate-900 px-4 text-lg text-[#3D3229] dark:text-slate-300 font-medium">or select existing</span>
+          {/* Target Position */}
+          <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-xl bg-purple-500/10 p-2">
+                <Briefcase className="h-6 w-6 text-purple-500" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Target Position</h2>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400">Optional: Customize for specific roles</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-[#6B5744] dark:text-slate-300 mb-2">Role / Title</label>
+                <input
+                  type="text"
+                  value={formData.targetRole}
+                  onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
+                  placeholder="e.g., Senior Software Engineer"
+                  className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#6B5744] dark:text-slate-300 mb-2">Company (optional)</label>
+                <input
+                  type="text"
+                  value={formData.targetCompany}
+                  onChange={(e) => setFormData({ ...formData, targetCompany: e.target.value })}
+                  placeholder="e.g., Google, Stripe, etc."
+                  className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                />
+              </div>
+            </div>
+            {resumeSkills.length > 0 && (
+              <div>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400 mb-2">From your resume:</p>
+                <div className="flex flex-wrap gap-2">
+                  {resumeSkills.slice(0, 8).map((skill) => (
+                    <span key={skill} className="rounded-full bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/10 dark:border-slate-700 px-3 py-1 text-sm text-[#3D3229] dark:text-slate-300">{skill}</span>
+                  ))}
+                  {resumeSkills.length > 8 && <span className="text-sm text-[#8B7355] dark:text-slate-500">+{resumeSkills.length - 8} more</span>}
                 </div>
               </div>
+            )}
+          </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {interviewers.slice(0, 4).map((interviewer) => (
+          {/* Difficulty & Session Length */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="rounded-xl bg-red-500/10 p-2">
+                  <Gauge className="h-6 w-6 text-red-500" />
+                </div>
+                <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Difficulty</h2>
+              </div>
+              <div className="space-y-2">
+                {DIFFICULTY_LEVELS.map((level) => (
                   <button
-                    key={interviewer.id}
+                    key={level.value}
                     type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        generateNewInterviewer:  false,
-                        selectedInterviewerId: interviewer.id,
-                      })
-                    }
+                    onClick={() => setFormData({ ...formData, difficulty: level.value })}
                     className={cn(
-                      'rounded-xl border p-5 text-left transition-colors flex items-center gap-4',
-                      !formData.generateNewInterviewer &&
-                        formData.selectedInterviewerId === interviewer.id
-                        ? 'border-green-500 bg-green-500/10'
-                        : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
+                      'w-full rounded-xl border px-4 py-3 text-left transition-colors',
+                      formData.difficulty === level.value
+                        ? 'border-orange-500 bg-orange-500/5 border-2'
+                        : 'border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#3D3229]/30'
                     )}
                   >
-                    <div className="relative h-14 w-14 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 flex items-center justify-center text-xl font-bold text-[#3D3229] dark:text-white overflow-hidden">
-                      {interviewer.avatar_url ? (
-                        <Image
-                          src={interviewer.avatar_url}
-                          alt={interviewer.name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        interviewer.name[0]
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-lg font-bold text-[#3D3229] dark:text-white truncate">{interviewer.name}</p>
-                      <p className="text-base text-[#3D3229] dark:text-slate-200 capitalize">
-                        {interviewer.interview_type.replace('_', ' ')} •{' '}
-                        {interviewer.total_sessions} sessions
-                      </p>
-                    </div>
+                    <p className={cn('font-medium text-[#3D3229] dark:text-white', formData.difficulty === level.value && 'font-semibold')}>{level.label}</p>
+                    <p className="text-xs text-[#6B5744] dark:text-slate-400">{level.description}</p>
                   </button>
                 ))}
               </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ── Custom Scenario Builder ───────────────────────────────────────── */}
-      {hasPurchased ? (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-8 space-y-10">
-
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <div className="rounded-xl bg-amber-500/10 p-3">
-              <Wand2 className="h-8 w-8 text-amber-500" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">
-                Custom Scenario Builder
-              </h2>
-              <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                Hand-pick archetype, add constraints, and dial individual traits
-              </p>
-            </div>
-          </div>
 
-          {/* Active scenario summary banner */}
-          {(archetypeMix.length > 0 || constraints.length > 0 || activeTraits.size > 0) && (
-            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
-              <p className="text-base font-bold text-amber-600 dark:text-amber-400 mb-2">Custom scenario active</p>
-              <div className="flex flex-wrap gap-x-6 gap-y-1">
-                {archetypeMix.length > 0 && (
-                  <p className="text-base text-amber-600 dark:text-amber-300">
-                    Archetypes: {archetypeMix.join(' + ')}
-                  </p>
-                )}
-                {constraints.length > 0 && (
-                  <p className="text-base text-amber-600 dark:text-amber-300">
-                    Constraints: {constraints.join(', ')}
-                  </p>
-                )}
-                {activeTraits.size > 0 && (
-                  <p className="text-base text-amber-600 dark:text-amber-300">
-                    Trait overrides: {activeTraits.size} active
-                  </p>
-                )}
+            <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="rounded-xl bg-green-500/10 p-2">
+                  <Clock className="h-6 w-6 text-green-500" />
+                </div>
+                <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Session Length</h2>
+              </div>
+              <div className="space-y-2">
+                {SESSION_LENGTHS.map((length) => (
+                  <button
+                    key={length.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, sessionLength: length.value })}
+                    className={cn(
+                      'w-full rounded-xl border px-4 py-3 text-left transition-colors',
+                      formData.sessionLength === length.value
+                        ? 'border-orange-500 bg-orange-500/5 border-2'
+                        : 'border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#3D3229]/30'
+                    )}
+                  >
+                    <p className={cn('font-medium text-[#3D3229] dark:text-white', formData.sessionLength === length.value && 'font-semibold')}>{length.label}</p>
+                    <p className="text-xs text-[#6B5744] dark:text-slate-400">{length.description} • {length.questions}</p>
+                  </button>
+                ))}
               </div>
             </div>
-          )}
-
-          {/* Archetype Mix */}
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Brain className="h-6 w-6 text-amber-500" />
-              <h3 className="text-lg font-bold text-[#3D3229] dark:text-white">Archetype Mix</h3>
-              {archetypeMix.length > 0 && (
-                <span className="text-base text-[#3D3229] dark:text-slate-300">
-                  ({archetypeMix.length}/2 selected
-                  {archetypeMix.length === 2 ? ' — personalities blended' : ''})
-                </span>
-              )}
-            </div>
-            <p className="text-base text-[#3D3229] dark:text-slate-200 mb-4">
-              Select up to 2 — first is the primary personality; second is blended in.
-              Leave empty for a random archetype (default Pro behaviour).
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {ARCHETYPE_OPTIONS.map((archetype) => {
-                const selectedIdx = archetypeMix.indexOf(archetype.value);
-                const isSelected  = selectedIdx !== -1;
-                const isDisabled  = !isSelected && archetypeMix.length >= 2;
-                return (
-                  <button
-                    key={archetype.value}
-                    type="button"
-                    onClick={() => toggleArchetype(archetype.value)}
-                    disabled={isDisabled || togglingArchetype === archetype.value}
-                    className={cn(
-                      'relative rounded-xl border p-4 text-left transition-all duration-150',
-                      togglingArchetype === archetype.value && 'scale-95 opacity-70',
-                      isSelected
-                        ? 'border-amber-500 bg-amber-500/10'
-                        : isDisabled
-                          ? 'border-[#3D3229]/10 dark:border-slate-800 bg-[#3D3229]/3 dark:bg-slate-800/30 opacity-40 cursor-not-allowed'
-                          : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-amber-400'
-                    )}
-                  >
-                    {isSelected && (
-                      <span className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-black">
-                        {selectedIdx + 1}
-                      </span>
-                    )}
-                    <p className="text-lg font-bold text-[#3D3229] dark:text-white pr-6">{archetype.label}</p>
-                    <p className="text-base text-[#3D3229] dark:text-slate-200 mt-1">{archetype.description}</p>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
-          {/* Constraints */}
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <AlertTriangle className="h-6 w-6 text-amber-500" />
-              <h3 className="text-lg font-bold text-[#3D3229] dark:text-white">Behavioural Constraints</h3>
-            </div>
-            <p className="text-base text-[#3D3229] dark:text-slate-200 mb-4">
-              Add modifiers that shape how the interviewer behaves throughout the session.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {CONSTRAINT_OPTIONS.map((constraint) => {
-                const isActive = constraints.includes(constraint.value);
-                return (
-                  <button
-                    key={constraint.value}
-                    type="button"
-                    onClick={() => toggleConstraint(constraint.value)}
-                    disabled={togglingConstraint === constraint.value}
-                    className={cn(
-                      'rounded-xl border p-4 text-left transition-all duration-150',
-                      togglingConstraint === constraint.value && 'scale-95 opacity-70',
-                      isActive
-                        ? 'border-orange-500 bg-orange-500/10'
-                        : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-amber-400'
-                    )}
-                  >
-                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">{constraint.label}</p>
-                    <p className="text-base text-[#3D3229] dark:text-slate-200 mt-1">{constraint.description}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Trait Overrides */}
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <SlidersHorizontal className="h-6 w-6 text-amber-500" />
-              <h3 className="text-lg font-bold text-[#3D3229] dark:text-white">Trait Overrides</h3>
-            </div>
-            <p className="text-base text-[#3D3229] dark:text-slate-200 mb-4">
-              Enable individual traits to override the archetype defaults. Disabled traits use
-              archetype + difficulty values.
-            </p>
-            <div className="space-y-5">
-              {TRAIT_SLIDERS.map((trait) => {
-                const isActive    = activeTraits.has(trait.key);
-                const sliderValue = traitOverrides[trait.key] ?? 50;
-                return (
-                  <div key={trait.key} className="flex items-center gap-5">
-                    {/* Enable toggle */}
-                    <button
-                      type="button"
-                      onClick={() => toggleTrait(trait.key)}
-                      className={cn(
-                        'relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors',
-                        isActive ? 'bg-amber-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          'inline-block h-5 w-5 transform rounded-full bg-white transition-transform',
-                          isActive ? 'translate-x-6' : 'translate-x-1'
-                        )}
-                      />
-                    </button>
-
-                    {/* Trait label */}
-                    <span
-                      className={cn(
-                        'w-36 text-lg font-semibold flex-shrink-0',
-                        isActive ? 'text-[#3D3229] dark:text-white' : 'text-[#3D3229]/50 dark:text-slate-500'
-                      )}
-                    >
-                      {trait.label}
-                    </span>
-
-                    {/* Slider + labels */}
-                    <div
-                      className={cn(
-                        'flex flex-1 items-center gap-3 transition-opacity',
-                        isActive ? 'opacity-100' : 'opacity-30 pointer-events-none'
-                      )}
-                    >
-                      <span className="text-base text-[#3D3229] dark:text-slate-300 w-20 text-right flex-shrink-0">
-                        {trait.lowLabel}
-                      </span>
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={5}
-                        value={sliderValue}
-                        onChange={(e) => setTraitValue(trait.key, Number(e.target.value))}
-                        disabled={!isActive}
-                        className="flex-1 accent-amber-500 h-2"
-                      />
-                      <span className="text-base text-[#3D3229] dark:text-slate-300 w-20 flex-shrink-0">
-                        {trait.highLabel}
-                      </span>
-                      <span className="text-base text-amber-600 dark:text-amber-400 font-bold font-mono w-10 text-right flex-shrink-0">
-                        {sliderValue}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
-      ) : (
-        /* Locked teaser for users who haven't purchased */
-        <div className="rounded-2xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/50 dark:bg-slate-900/30 p-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="rounded-xl bg-[#FAF8F5] dark:bg-slate-800 p-3">
-                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
+
+        {/* ════════════════════════════════════════════════════════════════════
+            RIGHT COLUMN
+        ════════════════════════════════════════════════════════════════════ */}
+        <div className="space-y-6">
+
+          {/* Interviewer Selection */}
+          <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-xl bg-[#6B5744]/10 dark:bg-slate-700 p-2">
+                <Users className="h-6 w-6 text-[#6B5744] dark:text-slate-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[#3D3229] dark:text-slate-300">
-                  Custom Scenario Builder
-                </h2>
-                <p className="text-lg text-[#3D3229] dark:text-slate-300">
-                  Hand-pick archetypes, add constraints, and dial individual personality traits
-                </p>
+                <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Interviewer</h2>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400">Generate a new personality or use an existing one</p>
               </div>
             </div>
-            <a
-              href="/settings?tab=billing"
-              className="flex-shrink-0 text-lg text-amber-500 hover:text-amber-400 font-semibold"
-            >
-              Buy Credits
-            </a>
-          </div>
-        </div>
-      )}
-      {/* ── Voice Mode ───────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={cn('rounded-xl p-3', voiceModeEnabled ? 'bg-cyan-500/10' : 'bg-[#FAF8F5] dark:bg-slate-800')}>
-              {voiceModeEnabled ? (
-                <Mic className="h-8 w-8 text-cyan-500" />
-              ) : (
-                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
-              )}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Voice Mode</h2>
-              <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                {voiceModeEnabled
-                  ? 'Practice speaking your answers out loud'
-                  : 'Upgrade to Pro for voice interviews'}
-              </p>
-            </div>
-          </div>
 
-          {voiceModeEnabled ? (
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, useVoiceMode: !formData.useVoiceMode })}
-              className={cn(
-                'relative inline-flex h-8 w-14 items-center rounded-full transition-colors',
-                formData.useVoiceMode ? 'bg-cyan-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
-              )}
-            >
-              <span
+            <div className="space-y-4">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, generateNewInterviewer: true, selectedInterviewerId: null })}
                 className={cn(
-                  'inline-block h-6 w-6 transform rounded-full bg-white transition-transform',
-                  formData.useVoiceMode ? 'translate-x-7' : 'translate-x-1'
+                  'w-full rounded-xl border p-4 text-left transition-all flex items-center gap-4 cursor-pointer',
+                  formData.generateNewInterviewer
+                    ? 'border-orange-500 bg-orange-500/10 border-2 shadow-lg shadow-orange-500/10'
+                    : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-orange-400 hover:bg-orange-500/5'
                 )}
-              />
-            </button>
-          ) : (
-            <a
-              href="/settings?tab=billing"
-              className="text-lg text-orange-500 hover:text-orange-400 font-semibold"
-            >
-              Upgrade
-            </a>
-          )}
-        </div>
-      </div>
-      {/* ── Resume Targeting ──────────────────────────────────────────────── */}
-      {hasPurchased ? (
-        <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="rounded-xl bg-purple-500/10 p-3">
-              <Shield className="h-8 w-8 text-purple-500" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">
-                Resume Targeting
-              </h2>
-              <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                Focus the interview on your resume weak points or job-specific gaps
-              </p>
+              >
+                <div className={cn('rounded-xl p-3 transition-colors', formData.generateNewInterviewer ? 'bg-orange-500' : 'bg-[#3D3229]/10 dark:bg-slate-700')}>
+                  <Sparkles className={cn('h-6 w-6', formData.generateNewInterviewer ? 'text-white' : 'text-[#6B5744] dark:text-slate-400')} />
+                </div>
+                <div className="flex-1">
+                  <p className={cn('font-bold', formData.generateNewInterviewer ? 'text-orange-600 dark:text-orange-400' : 'text-[#3D3229] dark:text-white')}>Generate New Interviewer</p>
+                  <p className="text-sm text-[#6B5744] dark:text-slate-400">Create a fresh personality with hidden traits</p>
+                </div>
+                {formData.generateNewInterviewer && (
+                  <div className="flex-shrink-0 h-5 w-5 rounded-full bg-orange-500 flex items-center justify-center">
+                    <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+              </button>
+
+              {interviewers.length > 0 && (
+                <>
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[#3D3229]/15 dark:border-slate-700" /></div>
+                    <div className="relative flex justify-center"><span className="bg-white dark:bg-slate-900 px-4 text-sm text-[#6B5744] dark:text-slate-400">or select existing</span></div>
+                  </div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {interviewers.slice(0, 4).map((interviewer) => (
+                      <button
+                        key={interviewer.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, generateNewInterviewer: false, selectedInterviewerId: interviewer.id })}
+                        className={cn(
+                          'w-full rounded-xl border p-3 text-left transition-all flex items-center gap-3 cursor-pointer',
+                          !formData.generateNewInterviewer && formData.selectedInterviewerId === interviewer.id
+                            ? 'border-orange-500 bg-orange-500/10 border-2'
+                            : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-orange-400'
+                        )}
+                      >
+                        <div className="relative h-10 w-10 rounded-full bg-[#6B5744] dark:bg-slate-600 flex items-center justify-center text-lg font-bold text-white overflow-hidden flex-shrink-0">
+                          {interviewer.avatar_url ? (
+                            <Image src={interviewer.avatar_url} alt={interviewer.name} fill className="object-cover" unoptimized />
+                          ) : (
+                            interviewer.name[0]
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-[#3D3229] dark:text-white truncate">{interviewer.name}</p>
+                          <p className="text-xs text-[#6B5744] dark:text-slate-400">{interviewer.total_sessions} sessions</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
-          <div className="space-y-5">
-            {/* Target Resume Weak Spots */}
-            {hasVulnerabilityScan && vulnerabilityCount > 0 && (
-              <div className="flex items-center justify-between p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50">
-                <div className="flex items-center gap-4">
-                  <AlertTriangle className="h-7 w-7 text-amber-500" />
+          {/* Voice Mode */}
+          <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn('rounded-xl p-2', voiceModeEnabled ? 'bg-cyan-500/10' : 'bg-[#FAF8F5] dark:bg-slate-800')}>
+                  {voiceModeEnabled ? <Mic className="h-6 w-6 text-cyan-500" /> : <Lock className="h-6 w-6 text-[#8B7355] dark:text-slate-400" />}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Voice Mode</h2>
+                  <p className="text-sm text-[#6B5744] dark:text-slate-400">{voiceModeEnabled ? 'Practice speaking your answers out loud' : 'Purchase credits for voice interviews'}</p>
+                </div>
+              </div>
+              {voiceModeEnabled ? (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, useVoiceMode: !formData.useVoiceMode })}
+                  className={cn('relative inline-flex h-8 w-14 items-center rounded-full transition-colors', formData.useVoiceMode ? 'bg-cyan-500' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
+                >
+                  <span className={cn('inline-block h-6 w-6 transform rounded-full bg-white transition-transform', formData.useVoiceMode ? 'translate-x-7' : 'translate-x-1')} />
+                </button>
+              ) : (
+                <Link href="/settings?tab=billing" className="text-sm text-orange-500 hover:text-orange-400 font-semibold">Buy Credits</Link>
+              )}
+            </div>
+          </div>
+
+          {/* Resume Targeting */}
+          {hasPurchased ? (
+            <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="rounded-xl bg-purple-500/10 p-2">
+                  <Target className="h-6 w-6 text-purple-500" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Resume Targeting</h2>
+                  <p className="text-sm text-[#6B5744] dark:text-slate-400">Focus on your resume weak points or job-specific gaps</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-purple-500/20 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-amber-500/10 p-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  </div>
                   <div>
-                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">Target Resume Weak Spots</p>
-                    <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                      Interviewer will probe {vulnerabilityCount} vulnerable claims from your resume
-                    </p>
+                    <p className="font-medium text-[#3D3229] dark:text-white text-sm">Target Resume Weak Spots</p>
+                    <p className="text-xs text-[#6B5744] dark:text-slate-400">{hasVulnerabilityScan ? `Interviewer will probe ${vulnerabilityCount} vulnerable claims` : 'Run a vulnerability scan on your resume first'}</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setTargetResumeWeakSpots(!targetResumeWeakSpots)}
-                  className={cn(
-                    'relative inline-flex h-8 w-14 items-center rounded-full transition-colors',
-                    targetResumeWeakSpots ? 'bg-purple-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
-                  )}
+                  disabled={!hasVulnerabilityScan}
+                  className={cn('relative inline-flex h-7 w-12 items-center rounded-full transition-colors', !hasVulnerabilityScan && 'opacity-50 cursor-not-allowed', targetResumeWeakSpots ? 'bg-purple-500' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
                 >
-                  <span
-                    className={cn(
-                      'inline-block h-6 w-6 transform rounded-full bg-white transition-transform',
-                      targetResumeWeakSpots ? 'translate-x-7' : 'translate-x-1'
-                    )}
-                  />
+                  <span className={cn('inline-block h-5 w-5 transform rounded-full bg-white transition-transform', targetResumeWeakSpots ? 'translate-x-6' : 'translate-x-1')} />
                 </button>
               </div>
-            )}
 
-            {!hasVulnerabilityScan && hasResume && (
-              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-center">
-                <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                  Run a vulnerability scan on your resume to enable targeted practice.
-                </p>
-                <a
-                  href="/dashboard"
-                  className="text-lg text-purple-500 hover:text-purple-400 mt-3 inline-block font-semibold"
-                >
-                  Go to Dashboard →
-                </a>
-              </div>
-            )}
-
-            {/* Target Job Description */}
-            {savedJobDescriptions.length > 0 && (
-              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50">
-                <div className="flex items-center gap-4 mb-4">
-                  <Target className="h-7 w-7 text-blue-500" />
-                  <div>
-                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">Practice for Job</p>
-                    <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                      Target gaps from a saved job description
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => setTargetJobDescriptionId(null)}
-                    className={cn(
-                      'w-full text-left rounded-xl border p-4 transition-colors',
-                      targetJobDescriptionId === null
-                        ? 'border-blue-500 bg-blue-500/10'
-                        : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#FAF8F5] dark:bg-slate-800/30 hover:border-[#8B5A2B]'
-                    )}
-                  >
-                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">No specific job</p>
-                    <p className="text-base text-[#3D3229] dark:text-slate-200">General interview practice</p>
-                  </button>
+              {savedJobDescriptions.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-[#6B5744] dark:text-slate-400">Or target a saved job description:</p>
                   {savedJobDescriptions.slice(0, 3).map((jd) => (
                     <button
                       key={jd.id}
                       type="button"
-                      onClick={() => setTargetJobDescriptionId(jd.id)}
+                      onClick={() => setTargetJobDescriptionId(targetJobDescriptionId === jd.id ? null : jd.id)}
                       className={cn(
-                        'w-full text-left rounded-xl border p-4 transition-colors',
-                        targetJobDescriptionId === jd.id
-                          ? 'border-blue-500 bg-blue-500/10'
-                          : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#FAF8F5] dark:bg-slate-800/30 hover:border-[#8B5A2B]'
+                        'w-full rounded-xl border p-3 text-left transition-colors flex items-center justify-between',
+                        targetJobDescriptionId === jd.id ? 'border-purple-500 bg-purple-500/10' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-purple-400'
                       )}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-lg font-bold text-[#3D3229] dark:text-white">
-                            {jd.roleTitle ?? 'Unknown Role'}
-                          </p>
-                          <p className="text-base text-[#3D3229] dark:text-slate-200">
-                            {jd.companyName ?? 'Unknown Company'}
-                          </p>
-                        </div>
-                        {jd.matchPercentage !== null && (
-                          <span
-                            className={cn(
-                              'text-base font-bold px-3 py-1 rounded-lg',
-                              jd.matchPercentage >= 80
-                                ? 'bg-green-500/20 text-green-600 dark:text-green-400'
-                                : jd.matchPercentage >= 60
-                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                                : 'bg-red-500/20 text-red-600 dark:text-red-400'
-                            )}
-                          >
-                            {jd.matchPercentage}% match
-                          </span>
-                        )}
+                      <div>
+                        <p className="font-medium text-[#3D3229] dark:text-white text-sm">{jd.roleTitle ?? 'Unknown Role'}</p>
+                        <p className="text-xs text-[#6B5744] dark:text-slate-400">{jd.companyName ?? 'Unknown Company'}</p>
                       </div>
+                      {jd.matchPercentage !== null && (
+                        <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', jd.matchPercentage >= 80 ? 'bg-green-500/20 text-green-600' : jd.matchPercentage >= 60 ? 'bg-amber-500/20 text-amber-600' : 'bg-red-500/20 text-red-600')}>{jd.matchPercentage}%</span>
+                      )}
                     </button>
                   ))}
-                  {savedJobDescriptions.length > 3 && (
-                    <a
-                      href="/job-analysis"
-                      className="block text-center text-lg text-blue-500 hover:text-blue-400 py-3 font-semibold"
+                </div>
+              )}
+
+              <Link href="/job-analysis" className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-500 font-medium text-sm mt-4">
+                Analyze a Job Description <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-800/30 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="rounded-xl bg-[#3D3229]/5 dark:bg-slate-700 p-2">
+                  <Lock className="h-6 w-6 text-[#8B7355] dark:text-slate-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Resume Targeting</h2>
+                  <p className="text-sm text-[#6B5744] dark:text-slate-400">Focus on your resume weak points or job-specific gaps</p>
+                </div>
+              </div>
+              <Link href="/settings?tab=billing" className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 font-semibold text-sm">Buy Credits <ChevronRight className="h-4 w-4" /></Link>
+            </div>
+          )}
+
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          CUSTOM SCENARIO BUILDER (Full Width - Below Grid)
+      ══════════════════════════════════════════════════════════════════════ */}
+      {hasPurchased ? (
+        <div className="mt-8 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="rounded-xl bg-amber-500/10 p-2">
+              <Wand2 className="h-6 w-6 text-amber-500" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Custom Scenario Builder</h2>
+              <p className="text-sm text-[#6B5744] dark:text-slate-400">Hand-pick archetype, add constraints, and dial individual traits</p>
+            </div>
+          </div>
+
+          {(archetypeMix.length > 0 || constraints.length > 0 || activeTraits.size > 0) && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl mb-6">
+              <p className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-1">Custom scenario active</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-amber-600 dark:text-amber-300">
+                {archetypeMix.length > 0 && <span>Archetypes: {archetypeMix.join(' + ')}</span>}
+                {constraints.length > 0 && <span>Constraints: {constraints.length}</span>}
+                {activeTraits.size > 0 && <span>Trait overrides: {activeTraits.size}</span>}
+              </div>
+            </div>
+          )}
+
+          {/* Three Column Layout for Scenario Builder */}
+          <div className="grid lg:grid-cols-3 gap-6">
+
+            {/* Archetype Mix */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Brain className="h-5 w-5 text-amber-500" />
+                <h3 className="font-bold text-[#3D3229] dark:text-white">Archetype Mix</h3>
+                {archetypeMix.length > 0 && <span className="text-sm text-[#6B5744] dark:text-slate-400">({archetypeMix.length}/2)</span>}
+              </div>
+              <p className="text-xs text-[#6B5744] dark:text-slate-400 mb-3">Select up to 2 — first is primary, second is blended in.</p>
+              <div className="grid grid-cols-2 gap-2">
+                {ARCHETYPE_OPTIONS.map((archetype) => {
+                  const selectedIdx = archetypeMix.indexOf(archetype.value);
+                  const isSelected  = selectedIdx !== -1;
+                  const isDisabled  = !isSelected && archetypeMix.length >= 2;
+                  return (
+                    <button
+                      key={archetype.value}
+                      type="button"
+                      onClick={() => toggleArchetype(archetype.value)}
+                      disabled={isDisabled || togglingArchetype === archetype.value}
+                      className={cn(
+                        'relative rounded-xl border p-2 text-left transition-all duration-150',
+                        togglingArchetype === archetype.value && 'scale-95 opacity-70',
+                        isSelected ? 'border-amber-500 bg-amber-500/10' : isDisabled ? 'border-[#3D3229]/10 dark:border-slate-800 opacity-40 cursor-not-allowed' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-amber-400'
+                      )}
                     >
-                      View all {savedJobDescriptions.length} jobs →
-                    </a>
-                  )}
-                </div>
+                      {isSelected && <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-black">{selectedIdx + 1}</span>}
+                      <p className="font-semibold text-[#3D3229] dark:text-white text-sm pr-5">{archetype.label}</p>
+                      <p className="text-xs text-[#6B5744] dark:text-slate-400">{archetype.description}</p>
+                    </button>
+                  );
+                })}
               </div>
-            )}
+            </div>
 
-            {savedJobDescriptions.length === 0 && (
-              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-center">
-                <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                  Save job descriptions to practice for specific roles.
-                </p>
-                <a
-                  href="/job-analysis"
-                  className="text-lg text-blue-500 hover:text-blue-400 mt-3 inline-block font-semibold"
-                >
-                  Analyze a Job Description →
-                </a>
+            {/* Constraints */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <h3 className="font-bold text-[#3D3229] dark:text-white">Behavioural Constraints</h3>
               </div>
-            )}
+              <p className="text-xs text-[#6B5744] dark:text-slate-400 mb-3">Add modifiers that shape interviewer behaviour.</p>
+              <div className="grid grid-cols-2 gap-2">
+                {CONSTRAINT_OPTIONS.map((constraint) => {
+                  const isActive = constraints.includes(constraint.value);
+                  return (
+                    <button
+                      key={constraint.value}
+                      type="button"
+                      onClick={() => toggleConstraint(constraint.value)}
+                      disabled={togglingConstraint === constraint.value}
+                      className={cn(
+                        'rounded-xl border p-2 text-left transition-all duration-150',
+                        togglingConstraint === constraint.value && 'scale-95 opacity-70',
+                        isActive ? 'border-orange-500 bg-orange-500/10' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-amber-400'
+                      )}
+                    >
+                      <p className="font-semibold text-[#3D3229] dark:text-white text-sm">{constraint.label}</p>
+                      <p className="text-xs text-[#6B5744] dark:text-slate-400">{constraint.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-            {/* Active targeting summary */}
-            {(targetResumeWeakSpots || targetJobDescriptionId) && (
-              <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
-                <p className="text-base font-bold text-purple-600 dark:text-purple-400 mb-2">Targeting active</p>
-                <div className="flex flex-wrap gap-x-6 gap-y-1">
-                  {targetResumeWeakSpots && (
-                    <p className="text-base text-purple-600 dark:text-purple-300">
-                      Resume vulnerabilities: {vulnerabilityCount} claims
-                    </p>
-                  )}
-                  {targetJobDescriptionId && (
-                    <p className="text-base text-purple-600 dark:text-purple-300">
-                      Job: {savedJobDescriptions.find(j => j.id === targetJobDescriptionId)?.roleTitle ?? 'Selected'}
-                    </p>
-                  )}
-                </div>
+            {/* Trait Overrides */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <SlidersHorizontal className="h-5 w-5 text-amber-500" />
+                <h3 className="font-bold text-[#3D3229] dark:text-white">Trait Overrides</h3>
               </div>
-            )}
+              <p className="text-xs text-[#6B5744] dark:text-slate-400 mb-3">Enable traits to override archetype defaults.</p>
+              <div className="space-y-2">
+                {TRAIT_SLIDERS.map((trait) => {
+                  const isActive    = activeTraits.has(trait.key);
+                  const sliderValue = traitOverrides[trait.key] ?? 50;
+                  return (
+                    <div key={trait.key} className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleTrait(trait.key)}
+                        className={cn('relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors', isActive ? 'bg-amber-500' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
+                      >
+                        <span className={cn('inline-block h-3 w-3 transform rounded-full bg-white transition-transform', isActive ? 'translate-x-5' : 'translate-x-1')} />
+                      </button>
+                      <span className="w-20 text-xs font-medium text-[#3D3229] dark:text-white truncate">{trait.label}</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={sliderValue}
+                        onChange={(e) => setTraitValue(trait.key, Number(e.target.value))}
+                        disabled={!isActive}
+                        className={cn('flex-1 h-1.5 rounded-full appearance-none cursor-pointer', isActive ? 'bg-amber-200 dark:bg-amber-900 accent-amber-500' : 'bg-[#3D3229]/10 dark:bg-slate-700 opacity-40 cursor-not-allowed')}
+                      />
+                      <span className="w-6 text-xs text-[#3D3229] dark:text-slate-300 text-right">{isActive ? sliderValue : '—'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
         </div>
       ) : (
-        /* Locked teaser for users who haven't purchased */
-        <div className="rounded-2xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/50 dark:bg-slate-900/30 p-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="rounded-xl bg-[#FAF8F5] dark:bg-slate-800 p-3">
-                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-[#3D3229] dark:text-slate-300">
-                  Resume Targeting
-                </h2>
-                <p className="text-lg text-[#3D3229] dark:text-slate-300">
-                  Practice defending your resume weak spots and job-specific gaps
-                </p>
-              </div>
+        <div className="mt-8 rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-800/30 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-xl bg-[#3D3229]/5 dark:bg-slate-700 p-2">
+              <Lock className="h-6 w-6 text-[#8B7355] dark:text-slate-400" />
             </div>
-            <a
-              href="/settings?tab=billing"
-              className="flex-shrink-0 text-lg text-purple-500 hover:text-purple-400 font-semibold"
-            >
-              Buy Credits
-            </a>
+            <div>
+              <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Custom Scenario Builder</h2>
+              <p className="text-sm text-[#6B5744] dark:text-slate-400">Hand-pick archetype, add constraints, and dial individual traits</p>
+            </div>
           </div>
+          <p className="text-sm text-[#6B5744] dark:text-slate-400 mb-4">Purchase interview credits to unlock custom interviewer scenarios.</p>
+          <Link href="/settings?tab=billing" className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 font-semibold text-sm">Buy Credits <ChevronRight className="h-4 w-4" /></Link>
         </div>
       )}
-      {/* ── Submit ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between pt-6">
-        <p className="text-lg text-[#3D3229] dark:text-slate-300">
-          Uses 1 interview credit
-        </p>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SUBMIT (Full Width)
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="mt-8 flex items-center justify-between p-6 rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50">
+        <p className="text-lg text-[#6B5744] dark:text-slate-400">Uses 1 interview credit</p>
         <button
           type="submit"
           disabled={isLoading}
           className="inline-flex items-center gap-3 rounded-xl bg-orange-500 px-8 py-4 text-xl font-bold text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
-            <>
-              <Loader2 className="h-6 w-6 animate-spin" />
-              Creating...
-            </>
+            <><Loader2 className="h-6 w-6 animate-spin" />Creating...</>
           ) : (
-            <>
-              <Flame className="h-6 w-6" />
-              Start Interview
-              <ChevronRight className="h-6 w-6" />
-            </>
+            <><Flame className="h-6 w-6" />Start Interview<ChevronRight className="h-6 w-6" /></>
           )}
         </button>
       </div>
+
     </form>
   );
 }
