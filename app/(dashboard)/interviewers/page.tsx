@@ -69,50 +69,83 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900 dark:text-white">Your Interviewers</h1>
-          <p className="text-stone-500 dark:text-slate-400 mt-1">
-            AI personalities you&apos;ve practiced with
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {isPremium ? (
-            <Link
-              href="/interviewers/create"
-              className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-amber-600 transition-colors"
-            >
-              <Wand2 className="h-4 w-4" />
-              Create Custom
-            </Link>
-          ) : (
-            <Link
-              href="/settings?tab=billing"
-              className="inline-flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
-            >
-              <Crown className="h-4 w-4" />
-              Create Custom
-            </Link>
-          )}
+      <div>
+        <h1 className="text-2xl font-bold text-[#3D3229] dark:text-white">Your Interviewers</h1>
+        <p className="text-[#6B5744] dark:text-slate-400 mt-1">
+          AI personalities you&apos;ve practiced with
+        </p>
+      </div>
+
+      {/* Action Cards */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        {/* Generate New Interviewer */}
+        <Link
+          href="/interview/new"
+          className="group rounded-2xl border border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-6 hover:border-[#8B5A2B]/50 hover:shadow-lg hover:shadow-[#8B5A2B]/5 transition-all"
+        >
+          <div className="flex items-start gap-4">
+            <div className="rounded-xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] p-3 group-hover:scale-105 transition-transform">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-[#3D3229] dark:text-white mb-1">Generate New Interviewer</h3>
+              <p className="text-sm text-[#6B5744] dark:text-slate-400">
+                Create a fresh AI personality with hidden traits
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        {/* Create Custom Interviewer */}
+        {isPremium ? (
           <Link
-            href="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#8B5A2B] dark:bg-orange-500 px-4 py-2 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
+            href="/interviewers/create"
+            className="group rounded-2xl border border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-6 hover:border-[#8B5A2B]/50 hover:shadow-lg hover:shadow-[#8B5A2B]/5 transition-all"
           >
-            <Sparkles className="h-4 w-4" />
-            Generate New
+            <div className="flex items-start gap-4">
+              <div className="rounded-xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] p-3 group-hover:scale-105 transition-transform">
+                <Wand2 className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-[#3D3229] dark:text-white mb-1">Create Custom Interviewer</h3>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400">
+                  Hand-craft a specific personality and traits
+                </p>
+              </div>
+            </div>
           </Link>
-        </div>
+        ) : (
+          <Link
+            href="/settings?tab=billing"
+            className="group rounded-2xl border border-[#3D3229]/10 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/30 p-6 hover:border-[#8B5A2B]/30 transition-all"
+          >
+            <div className="flex items-start gap-4">
+              <div className="rounded-xl bg-[#3D3229]/10 dark:bg-slate-700 p-3">
+                <Crown className="h-6 w-6 text-[#6B5744] dark:text-slate-400" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-bold text-[#3D3229] dark:text-white">Create Custom Interviewer</h3>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#8B5A2B]/10 text-[#8B5A2B]">PRO</span>
+                </div>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400">
+                  Unlock custom interviewer creation
+                </p>
+              </div>
+            </div>
+          </Link>
+        )}
       </div>
 
       {/* Info Card */}
-      <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4">
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4">
         <div className="flex items-start gap-3">
-          <div className="rounded-lg bg-blue-500/10 p-2">
-            <Users className="h-5 w-5 text-blue-500" />
+          <div className="rounded-lg bg-[#8B5A2B]/10 p-2">
+            <Users className="h-5 w-5 text-[#8B5A2B]" />
           </div>
           <div>
-            <h3 className="font-medium text-stone-900 dark:text-white">Hidden Personalities</h3>
-            <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">
+            <h3 className="font-medium text-[#3D3229] dark:text-white">Hidden Personalities</h3>
+            <p className="text-sm text-[#6B5744] dark:text-slate-400 mt-1">
               Each interviewer has a unique personality you discover through interaction. 
               Their backstory shapes how they ask questions and what impresses them — 
               but you won&apos;t know until you&apos;re in the interview.
@@ -126,9 +159,9 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
         <div className="space-y-8">
           {Object.entries(groupedInterviewers).map(([type, typeInterviewers]) => (
             <div key={type}>
-              <h2 className="text-lg font-semibold text-stone-900 dark:text-white mb-4">
+              <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-4">
                 {interviewTypeLabels[type] || type} Interviewers
-                <span className="ml-2 text-sm font-normal text-stone-400 dark:text-slate-500">
+                <span className="ml-2 text-sm font-normal text-[#6B5744] dark:text-slate-500">
                   ({typeInterviewers.length})
                 </span>
               </h2>
@@ -136,13 +169,13 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
                 {typeInterviewers.map((interviewer) => (
                   <div
                     key={interviewer.id}
-                    className="rounded-xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4 hover:border-stone-300 dark:hover:border-slate-700 transition-colors"
+                    className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4 hover:border-[#8B5A2B]/30 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
                         <div className="relative">
-                          <div className="relative h-12 w-12 rounded-full bg-stone-200 dark:bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
+                          <div className="relative h-12 w-12 rounded-full bg-[#3D3229]/10 dark:bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
                             {interviewer.avatar_url ? (
                               <Image
                                 src={interviewer.avatar_url}
@@ -152,7 +185,7 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
                                 unoptimized
                               />
                             ) : (
-                              <span className="text-stone-600 dark:text-slate-300">
+                              <span className="text-[#6B5744] dark:text-slate-300">
                                 {interviewer.name[0]}
                               </span>
                             )}
@@ -166,8 +199,8 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
                           />
                         </div>
                         <div>
-                          <h3 className="font-medium text-stone-900 dark:text-white">{interviewer.name}</h3>
-                          <p className="text-sm text-stone-500 dark:text-slate-400">
+                          <h3 className="font-medium text-[#3D3229] dark:text-white">{interviewer.name}</h3>
+                          <p className="text-sm text-[#6B5744] dark:text-slate-400">
                             {interviewer.total_sessions} sessions
                           </p>
                         </div>
@@ -184,13 +217,13 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div className="rounded-lg bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/8 dark:border-slate-700 p-2">
-                        <p className="text-xs text-[#8B7355] dark:text-slate-400">Difficulty</p>
+                        <p className="text-xs text-[#6B5744] dark:text-slate-400">Difficulty</p>
                         <p className="font-medium text-[#3D3229] dark:text-white">
                           {interviewer.difficulty_level}/10
                         </p>
                       </div>
                       <div className="rounded-lg bg-[#FAF8F5] dark:bg-slate-800 border border-[#3D3229]/8 dark:border-slate-700 p-2">
-                        <p className="text-xs text-[#8B7355] dark:text-slate-400">Style</p>
+                        <p className="text-xs text-[#6B5744] dark:text-slate-400">Style</p>
                         <p className="font-medium text-[#3D3229] dark:text-white capitalize">
                           {interviewer.company_style?.replace('_', ' ') ?? 'General'}
                         </p>
@@ -199,7 +232,7 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
 
                     {/* Role focus if set */}
                     {interviewer.role_focus && (
-                      <p className="text-sm text-stone-500 dark:text-slate-400 mb-4">
+                      <p className="text-sm text-[#6B5744] dark:text-slate-400 mb-4">
                         Focus: {interviewer.role_focus}
                       </p>
                     )}
@@ -207,7 +240,7 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
                     {/* Action */}
                     <Link
                       href={`/interview/new?interviewer=${interviewer.id}`}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800/50 px-4 py-2 text-sm font-medium text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800 hover:text-stone-900 dark:hover:text-white transition-colors"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-4 py-2 text-sm font-medium text-[#3D3229] dark:text-slate-300 hover:bg-[#8B5A2B]/10 hover:border-[#8B5A2B]/30 hover:text-[#8B5A2B] transition-colors"
                     >
                       <MessageSquare className="h-4 w-4" />
                       Interview Again
@@ -219,15 +252,15 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-12 text-center">
-          <Users className="h-12 w-12 text-[#8B7355] dark:text-slate-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-2">No interviewers yet</h3>
-          <p className="text-stone-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
+        <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-12 text-center">
+          <Users className="h-12 w-12 text-[#6B5744] dark:text-slate-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-[#3D3229] dark:text-white mb-2">No interviewers yet</h3>
+          <p className="text-[#6B5744] dark:text-slate-400 mb-6 max-w-md mx-auto">
             Start an interview to generate your first AI interviewer with a unique hidden personality.
           </p>
           <Link
             href="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#8B5A2B] dark:bg-orange-500 px-4 py-2 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-[#6B4420] dark:hover:bg-orange-600 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] px-5 py-2.5 text-sm font-semibold text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all"
           >
             <Sparkles className="h-4 w-4" />
             Generate First Interviewer

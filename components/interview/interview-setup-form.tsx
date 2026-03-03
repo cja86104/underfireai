@@ -269,14 +269,14 @@ export function InterviewSetupForm({
 
       {/* Focus Claim Banner */}
       {focusClaim && (
-        <div className="flex items-start gap-4 rounded-2xl border border-amber-400/50 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600/40 px-6 py-5 mb-8">
-          <div className="flex-shrink-0 rounded-xl bg-amber-100 dark:bg-amber-900/50 p-2.5 mt-0.5">
-            <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="flex items-start gap-4 rounded-2xl border border-[#8B5A2B]/30 bg-[#FAF8F5] dark:bg-[#3D3229]/30 dark:border-[#8B5A2B]/40 px-6 py-5 mb-8">
+          <div className="flex-shrink-0 rounded-xl bg-[#8B5A2B]/10 dark:bg-[#5D3A1A]/50 p-2.5 mt-0.5">
+            <Shield className="h-5 w-5 text-[#8B5A2B] dark:text-[#8B5A2B]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-amber-900 dark:text-amber-300 text-sm">Practicing a resume vulnerability</p>
-            <p className="text-amber-800 dark:text-amber-400/90 text-sm mt-1 italic truncate">&ldquo;{focusClaim}&rdquo;</p>
-            <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
+            <p className="font-semibold text-[#3D3229] dark:text-[#8B5A2B] text-sm">Practicing a resume vulnerability</p>
+            <p className="text-[#6B5744] dark:text-[#8B5A2B]/90 text-sm mt-1 italic truncate">&ldquo;{focusClaim}&rdquo;</p>
+            <p className="text-[#6B5744] dark:text-[#8B5A2B] text-xs mt-1">
               {hasPurchased ? 'Resume targeting has been enabled automatically.' : 'Purchase interview credits to have the AI specifically probe this claim.'}
             </p>
           </div>
@@ -296,8 +296,8 @@ export function InterviewSetupForm({
           {/* Interview Type */}
           <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="rounded-xl bg-orange-500/10 p-2">
-                <MessageSquare className="h-6 w-6 text-orange-500" />
+              <div className="rounded-xl bg-[#8B5A2B]/10 p-2">
+                <MessageSquare className="h-6 w-6 text-[#8B5A2B]" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Interview Type</h2>
@@ -313,11 +313,11 @@ export function InterviewSetupForm({
                   className={cn(
                     'rounded-xl border px-4 py-3 text-left transition-colors',
                     formData.interviewType === type.value
-                      ? 'border-orange-500 bg-orange-500/5 border-2'
+                      ? 'border-[#8B5A2B] bg-[#8B5A2B]/5 border-2'
                       : 'border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#3D3229]/30'
                   )}
                 >
-                  <p className={cn('font-semibold text-[#3D3229] dark:text-white', formData.interviewType === type.value && 'text-orange-600 dark:text-orange-400')}>{type.label}</p>
+                  <p className={cn('font-semibold text-[#3D3229] dark:text-white', formData.interviewType === type.value && 'text-[#8B5A2B] dark:text-[#8B5A2B]')}>{type.label}</p>
                   <p className="text-sm text-[#6B5744] dark:text-slate-400">{type.description}</p>
                 </button>
               ))}
@@ -327,8 +327,8 @@ export function InterviewSetupForm({
           {/* Company Style */}
           <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="rounded-xl bg-blue-500/10 p-2">
-                <Building2 className="h-6 w-6 text-blue-500" />
+              <div className="rounded-xl bg-[#8B5A2B]/10 p-2">
+                <Building2 className="h-6 w-6 text-[#8B5A2B]" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Company Style</h2>
@@ -344,7 +344,7 @@ export function InterviewSetupForm({
                   className={cn(
                     'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
                     formData.companyStyle === style.value
-                      ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 border-2'
+                      ? 'border-[#8B5A2B] bg-[#8B5A2B]/10 text-[#8B5A2B] dark:text-[#8B5A2B] border-2'
                       : 'border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-[#3D3229] dark:text-slate-300 hover:border-[#3D3229]/30'
                   )}
                 >
@@ -357,8 +357,8 @@ export function InterviewSetupForm({
           {/* Target Position */}
           <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="rounded-xl bg-purple-500/10 p-2">
-                <Briefcase className="h-6 w-6 text-purple-500" />
+              <div className="rounded-xl bg-[#8B5A2B]/10 p-2">
+                <Briefcase className="h-6 w-6 text-[#8B5A2B]" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Target Position</h2>
@@ -373,7 +373,7 @@ export function InterviewSetupForm({
                   value={formData.targetRole}
                   onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
                   placeholder="e.g., Senior Software Engineer"
-                  className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-[#8B5A2B] focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/20"
                 />
               </div>
               <div>
@@ -383,7 +383,7 @@ export function InterviewSetupForm({
                   value={formData.targetCompany}
                   onChange={(e) => setFormData({ ...formData, targetCompany: e.target.value })}
                   placeholder="e.g., Google, Stripe, etc."
-                  className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  className="w-full rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-white placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-[#8B5A2B] focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/20"
                 />
               </div>
             </div>
@@ -404,8 +404,8 @@ export function InterviewSetupForm({
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="rounded-xl bg-red-500/10 p-2">
-                  <Gauge className="h-6 w-6 text-red-500" />
+                <div className="rounded-xl bg-[#8B5A2B]/10 p-2">
+                  <Gauge className="h-6 w-6 text-[#8B5A2B]" />
                 </div>
                 <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Difficulty</h2>
               </div>
@@ -418,7 +418,7 @@ export function InterviewSetupForm({
                     className={cn(
                       'w-full rounded-xl border px-4 py-3 text-left transition-colors',
                       formData.difficulty === level.value
-                        ? 'border-orange-500 bg-orange-500/5 border-2'
+                        ? 'border-[#8B5A2B] bg-[#8B5A2B]/5 border-2'
                         : 'border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#3D3229]/30'
                     )}
                   >
@@ -431,8 +431,8 @@ export function InterviewSetupForm({
 
             <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="rounded-xl bg-green-500/10 p-2">
-                  <Clock className="h-6 w-6 text-green-500" />
+                <div className="rounded-xl bg-[#8B5A2B]/10 p-2">
+                  <Clock className="h-6 w-6 text-[#8B5A2B]" />
                 </div>
                 <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Session Length</h2>
               </div>
@@ -445,7 +445,7 @@ export function InterviewSetupForm({
                     className={cn(
                       'w-full rounded-xl border px-4 py-3 text-left transition-colors',
                       formData.sessionLength === length.value
-                        ? 'border-orange-500 bg-orange-500/5 border-2'
+                        ? 'border-[#8B5A2B] bg-[#8B5A2B]/5 border-2'
                         : 'border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#3D3229]/30'
                     )}
                   >
@@ -483,19 +483,19 @@ export function InterviewSetupForm({
                 className={cn(
                   'w-full rounded-xl border p-4 text-left transition-all flex items-center gap-4 cursor-pointer',
                   formData.generateNewInterviewer
-                    ? 'border-orange-500 bg-orange-500/10 border-2 shadow-lg shadow-orange-500/10'
-                    : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-orange-400 hover:bg-orange-500/5'
+                    ? 'border-[#8B5A2B] bg-[#8B5A2B]/10 border-2 shadow-lg shadow-[#8B5A2B]/10'
+                    : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]/50 hover:bg-[#8B5A2B]/5'
                 )}
               >
-                <div className={cn('rounded-xl p-3 transition-colors', formData.generateNewInterviewer ? 'bg-orange-500' : 'bg-[#3D3229]/10 dark:bg-slate-700')}>
+                <div className={cn('rounded-xl p-3 transition-colors', formData.generateNewInterviewer ? 'bg-[#8B5A2B]' : 'bg-[#3D3229]/10 dark:bg-slate-700')}>
                   <Sparkles className={cn('h-6 w-6', formData.generateNewInterviewer ? 'text-white' : 'text-[#6B5744] dark:text-slate-400')} />
                 </div>
                 <div className="flex-1">
-                  <p className={cn('font-bold', formData.generateNewInterviewer ? 'text-orange-600 dark:text-orange-400' : 'text-[#3D3229] dark:text-white')}>Generate New Interviewer</p>
+                  <p className={cn('font-bold', formData.generateNewInterviewer ? 'text-[#8B5A2B] dark:text-[#8B5A2B]' : 'text-[#3D3229] dark:text-white')}>Generate New Interviewer</p>
                   <p className="text-sm text-[#6B5744] dark:text-slate-400">Create a fresh personality with hidden traits</p>
                 </div>
                 {formData.generateNewInterviewer && (
-                  <div className="flex-shrink-0 h-5 w-5 rounded-full bg-orange-500 flex items-center justify-center">
+                  <div className="flex-shrink-0 h-5 w-5 rounded-full bg-[#8B5A2B] flex items-center justify-center">
                     <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
@@ -518,8 +518,8 @@ export function InterviewSetupForm({
                         className={cn(
                           'w-full rounded-xl border p-3 text-left transition-all flex items-center gap-3 cursor-pointer',
                           !formData.generateNewInterviewer && formData.selectedInterviewerId === interviewer.id
-                            ? 'border-orange-500 bg-orange-500/10 border-2'
-                            : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-orange-400'
+                            ? 'border-[#8B5A2B] bg-[#8B5A2B]/10 border-2'
+                            : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]/50'
                         )}
                       >
                         <div className="relative h-10 w-10 rounded-full bg-[#6B5744] dark:bg-slate-600 flex items-center justify-center text-lg font-bold text-white overflow-hidden flex-shrink-0">
@@ -545,8 +545,8 @@ export function InterviewSetupForm({
           <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={cn('rounded-xl p-2', voiceModeEnabled ? 'bg-cyan-500/10' : 'bg-[#FAF8F5] dark:bg-slate-800')}>
-                  {voiceModeEnabled ? <Mic className="h-6 w-6 text-cyan-500" /> : <Lock className="h-6 w-6 text-[#8B7355] dark:text-slate-400" />}
+                <div className={cn('rounded-xl p-2', voiceModeEnabled ? 'bg-[#8B5A2B]/10' : 'bg-[#FAF8F5] dark:bg-slate-800')}>
+                  {voiceModeEnabled ? <Mic className="h-6 w-6 text-[#8B5A2B]" /> : <Lock className="h-6 w-6 text-[#8B7355] dark:text-slate-400" />}
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Voice Mode</h2>
@@ -557,22 +557,22 @@ export function InterviewSetupForm({
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, useVoiceMode: !formData.useVoiceMode })}
-                  className={cn('relative inline-flex h-8 w-14 items-center rounded-full transition-colors', formData.useVoiceMode ? 'bg-cyan-500' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
+                  className={cn('relative inline-flex h-8 w-14 items-center rounded-full transition-colors', formData.useVoiceMode ? 'bg-[#8B5A2B]' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
                 >
                   <span className={cn('inline-block h-6 w-6 transform rounded-full bg-white transition-transform', formData.useVoiceMode ? 'translate-x-7' : 'translate-x-1')} />
                 </button>
               ) : (
-                <Link href="/settings?tab=billing" className="text-sm text-orange-500 hover:text-orange-400 font-semibold">Buy Credits</Link>
+                <Link href="/settings?tab=billing" className="text-sm text-[#8B5A2B] hover:text-[#8B5A2B] font-semibold">Buy Credits</Link>
               )}
             </div>
           </div>
 
           {/* Resume Targeting */}
           {hasPurchased ? (
-            <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6">
+            <div className="rounded-2xl border border-[#8B5A2B]/30 bg-[#8B5A2B]/5 p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="rounded-xl bg-purple-500/10 p-2">
-                  <Target className="h-6 w-6 text-purple-500" />
+                <div className="rounded-xl bg-[#8B5A2B]/10 p-2">
+                  <Target className="h-6 w-6 text-[#8B5A2B]" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Resume Targeting</h2>
@@ -580,10 +580,10 @@ export function InterviewSetupForm({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-purple-500/20 mb-4">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-[#8B5A2B]/20 mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-amber-500/10 p-2">
-                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  <div className="rounded-lg bg-[#8B5A2B]/10 p-2">
+                    <AlertTriangle className="h-5 w-5 text-[#8B5A2B]" />
                   </div>
                   <div>
                     <p className="font-medium text-[#3D3229] dark:text-white text-sm">Target Resume Weak Spots</p>
@@ -594,7 +594,7 @@ export function InterviewSetupForm({
                   type="button"
                   onClick={() => setTargetResumeWeakSpots(!targetResumeWeakSpots)}
                   disabled={!hasVulnerabilityScan}
-                  className={cn('relative inline-flex h-7 w-12 items-center rounded-full transition-colors', !hasVulnerabilityScan && 'opacity-50 cursor-not-allowed', targetResumeWeakSpots ? 'bg-purple-500' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
+                  className={cn('relative inline-flex h-7 w-12 items-center rounded-full transition-colors', !hasVulnerabilityScan && 'opacity-50 cursor-not-allowed', targetResumeWeakSpots ? 'bg-[#8B5A2B]' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
                 >
                   <span className={cn('inline-block h-5 w-5 transform rounded-full bg-white transition-transform', targetResumeWeakSpots ? 'translate-x-6' : 'translate-x-1')} />
                 </button>
@@ -610,7 +610,7 @@ export function InterviewSetupForm({
                       onClick={() => setTargetJobDescriptionId(targetJobDescriptionId === jd.id ? null : jd.id)}
                       className={cn(
                         'w-full rounded-xl border p-3 text-left transition-colors flex items-center justify-between',
-                        targetJobDescriptionId === jd.id ? 'border-purple-500 bg-purple-500/10' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-purple-400'
+                        targetJobDescriptionId === jd.id ? 'border-[#8B5A2B] bg-[#8B5A2B]/10' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#8B5A2B]/50'
                       )}
                     >
                       <div>
@@ -618,14 +618,14 @@ export function InterviewSetupForm({
                         <p className="text-xs text-[#6B5744] dark:text-slate-400">{jd.companyName ?? 'Unknown Company'}</p>
                       </div>
                       {jd.matchPercentage !== null && (
-                        <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', jd.matchPercentage >= 80 ? 'bg-green-500/20 text-green-600' : jd.matchPercentage >= 60 ? 'bg-amber-500/20 text-amber-600' : 'bg-red-500/20 text-red-600')}>{jd.matchPercentage}%</span>
+                        <span className={cn('text-xs font-semibold px-2 py-1 rounded-full', jd.matchPercentage >= 80 ? 'bg-[#8B5A2B]/20 text-[#8B5A2B]' : jd.matchPercentage >= 60 ? 'bg-[#8B5A2B]/20 text-[#8B5A2B]' : 'bg-[#8B5A2B]/20 text-[#8B5A2B]')}>{jd.matchPercentage}%</span>
                       )}
                     </button>
                   ))}
                 </div>
               )}
 
-              <Link href="/job-analysis" className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-500 font-medium text-sm mt-4">
+              <Link href="/job-analysis" className="flex items-center justify-center gap-2 text-[#8B5A2B] dark:text-[#8B5A2B] hover:text-[#8B5A2B] font-medium text-sm mt-4">
                 Analyze a Job Description <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
@@ -640,7 +640,7 @@ export function InterviewSetupForm({
                   <p className="text-sm text-[#6B5744] dark:text-slate-400">Focus on your resume weak points or job-specific gaps</p>
                 </div>
               </div>
-              <Link href="/settings?tab=billing" className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 font-semibold text-sm">Buy Credits <ChevronRight className="h-4 w-4" /></Link>
+              <Link href="/settings?tab=billing" className="inline-flex items-center gap-2 text-[#8B5A2B] hover:text-[#8B5A2B] font-semibold text-sm">Buy Credits <ChevronRight className="h-4 w-4" /></Link>
             </div>
           )}
 
@@ -651,10 +651,10 @@ export function InterviewSetupForm({
           CUSTOM SCENARIO BUILDER (Full Width - Below Grid)
       ══════════════════════════════════════════════════════════════════════ */}
       {hasPurchased ? (
-        <div className="mt-8 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">
+        <div className="mt-8 rounded-2xl border border-[#8B5A2B]/30 bg-[#8B5A2B]/5 p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="rounded-xl bg-amber-500/10 p-2">
-              <Wand2 className="h-6 w-6 text-amber-500" />
+            <div className="rounded-xl bg-[#8B5A2B]/10 p-2">
+              <Wand2 className="h-6 w-6 text-[#8B5A2B]" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Custom Scenario Builder</h2>
@@ -663,9 +663,9 @@ export function InterviewSetupForm({
           </div>
 
           {(archetypeMix.length > 0 || constraints.length > 0 || activeTraits.size > 0) && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl mb-6">
-              <p className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-1">Custom scenario active</p>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-amber-600 dark:text-amber-300">
+            <div className="p-3 bg-[#8B5A2B]/10 border border-[#8B5A2B]/30 rounded-xl mb-6">
+              <p className="text-sm font-bold text-[#8B5A2B] dark:text-[#8B5A2B] mb-1">Custom scenario active</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[#8B5A2B] dark:text-[#8B5A2B]">
                 {archetypeMix.length > 0 && <span>Archetypes: {archetypeMix.join(' + ')}</span>}
                 {constraints.length > 0 && <span>Constraints: {constraints.length}</span>}
                 {activeTraits.size > 0 && <span>Trait overrides: {activeTraits.size}</span>}
@@ -679,7 +679,7 @@ export function InterviewSetupForm({
             {/* Archetype Mix */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Brain className="h-5 w-5 text-amber-500" />
+                <Brain className="h-5 w-5 text-[#8B5A2B]" />
                 <h3 className="font-bold text-[#3D3229] dark:text-white">Archetype Mix</h3>
                 {archetypeMix.length > 0 && <span className="text-sm text-[#6B5744] dark:text-slate-400">({archetypeMix.length}/2)</span>}
               </div>
@@ -698,10 +698,10 @@ export function InterviewSetupForm({
                       className={cn(
                         'relative rounded-xl border p-2 text-left transition-all duration-150',
                         togglingArchetype === archetype.value && 'scale-95 opacity-70',
-                        isSelected ? 'border-amber-500 bg-amber-500/10' : isDisabled ? 'border-[#3D3229]/10 dark:border-slate-800 opacity-40 cursor-not-allowed' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-amber-400'
+                        isSelected ? 'border-[#8B5A2B] bg-[#8B5A2B]/10' : isDisabled ? 'border-[#3D3229]/10 dark:border-slate-800 opacity-40 cursor-not-allowed' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#8B5A2B]/50'
                       )}
                     >
-                      {isSelected && <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-black">{selectedIdx + 1}</span>}
+                      {isSelected && <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#8B5A2B] text-xs font-bold text-black">{selectedIdx + 1}</span>}
                       <p className="font-semibold text-[#3D3229] dark:text-white text-sm pr-5">{archetype.label}</p>
                       <p className="text-xs text-[#6B5744] dark:text-slate-400">{archetype.description}</p>
                     </button>
@@ -713,7 +713,7 @@ export function InterviewSetupForm({
             {/* Constraints */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <AlertTriangle className="h-5 w-5 text-[#8B5A2B]" />
                 <h3 className="font-bold text-[#3D3229] dark:text-white">Behavioural Constraints</h3>
               </div>
               <p className="text-xs text-[#6B5744] dark:text-slate-400 mb-3">Add modifiers that shape interviewer behaviour.</p>
@@ -729,7 +729,7 @@ export function InterviewSetupForm({
                       className={cn(
                         'rounded-xl border p-2 text-left transition-all duration-150',
                         togglingConstraint === constraint.value && 'scale-95 opacity-70',
-                        isActive ? 'border-orange-500 bg-orange-500/10' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-amber-400'
+                        isActive ? 'border-[#8B5A2B] bg-[#8B5A2B]/10' : 'border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-[#8B5A2B]/50'
                       )}
                     >
                       <p className="font-semibold text-[#3D3229] dark:text-white text-sm">{constraint.label}</p>
@@ -743,7 +743,7 @@ export function InterviewSetupForm({
             {/* Trait Overrides */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <SlidersHorizontal className="h-5 w-5 text-amber-500" />
+                <SlidersHorizontal className="h-5 w-5 text-[#8B5A2B]" />
                 <h3 className="font-bold text-[#3D3229] dark:text-white">Trait Overrides</h3>
               </div>
               <p className="text-xs text-[#6B5744] dark:text-slate-400 mb-3">Enable traits to override archetype defaults.</p>
@@ -756,7 +756,7 @@ export function InterviewSetupForm({
                       <button
                         type="button"
                         onClick={() => toggleTrait(trait.key)}
-                        className={cn('relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors', isActive ? 'bg-amber-500' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
+                        className={cn('relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors', isActive ? 'bg-[#8B5A2B]' : 'bg-[#3D3229]/10 dark:bg-slate-700')}
                       >
                         <span className={cn('inline-block h-3 w-3 transform rounded-full bg-white transition-transform', isActive ? 'translate-x-5' : 'translate-x-1')} />
                       </button>
@@ -768,7 +768,7 @@ export function InterviewSetupForm({
                         value={sliderValue}
                         onChange={(e) => setTraitValue(trait.key, Number(e.target.value))}
                         disabled={!isActive}
-                        className={cn('flex-1 h-1.5 rounded-full appearance-none cursor-pointer', isActive ? 'bg-amber-200 dark:bg-amber-900 accent-amber-500' : 'bg-[#3D3229]/10 dark:bg-slate-700 opacity-40 cursor-not-allowed')}
+                        className={cn('flex-1 h-1.5 rounded-full appearance-none cursor-pointer', isActive ? 'bg-[#8B5A2B]/20 dark:bg-[#5D3A1A] accent-[#8B5A2B]' : 'bg-[#3D3229]/10 dark:bg-slate-700 opacity-40 cursor-not-allowed')}
                       />
                       <span className="w-6 text-xs text-[#3D3229] dark:text-slate-300 text-right">{isActive ? sliderValue : '—'}</span>
                     </div>
@@ -791,7 +791,7 @@ export function InterviewSetupForm({
             </div>
           </div>
           <p className="text-sm text-[#6B5744] dark:text-slate-400 mb-4">Purchase interview credits to unlock custom interviewer scenarios.</p>
-          <Link href="/settings?tab=billing" className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 font-semibold text-sm">Buy Credits <ChevronRight className="h-4 w-4" /></Link>
+          <Link href="/settings?tab=billing" className="inline-flex items-center gap-2 text-[#8B5A2B] hover:text-[#8B5A2B] font-semibold text-sm">Buy Credits <ChevronRight className="h-4 w-4" /></Link>
         </div>
       )}
 
@@ -803,7 +803,7 @@ export function InterviewSetupForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="inline-flex items-center gap-3 rounded-xl bg-orange-500 px-8 py-4 text-xl font-bold text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-3 rounded-xl bg-[#8B5A2B] px-8 py-4 text-xl font-bold text-white hover:bg-[#6B4420] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <><Loader2 className="h-6 w-6 animate-spin" />Creating...</>
