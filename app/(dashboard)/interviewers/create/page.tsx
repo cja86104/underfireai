@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Crown } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { CreateInterviewerForm } from './create-interviewer-form';
 
@@ -18,7 +18,7 @@ export default async function CreateInterviewerPage(): Promise<React.JSX.Element
   }
 
   const subscription = await getSubscriptionStatus();
-  const isPremium = subscription.tier === 'premium';
+  const hasPurchased = subscription.hasPurchased;
 
   return (
     <div className="space-y-6">
@@ -35,12 +35,8 @@ export default async function CreateInterviewerPage(): Promise<React.JSX.Element
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#3D3229] dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#3D3229] dark:text-white">
             Create Custom Interviewer
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
-              <Crown className="h-3 w-3" />
-              Premium
-            </span>
           </h1>
           <p className="text-[#3D3229]/70 dark:text-slate-400 mt-1 text-base">
             Build an interviewer with a fully custom personality, voice, and behaviour flags.
@@ -48,7 +44,7 @@ export default async function CreateInterviewerPage(): Promise<React.JSX.Element
         </div>
       </div>
 
-      <CreateInterviewerForm isPremium={isPremium} />
+      <CreateInterviewerForm hasPurchased={hasPurchased} />
     </div>
   );
 }

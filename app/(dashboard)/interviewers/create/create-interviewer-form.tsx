@@ -6,7 +6,7 @@ import {
   User,
   ChevronLeft,
   Sparkles,
-  Crown,
+  Wand2,
   Save,
   AlertCircle,
 } from 'lucide-react';
@@ -224,10 +224,10 @@ function TagListEditor({
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 interface CreateInterviewerFormProps {
-  isPremium: boolean;
+  hasPurchased: boolean;
 }
 
-export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps): React.JSX.Element {
+export function CreateInterviewerForm({ hasPurchased }: CreateInterviewerFormProps): React.JSX.Element {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
 
@@ -330,17 +330,17 @@ export function CreateInterviewerForm({ isPremium }: CreateInterviewerFormProps)
     }
   };
 
-  if (!isPremium) {
+  if (!hasPurchased) {
     return (
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-8 text-center max-w-md mx-auto">
-        <Crown className="h-10 w-10 text-amber-400 mx-auto mb-3" />
-        <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-2">Premium Feature</h3>
+      <div className="rounded-xl border border-[#8B5A2B]/30 bg-[#8B5A2B]/10 p-8 text-center max-w-md mx-auto">
+        <Wand2 className="h-10 w-10 text-[#8B5A2B] mx-auto mb-3" />
+        <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-2">Purchase Credits to Unlock</h3>
         <p className="text-[#3D3229] dark:text-slate-300 text-sm mb-4">
-          Custom Interviewer Creator is available on the Premium plan.
+          Custom Interviewer Creator is included with every purchase.
         </p>
         <Link href="/settings?tab=billing">
-          <Button className="bg-amber-500 hover:bg-amber-600 text-[#3D3229] dark:text-white">
-            Upgrade to Premium
+          <Button className="bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] hover:from-[#9A6B3C] hover:to-[#6B4420] text-white">
+            Buy Credits
           </Button>
         </Link>
       </div>

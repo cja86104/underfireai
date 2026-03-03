@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   DollarSign,
-  Crown,
   Plus,
   Clock,
   TrendingUp,
@@ -23,7 +22,7 @@ import type { NegotiationSession } from '@/types/database';
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface NegotiatePageClientProps {
-  isPremium: boolean;
+  hasPurchased: boolean;
   pastSessions: NegotiationSession[];
 }
 
@@ -316,26 +315,25 @@ function SessionCard({ session }: { session: NegotiationSession }): React.JSX.El
 
 // ── Main Client Component ─────────────────────────────────────────────────────
 
-export function NegotiatePageClient({ isPremium, pastSessions }: NegotiatePageClientProps): React.JSX.Element {
+export function NegotiatePageClient({ hasPurchased, pastSessions }: NegotiatePageClientProps): React.JSX.Element {
   const completedSessions = pastSessions.filter(s => s.status === 'completed');
   const avgScore = completedSessions.length > 0
     ? Math.round(completedSessions.reduce((acc, s) => acc + (s.overall_score ?? 0), 0) / completedSessions.filter(s => s.overall_score !== null).length || 1)
     : null;
 
-  if (!isPremium) {
+  if (!hasPurchased) {
     return (
-      <div className="rounded-2xl border-2 border-amber-500/30 bg-amber-500/10 p-12 lg:p-16 text-center max-w-2xl mx-auto">
-        <Crown className="h-16 w-16 text-amber-500 mx-auto mb-6" />
-        <h3 className="text-3xl font-bold text-[#3D3229] dark:text-white mb-4">Premium Feature</h3>
+      <div className="rounded-2xl border-2 border-[#8B5A2B]/30 bg-[#8B5A2B]/10 p-12 lg:p-16 text-center max-w-2xl mx-auto">
+        <DollarSign className="h-16 w-16 text-[#8B5A2B] mx-auto mb-6" />
+        <h3 className="text-3xl font-bold text-[#3D3229] dark:text-white mb-4">Purchase Credits to Unlock</h3>
         <p className="text-xl text-[#3D3229] dark:text-slate-200 mb-8">
-          Salary Negotiation Prep is available on the Premium plan. Practice against realistic AI recruiters and master the art of negotiation.
+          Salary Negotiation Prep is included with every purchase. Grab a Starter or Pro Pack to start practicing against realistic AI recruiters.
         </p>
         <Link
           href="/settings?tab=billing"
-          className="inline-flex items-center gap-3 rounded-xl bg-amber-500 hover:bg-amber-600 px-10 py-5 text-xl font-bold text-white transition-colors"
+          className="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] hover:from-[#9A6B3C] hover:to-[#6B4420] px-10 py-5 text-xl font-bold text-white transition-all shadow-lg shadow-[#8B5A2B]/20"
         >
-          <Crown className="h-6 w-6" />
-          Upgrade to Premium
+          Buy Credits
         </Link>
       </div>
     );
