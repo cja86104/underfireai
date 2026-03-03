@@ -27,8 +27,6 @@ import {
   Lightbulb,
   DollarSign,
   Wand2,
-  X,
-  Lock,
 } from 'lucide-react';
 
 export default function LandingPage(): React.JSX.Element {
@@ -61,7 +59,7 @@ export default function LandingPage(): React.JSX.Element {
     {
       icon: Mic,
       title: 'Voice-Based Conversations',
-      desc: 'Speak naturally and our AI responds in real time, just like a real interview. Reading answers is easy — speaking them confidently under pressure is the skill that actually gets you hired. Voice mode is available on Pro and Premium.',
+      desc: 'Speak naturally and our AI responds in real time, just like a real interview. Reading answers is easy — speaking them confidently under pressure is the skill that actually gets you hired.',
     },
     {
       icon: BarChart3,
@@ -77,6 +75,26 @@ export default function LandingPage(): React.JSX.Element {
       icon: Zap,
       title: 'Adaptive Difficulty',
       desc: "Start at your comfort level and grow. The AI adjusts difficulty based on how you perform — pushing harder when you're ready, easing up when you need it. Scale all the way from Easy to Expert.",
+    },
+    {
+      icon: Wand2,
+      title: 'Custom Interviewer Creator',
+      desc: "Build your own AI interviewer from scratch. Set their personality traits, communication style, favourite topics, red flags, and voice. Create interviewers that mirror the exact people you'll face — a detail-obsessed CTO, a friendly but probing HR director, or a rapid-fire panel lead. Your practice, your rules.",
+    },
+    {
+      icon: DollarSign,
+      title: 'Salary Negotiation Simulator',
+      desc: "Practice negotiating your offer against a realistic AI recruiter who pushes back. Navigate counter-offers, benefit tradeoffs, and hardball tactics in a safe environment. Get scored on confidence, framing, and strategy — and see what offer your technique would have closed.",
+    },
+    {
+      icon: Target,
+      title: 'Resume & JD-Targeted Interviews',
+      desc: "Focus the entire interview on your actual resume weak spots or the exact skill gaps between your profile and a specific job description. Upload a JD, and our AI generates questions that drill into exactly where you're exposed — so you walk in with answers prepared for the hardest questions.",
+    },
+    {
+      icon: Brain,
+      title: 'Custom Scenario Builder',
+      desc: "Blend two interviewer archetypes, add custom constraints, and dial individual personality traits for a scenario that matches exactly what you're walking into. Preparing for a panel with a skeptical VP and a detail-oriented engineer? Build it. Facing a case study with time pressure? Create it.",
     },
   ];
 
@@ -151,91 +169,73 @@ export default function LandingPage(): React.JSX.Element {
 
   const pricing = [
     {
-      name: 'Free',
-      price: '0',
-      period: 'forever free',
-      desc: 'Try the core experience',
+      name: 'Starter Pack',
+      price: '25',
+      period: 'one-time',
+      desc: '6 AI mock interviews',
+      perInterview: '~$4.17 per interview',
       features: [
-        '3 mock interviews per month',
         'All 6 interview types',
-        'All company styles & difficulty levels',
+        'Voice mode',
+        'All interviewer personalities',
         'STAR method scoring & feedback',
-        'Interview replay',
-        'Progress dashboard',
+        'Resume vulnerability scanner',
+        'Job description analysis',
+        'Custom interviewer creator',
+        'Salary negotiation simulator',
+        'Full performance analytics',
+        'Interview replay & history',
       ],
-      limitations: [
-        'No voice mode',
-        'No resume vulnerability scanner',
-        'No job description analysis',
-        'No resume alignment on results',
-      ],
-      cta: 'Start Free',
+      cta: 'Get Starter Pack',
       ctaHref: '/register',
       highlight: false,
+      variant: 'standard' as const,
     },
     {
-      name: 'Pro',
-      price: '19',
-      period: 'per month',
-      desc: 'For serious job seekers',
+      name: 'Pro Pack',
+      price: '35',
+      period: 'one-time',
+      desc: '11 AI mock interviews',
+      perInterview: '~$3.18 per interview',
       features: [
-        'Unlimited mock interviews',
-        'Voice mode (up to ~100 min/month)',
-        'All 8 interviewer personalities',
-        'Resume upload & vulnerability scanner',
-        'Resume health score',
-        'Post-session resume alignment',
-        'Job description analysis (3/month)',
+        'All 6 interview types',
+        'Voice mode',
+        'All interviewer personalities',
+        'STAR method scoring & feedback',
+        'Resume vulnerability scanner',
+        'Job description analysis',
+        'Custom interviewer creator',
+        'Salary negotiation simulator',
         'Full performance analytics',
-        'Interview replay',
+        'Interview replay & history',
       ],
-      limitations: [],
-      cta: 'Get Pro',
+      cta: 'Get Pro Pack',
       ctaHref: '/register',
       highlight: true,
+      variant: 'popular' as const,
     },
     {
-      name: 'Premium',
-      price: '39',
-      period: 'per month',
-      desc: 'Maximum preparation',
+      name: 'Refill Pack',
+      price: '10',
+      period: 'per refill',
+      desc: '+5 additional interviews',
+      perInterview: '$2.00 per interview',
       features: [
-        'Everything in Pro, plus:',
-        'Voice mode (up to ~250 min/month)',
-        'Unlimited job description analysis',
-        'JD gap-targeted practice sessions',
-        'Resume-targeted interviews',
-        'Custom Scenario Builder',
-        'Custom Interviewer Creator',
-        'Salary Negotiation Simulator',
+        'All 6 interview types',
+        'Voice mode',
+        'All interviewer personalities',
+        'STAR method scoring & feedback',
+        'Resume vulnerability scanner',
+        'Job description analysis',
+        'Custom interviewer creator',
+        'Salary negotiation simulator',
+        'Full performance analytics',
+        'Interview replay & history',
       ],
-      limitations: [],
-      cta: 'Go Premium',
+      cta: 'Get Refill Pack',
       ctaHref: '/register',
       highlight: false,
-    },
-  ];
-
-  const premiumOnlyFeatures = [
-    {
-      icon: Wand2,
-      title: 'Custom Interviewer Creator',
-      desc: 'Build your own AI interviewer from scratch. Set their personality traits, communication style, favourite topics, red flags, and voice. Your practice, your rules.',
-    },
-    {
-      icon: DollarSign,
-      title: 'Salary Negotiation Simulator',
-      desc: "Practice negotiating your offer against a realistic AI recruiter who pushes back. Get scored on confidence, framing, and strategy — and see what offer your technique would have closed.",
-    },
-    {
-      icon: Target,
-      title: 'Resume & JD-Targeted Interviews',
-      desc: 'Focus the entire interview on your actual resume weak spots or the exact skill gaps between your profile and a specific job description.',
-    },
-    {
-      icon: Brain,
-      title: 'Custom Scenario Builder',
-      desc: "Blend two interviewer archetypes, add custom constraints, and dial individual personality traits for a scenario that matches exactly what you're walking into.",
+      variant: 'refill' as const,
     },
   ];
 
@@ -250,23 +250,27 @@ export default function LandingPage(): React.JSX.Element {
     },
     {
       q: 'How does voice mode work?',
-      a: 'Speak naturally into your microphone and the AI responds in real time, creating a conversational flow that matches the pressure of a real interview. Voice mode is available on Pro and Premium plans.',
+      a: 'Speak naturally into your microphone and the AI responds in real time, creating a conversational flow that matches the pressure of a real interview. Voice mode is included with every purchase.',
     },
     {
       q: 'What interview types are supported?',
-      a: 'Behavioral (STAR-method), Technical (system design and coding), Case Study, HR Screen, Panel (multiple interviewers), and Phone Screen. All types are available on every plan.',
+      a: 'Behavioral (STAR-method), Technical (system design and coding), Case Study, HR Screen, Panel (multiple interviewers), and Phone Screen. All types are included with every purchase.',
     },
     {
       q: 'Can I prepare for a specific company?',
-      a: "Yes. Select your target company type — FAANG, startup, consulting, enterprise, finance, or government — and the AI adjusts its style, questions, and evaluation criteria to match. On Pro and Premium you can also upload a job description for gap analysis and alignment scoring.",
+      a: "Yes. Select your target company type — FAANG, startup, consulting, enterprise, finance, or government — and the AI adjusts its style, questions, and evaluation criteria to match. You can also upload a job description for gap analysis and alignment scoring.",
+    },
+    {
+      q: 'How does the credit system work?',
+      a: "Each interview session costs one credit. Buy a Starter Pack (6 interviews for $25) or Pro Pack (11 for $35) to get started — every feature is unlocked immediately. When you need more, grab a Refill Pack (5 for $10). Credits never expire. No subscriptions, no recurring charges.",
     },
     {
       q: 'What is the Salary Negotiation Simulator?',
-      a: "A Premium feature where you practice negotiating a job offer against an AI recruiter who pushes back realistically. You're scored on confidence, framing, strategy, and composure — and you see what offer your technique would have closed.",
+      a: "Practice negotiating a job offer against an AI recruiter who pushes back realistically. You're scored on confidence, framing, strategy, and composure — and you see what offer your technique would have closed.",
     },
     {
       q: 'Can I replay my interviews?',
-      a: 'Yes — full interview replay is available on all plans. After each completed session you can review every message, see your per-response STAR analysis, and go through key moments.',
+      a: 'Yes — full interview replay is included with every purchase. After each completed session you can review every message, see your per-response STAR analysis, and go through key moments.',
     },
     {
       q: 'Is my data secure?',
@@ -374,13 +378,13 @@ export default function LandingPage(): React.JSX.Element {
                   href="/register"
                   className="group inline-flex items-center gap-2 px-9 py-4 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white text-lg font-bold hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-xl shadow-[#8B5A2B]/25 hover:shadow-[#8B5A2B]/40 hover:-translate-y-0.5"
                 >
-                  Start Free — 3 Interviews Included
+                  Start Practicing — Packs from $25
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
 
               <p className="text-base text-[#8B7355]">
-                No credit card required &middot; Upgrade anytime &middot; Cancel anytime
+                No subscriptions &middot; Buy interview credits &middot; Use at your pace
               </p>
             </div>
 
@@ -507,7 +511,7 @@ export default function LandingPage(): React.JSX.Element {
               Prepare for any interview format
             </h2>
             <p className="text-xl text-[#6B5744]">
-              All six types are available on every plan.
+              All six types included with every purchase.
             </p>
           </div>
 
@@ -542,7 +546,7 @@ export default function LandingPage(): React.JSX.Element {
               </h2>
               <p className="text-xl text-[#6B5744] mb-12">
                 Upload your resume and we identify exactly where interviewers will probe.
-                Know your weak points before you walk in the door. Available on Pro and Premium.
+                Know your weak points before you walk in the door.
               </p>
 
               <div className="space-y-7">
@@ -599,13 +603,6 @@ export default function LandingPage(): React.JSX.Element {
                     </div>
                     <p className="text-sm text-green-700">Clear quantified impact metrics in recent roles</p>
                   </div>
-                  <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <Lock className="h-4 w-4 text-slate-400" />
-                      <span className="font-semibold text-slate-600 text-sm">Pro Feature</span>
-                    </div>
-                    <p className="text-sm text-slate-500">Upgrade to unlock full vulnerability scan</p>
-                  </div>
                 </div>
 
                 <button className="w-full py-3.5 rounded-xl bg-[#8B5A2B]/10 text-[#8B5A2B] font-semibold hover:bg-[#8B5A2B]/20 transition-colors text-base">
@@ -613,45 +610,6 @@ export default function LandingPage(): React.JSX.Element {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Premium Features */}
-      <section className="relative py-28 px-6 bg-gradient-to-b from-white to-[#FAF8F5]">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-amber-500/10 border border-amber-500/25 mb-6">
-              <span className="text-base font-bold text-amber-700">Premium Only — $39/mo</span>
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#3D3229]">
-              Go deeper with Premium
-            </h2>
-            <p className="text-xl text-[#6B5744]">
-              Tools for candidates who want the maximum competitive edge.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {premiumOnlyFeatures.map((f) => {
-              const Icon = f.icon;
-              return (
-                <div
-                  key={f.title}
-                  className="p-9 rounded-2xl bg-white border border-amber-500/20 hover:border-amber-500/50 hover:shadow-2xl transition-all group"
-                >
-                  <div className="flex items-start gap-5">
-                    <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500/20 transition-colors">
-                      <Icon className="h-7 w-7 text-amber-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold mb-2 text-[#3D3229]">{f.title}</h3>
-                      <p className="text-base text-[#6B5744] leading-relaxed">{f.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </section>
@@ -739,7 +697,7 @@ export default function LandingPage(): React.JSX.Element {
               Invest in your career
             </h2>
             <p className="text-xl text-[#6B5744]">
-              Start free, upgrade when you&apos;re ready to get serious. Cancel anytime.
+              Buy interview credits, use them at your pace. Every purchase unlocks all features &mdash; no tiers, no restrictions.
             </p>
           </div>
 
@@ -750,13 +708,15 @@ export default function LandingPage(): React.JSX.Element {
                 className={`relative p-9 rounded-2xl transition-all ${
                   p.highlight
                     ? 'bg-gradient-to-b from-[#8B5A2B]/10 to-white border-2 border-[#8B5A2B]/50 shadow-2xl shadow-[#8B5A2B]/10 lg:scale-105'
-                    : 'bg-white border border-[#3D3229]/10 hover:border-[#8B5A2B]/30'
+                    : p.variant === 'refill'
+                      ? 'bg-white border border-green-500/25 hover:border-green-500/50'
+                      : 'bg-white border border-[#3D3229]/10 hover:border-[#8B5A2B]/30'
                 }`}
               >
                 {p.highlight && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className="px-5 py-1.5 rounded-full bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white text-base font-bold">
-                      Most Popular
+                      Best Value
                     </span>
                   </div>
                 )}
@@ -766,37 +726,40 @@ export default function LandingPage(): React.JSX.Element {
                   <p className="text-base text-[#8B7355]">{p.desc}</p>
                 </div>
 
-                <div className="mb-7">
+                <div className="mb-2">
                   <span className="text-5xl font-bold text-[#3D3229]">${p.price}</span>
                   <span className="text-lg text-[#8B7355] ml-2">{p.period}</span>
                 </div>
 
+                <p className={`text-sm font-semibold mb-7 ${p.variant === 'refill' ? 'text-green-600' : 'text-[#8B5A2B]'}`}>
+                  {p.perInterview}
+                </p>
+
                 <ul className="space-y-3.5 mb-7">
                   {p.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
-                      <CheckCircle2 className={`h-5 w-5 flex-shrink-0 mt-0.5 ${p.highlight ? 'text-[#8B5A2B]' : 'text-[#A0522D]'}`} />
+                      <CheckCircle2
+                        className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
+                          p.highlight
+                            ? 'text-[#8B5A2B]'
+                            : p.variant === 'refill'
+                              ? 'text-green-500'
+                              : 'text-[#A0522D]'
+                        }`}
+                      />
                       <span className="text-base text-[#3D3229]">{feature}</span>
                     </li>
                   ))}
                 </ul>
-
-                {p.limitations.length > 0 && (
-                  <ul className="space-y-2.5 mb-7 pt-5 border-t border-[#3D3229]/10">
-                    {p.limitations.map((limitation) => (
-                      <li key={limitation} className="flex items-start gap-3 text-base text-[#8B7355]">
-                        <X className="h-5 w-5 text-[#C4956A] mt-0.5 flex-shrink-0" />
-                        {limitation}
-                      </li>
-                    ))}
-                  </ul>
-                )}
 
                 <Link
                   href={p.ctaHref}
                   className={`block w-full py-4 rounded-xl text-center text-base font-bold transition-all ${
                     p.highlight
                       ? 'bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white hover:from-[#9A6B3C] hover:to-[#6B4420] shadow-lg shadow-[#8B5A2B]/20'
-                      : 'bg-[#FAF8F5] text-[#3D3229] hover:bg-[#8B5A2B]/10 border border-[#3D3229]/10'
+                      : p.variant === 'refill'
+                        ? 'bg-[#FAF8F5] text-green-600 hover:bg-green-500/10 border border-green-500/30'
+                        : 'bg-[#FAF8F5] text-[#3D3229] hover:bg-[#8B5A2B]/10 border border-[#3D3229]/10'
                   }`}
                 >
                   {p.cta}
@@ -805,7 +768,9 @@ export default function LandingPage(): React.JSX.Element {
             ))}
           </div>
 
-
+          <p className="text-center text-base text-[#8B7355] mt-8 max-w-xl mx-auto">
+            No subscriptions. No recurring charges. Credits never expire. Every purchase unlocks all features instantly.
+          </p>
         </div>
       </section>
 
@@ -846,18 +811,18 @@ export default function LandingPage(): React.JSX.Element {
                 Ready to transform your interviews?
               </h2>
               <p className="text-xl lg:text-2xl text-[#6B5744] mb-12 max-w-2xl mx-auto leading-relaxed">
-                Start free today — 3 mock interviews included, no credit card required.
-                Upgrade to Pro or Premium when you&apos;re ready to go all in.
+                Grab a Starter or Pro Pack and unlock every feature instantly.
+                No subscriptions, no limits on when you use your credits.
               </p>
               <Link
                 href="/register"
                 className="inline-flex items-center gap-3 px-10 py-5 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white text-xl font-bold hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-xl shadow-[#8B5A2B]/25 hover:shadow-[#8B5A2B]/40 hover:-translate-y-0.5"
               >
-                Start Free
+                Get Started
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <p className="text-base text-[#8B7355] mt-7">
-                No credit card required &middot; 3 free interviews &middot; Cancel anytime
+                Starter Pack $25 &middot; Pro Pack $35 &middot; Refills $10 &middot; Credits never expire
               </p>
             </div>
           </div>
@@ -900,11 +865,11 @@ export default function LandingPage(): React.JSX.Element {
             </div>
 
             <div>
-              <h4 className="font-bold text-base text-[#3D3229] mb-5">Plans</h4>
+              <h4 className="font-bold text-base text-[#3D3229] mb-5">Packs</h4>
               <ul className="space-y-3 text-base text-[#8B7355]">
-                <li>Free &mdash; $0/mo</li>
-                <li>Pro &mdash; $19/mo</li>
-                <li>Premium &mdash; $39/mo</li>
+                <li>Starter &mdash; $25 (6 interviews)</li>
+                <li>Pro &mdash; $35 (11 interviews)</li>
+                <li>Refill &mdash; $10 (5 interviews)</li>
               </ul>
             </div>
           </div>
