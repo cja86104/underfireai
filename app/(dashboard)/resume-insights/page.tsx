@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
 import {
   ChevronLeft,
   ShieldAlert,
@@ -57,7 +58,7 @@ function ScoreRing({ score, label, color }: { score: number; label: string; colo
   );
 }
 
-function StatCard({ value, label, icon: Icon }: { value: number | string; label: string; icon: React.ElementType }) {
+function StatCard({ value, label, icon: Icon }: { value: number | string; label: string; icon: LucideIcon }) {
   return (
     <div className="flex items-center gap-5 p-6 rounded-2xl bg-white dark:bg-slate-900/50 border border-[#3D3229]/10 dark:border-slate-800">
       <div className="p-4 rounded-xl bg-[#FAF8F5] dark:bg-slate-800">

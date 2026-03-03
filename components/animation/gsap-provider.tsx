@@ -100,7 +100,7 @@ export function useScrollAnimation<T extends HTMLElement = HTMLDivElement>(optio
   duration?: number;
   ease?: string;
   once?: boolean;
-}): React.RefObject<T> {
+}): React.RefObject<T | null> {
   const ref = useRef<T>(null);
 
   const {
@@ -168,7 +168,7 @@ export function useStaggerAnimation<T extends HTMLElement = HTMLDivElement>(opti
   duration?: number;
   ease?: string;
   once?: boolean;
-}): React.RefObject<T> {
+}): React.RefObject<T | null> {
   const ref = useRef<T>(null);
 
   const {
@@ -220,7 +220,7 @@ export function useStaggerAnimation<T extends HTMLElement = HTMLDivElement>(opti
 export function useParallax<T extends HTMLElement = HTMLDivElement>(options: {
   speed?: number;
   direction?: 'up' | 'down';
-}): React.RefObject<T> {
+}): React.RefObject<T | null> {
   const ref = useRef<T>(null);
 
   const { speed = 0.5, direction = 'up' } = options;

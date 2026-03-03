@@ -467,50 +467,71 @@ Analyze this response and return JSON:
   "coaching_note": <string or null>
 }`;
 
-  try {
-    const completion = await createChatCompletion(
-      [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      {
-        model: AI_MODELS.ANALYSIS,
-        ...MODEL_PARAMS.analysis,
+  const maxRetries = 3;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const completion = await createChatCompletion(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        {
+          model: AI_MODELS.ANALYSIS,
+          ...MODEL_PARAMS.analysis,
+        }
+      );
+
+      const rawContent = completion.choices[0]?.message?.content ?? '{}';
+      console.log(`[Analysis] Raw response (attempt ${attempt}):`, rawContent.substring(0, 200));
+      
+      // Strip markdown code blocks if present (```json ... ``` or ``` ... ```)
+      const content = rawContent
+        .replace(/^```(?:json)?\s*\n?/i, '')
+        .replace(/\n?```\s*$/i, '')
+        .trim();
+      const parsed = JSON.parse(content) as Record<string, unknown>;
+
+      const result = {
+        star_score: Math.min(100, Math.max(0, (parsed.star_score as number) ?? 0)),
+        clarity_score: Math.min(100, Math.max(0, (parsed.clarity_score as number) ?? 0)),
+        confidence_score: Math.min(100, Math.max(0, (parsed.confidence_score as number) ?? 0)),
+        relevance_score: Math.min(100, Math.max(0, (parsed.relevance_score as number) ?? 0)),
+        depth_score: Math.min(100, Math.max(0, (parsed.depth_score as number) ?? 0)),
+        word_count: response.split(/\s+/).length,
+        filler_words: (parsed.filler_words as string[]) ?? [],
+        key_points: (parsed.key_points as string[]) ?? [],
+        coaching_note: typeof parsed.coaching_note === 'string' ? parsed.coaching_note.trim() || null : null,
+      };
+      
+      console.log(`[Analysis] Parsed scores:`, { star: result.star_score, clarity: result.clarity_score, confidence: result.confidence_score });
+      return result;
+      
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error(`[Analysis] Error (attempt ${attempt}/${maxRetries}):`, errorMsg);
+      
+      // Retry on rate limit or server errors
+      if (attempt < maxRetries && (errorMsg.includes('429') || errorMsg.includes('5'))) {
+        const waitMs = Math.pow(2, attempt) * 1000;
+        console.warn(`[Analysis] Retrying in ${waitMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+        continue;
       }
-    );
-
-    const rawContent = completion.choices[0]?.message?.content ?? '{}';
-    // Strip markdown code blocks if present (```json ... ``` or ``` ... ```)
-    const content = rawContent
-      .replace(/^```(?:json)?\s*\n?/i, '')
-      .replace(/\n?```\s*$/i, '')
-      .trim();
-    const parsed = JSON.parse(content) as Record<string, unknown>;
-
-    return {
-      star_score: Math.min(100, Math.max(0, (parsed.star_score as number) ?? 0)),
-      clarity_score: Math.min(100, Math.max(0, (parsed.clarity_score as number) ?? 0)),
-      confidence_score: Math.min(100, Math.max(0, (parsed.confidence_score as number) ?? 0)),
-      relevance_score: Math.min(100, Math.max(0, (parsed.relevance_score as number) ?? 0)),
-      depth_score: Math.min(100, Math.max(0, (parsed.depth_score as number) ?? 0)),
-      word_count: response.split(/\s+/).length,
-      filler_words: (parsed.filler_words as string[]) ?? [],
-      key_points: (parsed.key_points as string[]) ?? [],
-      coaching_note: typeof parsed.coaching_note === 'string' ? parsed.coaching_note.trim() || null : null,
-    };
-  } catch (error) {
-    console.error('Error analyzing response:', error);
-    // Return default scores on error
-    return {
-      star_score: 50,
-      clarity_score: 50,
-      confidence_score: 50,
-      relevance_score: 50,
-      depth_score: 50,
-      word_count: response.split(/\s+/).length,
-      filler_words: [],
-      key_points: [],
-      coaching_note: null,
-    };
+    }
   }
+  
+  // All retries failed
+  console.error('[Analysis] All retries failed, returning default 50s');
+  return {
+    star_score: 50,
+    clarity_score: 50,
+    confidence_score: 50,
+    relevance_score: 50,
+    depth_score: 50,
+    word_count: response.split(/\s+/).length,
+    filler_words: [],
+    key_points: [],
+    coaching_note: null,
+  };
 }
