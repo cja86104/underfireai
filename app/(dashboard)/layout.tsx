@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUserProfile, getUserProgress } from '@/lib/supabase/server';
+import { getCurrentUser, getUserProfile, getUserProgress, getSubscriptionStatus } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/layout/sidebar';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
 
@@ -14,9 +14,10 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  const [profile, progress] = await Promise.all([
+  const [profile, progress, subscription] = await Promise.all([
     getUserProfile(),
     getUserProgress(),
+    getSubscriptionStatus(),
   ]);
 
   return (
@@ -29,7 +30,8 @@ export default async function DashboardLayout({
           fullName: profile?.full_name ?? null,
           avatarUrl: profile?.avatar_url ?? null,
         }}
-        subscriptionTier={profile?.subscription_tier ?? 'free'}
+        hasPurchased={subscription.hasPurchased}
+        availableInterviews={subscription.availableInterviews}
         currentStreak={progress?.current_streak ?? 0}
       />
 

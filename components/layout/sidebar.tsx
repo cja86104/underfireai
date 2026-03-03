@@ -13,7 +13,6 @@ import {
   FileText,
   BarChart3,
   Settings,
-  Crown,
   Zap,
   Menu,
   X,
@@ -31,7 +30,8 @@ interface SidebarProps {
     fullName: string | null;
     avatarUrl: string | null;
   };
-  subscriptionTier: 'free' | 'pro' | 'premium';
+  hasPurchased: boolean;
+  availableInterviews: number;
   currentStreak: number;
 }
 
@@ -39,8 +39,8 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'New Interview', href: '/interview/new', icon: MessageSquare },
   { name: 'Interviewers', href: '/interviewers', icon: Users },
-  { name: 'Create Custom', href: '/interviewers/create', icon: Wand2, premiumOnly: true },
-  { name: 'Salary Negotiation', href: '/negotiate', icon: DollarSign, premiumOnly: true },
+  { name: 'Create Custom', href: '/interviewers/create', icon: Wand2 },
+  { name: 'Salary Negotiation', href: '/negotiate', icon: DollarSign },
   { name: 'History', href: '/history', icon: History },
   { name: 'Resume', href: '/resume', icon: FileText },
   { name: 'Job Analysis', href: '/job-analysis', icon: Target },
@@ -48,23 +48,9 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps): React.JSX.Element {
+export function Sidebar({ user, hasPurchased, availableInterviews, currentStreak }: SidebarProps): React.JSX.Element {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const tierColors = {
-    free: 'text-[#8B7355] dark:text-slate-400',
-    pro: 'text-[#8B5A2B] dark:text-orange-500',
-    premium: 'text-amber-600 dark:text-amber-400',
-  };
-
-  const tierLabels = {
-    free: 'Free',
-    pro: 'Pro',
-    premium: 'Premium',
-  };
-
-  const isPremium = subscriptionTier === 'premium';
 
   return (
     <>
@@ -117,7 +103,6 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
           <nav className="flex-1 overflow-y-auto py-4 px-3">
             <ul className="space-y-0.5">
               {navigation.map((item) => {
-                if (item.premiumOnly && !isPremium) return null;
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                 return (
                   <li key={item.name}>
@@ -134,12 +119,9 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
                       <item.icon className="h-5 w-5 shrink-0" />
                       <span className="flex-1">{item.name}</span>
                       {item.name === 'New Interview' && (
-                        <span className="ml-auto rounded bg-[#8B5A2B] dark:bg-orange-500 px-1.5 py-0.5 text-xs font-semibold text-[#3D3229] dark:text-white">
+                        <span className="ml-auto rounded bg-[#8B5A2B] dark:bg-orange-500 px-1.5 py-0.5 text-xs font-semibold text-white">
                           Start
                         </span>
-                      )}
-                      {item.premiumOnly && (
-                        <Crown className="h-3 w-3 text-amber-500 shrink-0" />
                       )}
                     </Link>
                   </li>
@@ -161,21 +143,21 @@ export function Sidebar({ user, subscriptionTier, currentStreak }: SidebarProps)
               </div>
             )}
 
-            {/* Subscription Tier */}
+            {/* Interview Credits */}
             <div className="flex items-center gap-2 rounded-lg bg-[#FAF8F5] dark:bg-slate-800/50 border border-[#3D3229]/10 dark:border-transparent px-3 py-2">
-              <Crown className={cn('h-5 w-5', tierColors[subscriptionTier])} />
+              <Zap className={cn('h-5 w-5', availableInterviews > 0 ? 'text-green-500' : 'text-amber-500')} />
               <div className="flex-1">
-                <p className="text-xs text-[#8B7355] dark:text-slate-500">Plan</p>
-                <p className={cn('text-sm font-semibold', tierColors[subscriptionTier])}>
-                  {tierLabels[subscriptionTier]}
+                <p className="text-xs text-[#8B7355] dark:text-slate-500">Credits</p>
+                <p className={cn('text-sm font-semibold', availableInterviews > 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400')}>
+                  {availableInterviews} remaining
                 </p>
               </div>
-              {subscriptionTier === 'free' && (
+              {!hasPurchased && (
                 <Link
                   href="/settings?tab=billing"
-                  className="rounded-lg bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] px-2.5 py-1 text-xs font-semibold text-[#3D3229] dark:text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all"
+                  className="rounded-lg bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] px-2.5 py-1 text-xs font-semibold text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all"
                 >
-                  Upgrade
+                  Buy
                 </Link>
               )}
             </div>

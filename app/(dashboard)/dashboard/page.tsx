@@ -11,6 +11,8 @@ import {
   ArrowRight,
   Play,
   Calendar,
+  ShoppingCart,
+  Sparkles,
 } from 'lucide-react';
 import {
   getUserProgress,
@@ -32,7 +34,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
     getSubscriptionStatus(),
   ]);
 
-  const isPaidUser = subscription.tier !== 'free';
+  const isPaidUser = subscription.hasPurchased;
 
   const stats = [
     {
@@ -84,30 +86,74 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         </Link>
       </div>
 
-      {/* Subscription Banner (Free users) */}
-      {subscription.tier === 'free' && (
+      {/* Credits Banner */}
+      {!subscription.hasPurchased ? (
+        // User hasn't purchased yet - show purchase CTA
         <div className="rounded-2xl border border-[#8B5A2B]/25 dark:border-orange-500/30 bg-[#8B5A2B]/8 dark:bg-orange-500/10 p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-start gap-5">
               <div className="rounded-xl bg-[#8B5A2B]/15 dark:bg-orange-500/20 p-3">
-                <Target className="h-10 w-10 text-[#8B5A2B] dark:text-orange-400" />
+                <ShoppingCart className="h-10 w-10 text-[#8B5A2B] dark:text-orange-400" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-[#3D3229] dark:text-white">
-                  {subscription.interviewsRemaining ?? 0} free interviews remaining this month
+                  Get started with interview credits
                 </h3>
                 <p className="text-lg text-[#3D3229] dark:text-slate-200 mt-2">
-                  Upgrade to Pro for unlimited interviews and voice mode
+                  Purchase interview packs to start practicing with AI coaches
                 </p>
               </div>
             </div>
             <Link
               href="/settings?tab=billing"
-              className="inline-flex items-center gap-3 rounded-xl border-2 border-[#8B5A2B] dark:border-orange-400 bg-transparent px-6 py-3 text-lg font-semibold text-[#8B5A2B] dark:text-orange-400 hover:bg-[#8B5A2B]/10 dark:hover:bg-orange-500/10 transition-colors"
+              className="inline-flex items-center gap-3 rounded-xl bg-orange-500 px-6 py-3 text-lg font-semibold text-white hover:bg-orange-600 transition-colors"
             >
-              Upgrade Now
+              Buy Credits
               <ArrowRight className="h-5 w-5" />
             </Link>
+          </div>
+        </div>
+      ) : subscription.availableInterviews <= 2 ? (
+        // User has credits but running low - show refill CTA
+        <div className="rounded-2xl border border-amber-500/30 dark:border-amber-500/30 bg-amber-500/10 p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            <div className="flex items-start gap-5">
+              <div className="rounded-xl bg-amber-500/20 p-3">
+                <Zap className="h-10 w-10 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-[#3D3229] dark:text-white">
+                  {subscription.availableInterviews} interview{subscription.availableInterviews !== 1 ? 's' : ''} remaining
+                </h3>
+                <p className="text-lg text-[#3D3229] dark:text-slate-200 mt-2">
+                  Running low? Add more credits to keep practicing
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/settings?tab=billing"
+              className="inline-flex items-center gap-3 rounded-xl border-2 border-amber-500 bg-transparent px-6 py-3 text-lg font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-colors"
+            >
+              Add Credits
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      ) : (
+        // User has plenty of credits - show positive status
+        <div className="rounded-2xl border border-green-500/20 dark:border-green-500/30 bg-green-500/5 p-6 sm:p-8">
+          <div className="flex items-center gap-5">
+            <div className="rounded-xl bg-green-500/15 p-3">
+              <Sparkles className="h-10 w-10 text-green-500" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-[#3D3229] dark:text-white">
+                {subscription.availableInterviews} interviews available
+              </h3>
+              <p className="text-lg text-[#3D3229] dark:text-slate-200 mt-1">
+                All features unlocked • {subscription.purchasedInterviews} total purchased
+              </p>
+            </div>
           </div>
         </div>
       )}

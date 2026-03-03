@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient, getCurrentUser, getUserProfile } from '@/lib/supabase/server';
+import { INTERVIEW_PRODUCT_CONFIG, type InterviewProduct } from '@/types/database';
 
 // Lazy initialization to avoid build-time errors
 let _stripe: Stripe | null = null;
@@ -17,19 +18,29 @@ function getStripe(): Stripe {
   return _stripe;
 }
 
-// Price IDs from Stripe Dashboard
-function getPriceId(tier: 'pro' | 'premium'): string {
-  const priceId = tier === 'pro'
-    ? process.env.STRIPE_PRO_PRICE_ID
-    : process.env.STRIPE_PREMIUM_PRICE_ID;
+/**
+ * Get the Stripe Price ID for a product
+ * These should be configured in your Stripe Dashboard as one-time prices
+ */
+function getPriceId(product: InterviewProduct): string {
+  const envMap: Record<InterviewProduct, string> = {
+    starter_6: 'STRIPE_STARTER_PRICE_ID',
+    pro_11: 'STRIPE_PRO_PACK_PRICE_ID',
+    refill_5: 'STRIPE_REFILL_PRICE_ID',
+  };
+
+  const envVar = envMap[product];
+  const priceId = process.env[envVar];
+  
   if (!priceId) {
-    throw new Error(`STRIPE_${tier.toUpperCase()}_PRICE_ID environment variable is not set`);
+    throw new Error(`${envVar} environment variable is not set`);
   }
+  
   return priceId;
 }
 
 interface CreateCheckoutRequest {
-  tier: 'pro' | 'premium';
+  product: InterviewProduct;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -44,17 +55,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const body = await request.json() as CreateCheckoutRequest;
-    const { tier } = body;
+    const { product } = body;
 
-    if (!tier || !['pro', 'premium'].includes(tier)) {
+    // Validate product
+    if (!product || !INTERVIEW_PRODUCT_CONFIG[product]) {
       return NextResponse.json(
-        { error: 'Validation error', message: 'Invalid subscription tier' },
+        { error: 'Validation error', message: 'Invalid product selected' },
         { status: 400 }
       );
     }
 
-    const priceId = getPriceId(tier);
+    const productConfig = INTERVIEW_PRODUCT_CONFIG[product];
 
+    // Refill pack requires user to have purchased before
+    if (productConfig.isRefill) {
+      const profile = await getUserProfile();
+      if (!profile || profile.purchased_interviews === 0) {
+        return NextResponse.json(
+          { error: 'Validation error', message: 'Refill packs are only available after an initial purchase' },
+          { status: 400 }
+        );
+      }
+    }
+
+    const priceId = getPriceId(product);
     const profile = await getUserProfile();
     const supabase = await createClient();
 
@@ -78,10 +102,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .eq('id', user.id);
     }
 
-    // Create checkout session
+    // Create checkout session for ONE-TIME PAYMENT
     const session = await getStripe().checkout.sessions.create({
       customer: customerId,
-      mode: 'subscription',
+      mode: 'payment', // ONE-TIME payment, not subscription
       payment_method_types: ['card'],
       line_items: [
         {
@@ -89,16 +113,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?tab=billing&success=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?purchase=success&product=${product}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?tab=billing&canceled=true`,
       metadata: {
         user_id: user.id,
-        tier,
+        product,
+        interviews: productConfig.interviews.toString(),
+        amount_cents: productConfig.priceCents.toString(),
       },
-      subscription_data: {
+      payment_intent_data: {
         metadata: {
           user_id: user.id,
-          tier,
+          product,
+          interviews: productConfig.interviews.toString(),
+          amount_cents: productConfig.priceCents.toString(),
         },
       },
       allow_promotion_codes: true,
@@ -116,8 +144,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { error: 'Server error', message: 'An unexpected error occurred' },
+      { error: 'Server error', message },
       { status: 500 }
     );
   }

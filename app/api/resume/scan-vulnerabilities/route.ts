@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import {
   generateAndSaveVulnerabilityScan,
   getLatestVulnerabilityScan,
@@ -21,19 +21,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Check subscription tier
-    const supabase = await createClient();
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
-      .single();
+    // Check if user has purchased
+    const subscription = await getSubscriptionStatus();
 
-    if (!profile || profile.subscription_tier === 'free') {
+    if (!subscription.hasPurchased) {
       return NextResponse.json(
         {
-          error: 'Upgrade required',
-          message: 'Resume vulnerability scanning is available on Pro and Premium plans',
+          error: 'Purchase required',
+          message: 'Resume vulnerability scanning is available after purchasing interview credits',
         },
         { status: 403 }
       );

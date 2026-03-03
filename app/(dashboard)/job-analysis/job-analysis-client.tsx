@@ -186,45 +186,45 @@ export function JobAnalysisClient(): React.JSX.Element {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#3D3229] dark:text-white">Job Description Analysis</h1>
-        <p className="text-[#6B5744] dark:text-slate-400 mt-1">
+        <h1 className="text-3xl font-bold text-[#3D3229] dark:text-white">Job Description Analysis</h1>
+        <p className="text-lg text-[#6B5744] dark:text-slate-400 mt-2">
           Analyze job descriptions to identify skill gaps and get targeted practice
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-3">
         {/* Left: Input & List */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Analyzer Input */}
           <JobDescriptionAnalyzer onAnalyzed={handleAnalyzed} />
 
           {/* Saved JDs */}
-          <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50">
-            <div className="p-4 border-b border-[#3D3229]/10 dark:border-slate-800">
-              <h3 className="font-medium text-[#3D3229] dark:text-white">Saved Job Descriptions</h3>
+          <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-900/50">
+            <div className="p-5 border-b border-[#3D3229]/10 dark:border-slate-700">
+              <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white">Saved Job Descriptions</h3>
             </div>
 
             {loading ? (
-              <div className="p-6 text-center">
-                <Loader2 className="h-5 w-5 animate-spin text-[#6B5744] dark:text-slate-400 mx-auto" />
+              <div className="p-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[#6B5744] dark:text-slate-400 mx-auto" />
               </div>
             ) : savedJobs.length === 0 ? (
-              <div className="p-6 text-center">
-                <FileText className="h-8 w-8 text-[#8B7355] dark:text-slate-600 mx-auto mb-2" />
-                <p className="text-sm text-[#6B5744] dark:text-slate-400">
+              <div className="p-8 text-center">
+                <FileText className="h-12 w-12 text-[#8B7355] dark:text-slate-600 mx-auto mb-3" />
+                <p className="text-base text-[#6B5744] dark:text-slate-400">
                   No job descriptions yet
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-[#3D3229]/8 dark:divide-slate-800 max-h-96 overflow-y-auto">
+              <div className="divide-y divide-[#3D3229]/8 dark:divide-slate-700 max-h-[500px] overflow-y-auto">
                 {savedJobs.map((jd) => (
                   <div
                     key={jd.id}
                     className={cn(
-                      'flex items-center gap-3 p-3 cursor-pointer transition-colors',
+                      'flex items-center gap-4 p-4 cursor-pointer transition-colors',
                       selectedJd?.id === jd.id
                         ? 'bg-[#FAF8F5] dark:bg-slate-800/70'
                         : 'hover:bg-[#FAF8F5] dark:hover:bg-slate-800/50'
@@ -232,25 +232,25 @@ export function JobAnalysisClient(): React.JSX.Element {
                     onClick={() => handleSelectJd(jd)}
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-[#8B7355] dark:text-slate-500 flex-shrink-0" />
-                        <p className="text-sm font-medium text-[#3D3229] dark:text-white truncate">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Building2 className="h-5 w-5 text-[#8B7355] dark:text-slate-500 flex-shrink-0" />
+                        <p className="text-base font-semibold text-[#3D3229] dark:text-white truncate">
                           {jd.roleTitle ?? 'Unknown Role'}
                         </p>
                       </div>
-                      <p className="text-xs text-[#6B5744] dark:text-slate-400 truncate mt-0.5">
+                      <p className="text-sm text-[#6B5744] dark:text-slate-400 truncate pl-7">
                         {jd.companyName ?? 'Unknown Company'} • {jd.requiredSkillsCount} skills
                       </p>
                     </div>
                     {jd.matchPercentage !== null && (
                       <span
                         className={cn(
-                          'text-xs font-medium px-2 py-0.5 rounded',
+                          'text-sm font-semibold px-3 py-1 rounded-full',
                           jd.matchPercentage >= 80
-                            ? 'bg-green-500/20 text-green-400'
+                            ? 'bg-green-500/20 text-green-600 dark:text-green-400'
                             : jd.matchPercentage >= 60
-                            ? 'bg-amber-500/20 text-amber-400'
-                            : 'bg-red-500/20 text-red-400'
+                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                            : 'bg-red-500/20 text-red-600 dark:text-red-400'
                         )}
                       >
                         {jd.matchPercentage}%
@@ -261,11 +261,11 @@ export function JobAnalysisClient(): React.JSX.Element {
                         e.stopPropagation();
                         void handleDelete(jd.id);
                       }}
-                      className="p-1 text-[#8B7355] dark:text-slate-500 hover:text-red-400 transition-colors"
+                      className="p-2 text-[#8B7355] dark:text-slate-500 hover:text-red-500 transition-colors rounded-lg hover:bg-red-500/10"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </button>
-                    <ChevronRight className="h-4 w-4 text-[#8B7355] dark:text-slate-500" />
+                    <ChevronRight className="h-5 w-5 text-[#8B7355] dark:text-slate-500" />
                   </div>
                 ))}
               </div>
@@ -276,15 +276,15 @@ export function JobAnalysisClient(): React.JSX.Element {
         {/* Right: Analysis Results */}
         <div className="lg:col-span-2">
           {error && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 mb-4">
-              <div className="flex items-center gap-2 text-red-400">
-                <AlertCircle className="h-5 w-5" />
-                <p>{error}</p>
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 mb-6">
+              <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-6 w-6" />
+                <p className="text-base font-medium">{error}</p>
               </div>
               {error.includes('resume') && (
                 <Link
                   href="/settings?tab=resume"
-                  className="text-sm text-orange-400 hover:text-orange-300 mt-2 inline-block"
+                  className="text-base text-orange-500 hover:text-orange-400 mt-3 inline-block font-medium"
                 >
                   Upload a resume →
                 </Link>
@@ -300,12 +300,12 @@ export function JobAnalysisClient(): React.JSX.Element {
               analyzing={analyzing}
             />
           ) : (
-            <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-12 text-center">
-              <FileText className="h-12 w-12 text-[#8B7355] dark:text-slate-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-[#3D3229] dark:text-white mb-2">
+            <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-16 text-center">
+              <FileText className="h-16 w-16 text-[#8B7355] dark:text-slate-600 mx-auto mb-6" />
+              <h3 className="text-2xl font-bold text-[#3D3229] dark:text-white mb-3">
                 Select a Job Description
               </h3>
-              <p className="text-[#6B5744] dark:text-slate-400 max-w-md mx-auto">
+              <p className="text-lg text-[#6B5744] dark:text-slate-400 max-w-md mx-auto">
                 Paste a new job description or select a saved one to see gap
                 analysis and practice recommendations.
               </p>
@@ -315,12 +315,12 @@ export function JobAnalysisClient(): React.JSX.Element {
       </div>
 
       {/* Tips */}
-      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4">
-        <h4 className="font-medium text-[#3D3229] dark:text-white mb-2 flex items-center gap-2">
-          <Clock className="h-4 w-4 text-[#6B5744] dark:text-slate-400" />
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-6">
+        <h4 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-4 flex items-center gap-3">
+          <Clock className="h-5 w-5 text-[#6B5744] dark:text-slate-400" />
           How to Use This Feature
         </h4>
-        <ol className="text-sm text-[#6B5744] dark:text-slate-400 space-y-1 list-decimal list-inside">
+        <ol className="text-base text-[#6B5744] dark:text-slate-400 space-y-2 list-decimal list-inside">
           <li>Paste a job description you&apos;re interested in</li>
           <li>Run gap analysis to compare against your resume</li>
           <li>Review missing skills and experience gaps</li>

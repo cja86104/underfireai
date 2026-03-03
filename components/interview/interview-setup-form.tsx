@@ -22,7 +22,6 @@ import {
   SlidersHorizontal,
   Shield,
   Target,
-  Crown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
@@ -47,7 +46,8 @@ interface InterviewSetupFormProps {
   interviewers: Interviewer[];
   hasResume: boolean;
   resumeSkills: string[];
-  subscriptionTier: 'free' | 'pro' | 'premium';
+  /** True if user has purchased credits (unlocks all features) */
+  hasPurchased: boolean;
   voiceModeEnabled: boolean;
   hasVulnerabilityScan?: boolean;
   vulnerabilityCount?: number;
@@ -55,12 +55,12 @@ interface InterviewSetupFormProps {
   focusClaim?: string | null;
 }
 
-const INTERVIEW_TYPES: { value: InterviewType; label: string; description: string; premiumOnly?: boolean }[] = [
+const INTERVIEW_TYPES: { value: InterviewType; label: string; description: string }[] = [
   { value: 'behavioral',    label: 'Behavioral',    description: 'Tell me about a time...' },
   { value: 'technical',     label: 'Technical',     description: 'System design & coding' },
   { value: 'case',          label: 'Case Study',    description: 'Business problem solving' },
   { value: 'hr',            label: 'HR Screen',     description: 'Culture fit & logistics' },
-  { value: 'panel',         label: 'Panel',         description: 'Multiple interviewers', premiumOnly: true },
+  { value: 'panel',         label: 'Panel',         description: 'Multiple interviewers' },
   { value: 'phone_screen',  label: 'Phone Screen',  description: 'Initial screening' },
 ];
 
@@ -142,7 +142,7 @@ export function InterviewSetupForm({
   interviewers,
   hasResume,
   resumeSkills,
-  subscriptionTier,
+  hasPurchased,
   voiceModeEnabled,
   hasVulnerabilityScan = false,
   vulnerabilityCount = 0,
@@ -152,16 +152,16 @@ export function InterviewSetupForm({
   const router  = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  // ── Resume targeting state (Premium) ────────────────────────────────────────
+  // ── Resume targeting state ──────────────────────────────────────────────────
   const [targetResumeWeakSpots, setTargetResumeWeakSpots] = useState(false);
   const [targetJobDescriptionId, setTargetJobDescriptionId] = useState<string | null>(null);
 
   // Auto-enable resume weak spot targeting when arriving from the vulnerability card
   useEffect(() => {
-    if (focusClaim && subscriptionTier === 'premium') {
+    if (focusClaim && hasPurchased) {
       setTargetResumeWeakSpots(true);
     }
-  }, [focusClaim, subscriptionTier]);
+  }, [focusClaim, hasPurchased]);
 
   // ── Standard form state ────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
@@ -176,7 +176,7 @@ export function InterviewSetupForm({
     generateNewInterviewer: true,
   });
 
-  // ── Premium state ──────────────────────────────────────────────────────────
+  // ── Advanced customization state ───────────────────────────────────────────
   // archetype_mix: up to 2 selections; first is primary, second is blended in
   const [archetypeMix,   setArchetypeMix]   = useState<InterviewerArchetype[]>([]);
   const [constraints,    setConstraints]    = useState<string[]>([]);
@@ -249,8 +249,8 @@ export function InterviewSetupForm({
         generate_new_interviewer: formData.generateNewInterviewer,
       };
 
-      // Only attach premium fields when the user is on premium and has set values
-      if (subscriptionTier === 'premium') {
+      // Attach advanced customization fields when user has purchased and set values
+      if (hasPurchased) {
         if (archetypeMix.length > 0)           payload.archetype_mix    = archetypeMix;
         if (constraints.length > 0)            payload.constraints      = constraints;
         if (Object.keys(traitOverrides).length > 0) payload.trait_overrides = traitOverrides;
@@ -297,13 +297,13 @@ export function InterviewSetupForm({
             <p className="text-amber-800 dark:text-amber-400/90 text-sm mt-1 italic truncate">
               &ldquo;{focusClaim}&rdquo;
             </p>
-            {subscriptionTier === 'premium' ? (
+            {hasPurchased ? (
               <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
                 Resume targeting has been enabled automatically — the interviewer will probe this claim.
               </p>
             ) : (
               <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
-                Upgrade to Premium to have the AI specifically probe this claim during your session.
+                Purchase interview credits to have the AI specifically probe this claim during your session.
               </p>
             )}
           </div>
@@ -323,49 +323,22 @@ export function InterviewSetupForm({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {INTERVIEW_TYPES.map((type) => {
-            const isLocked = type.premiumOnly && subscriptionTier !== 'premium';
-            return (
-              <button
-                key={type.value}
-                type="button"
-                onClick={() => {
-                  if (isLocked) return;
-                  setFormData({ ...formData, interviewType: type.value });
-                }}
-                disabled={isLocked}
-                className={cn(
-                  'rounded-xl border p-5 text-left transition-colors relative',
-                  isLocked
-                    ? 'border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/3 dark:bg-slate-800/30 cursor-not-allowed opacity-60'
-                    : formData.interviewType === type.value
-                    ? 'border-orange-500 bg-orange-500/10'
-                    : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-lg font-bold text-[#3D3229] dark:text-white">{type.label}</p>
-                  {type.premiumOnly && (
-                    <span className={cn(
-                      'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-base font-semibold',
-                      isLocked
-                        ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                    )}>
-                      <Crown className="h-4 w-4" />
-                      Premium
-                    </span>
-                  )}
-                </div>
-                <p className="text-lg text-[#3D3229] dark:text-slate-200 mt-1">{type.description}</p>
-                {isLocked && (
-                  <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80 dark:bg-slate-900/80">
-                    <Lock className="h-7 w-7 text-[#3D3229] dark:text-slate-400" />
-                  </div>
-                )}
-              </button>
-            );
-          })}
+          {INTERVIEW_TYPES.map((type) => (
+            <button
+              key={type.value}
+              type="button"
+              onClick={() => setFormData({ ...formData, interviewType: type.value })}
+              className={cn(
+                'rounded-xl border p-5 text-left transition-colors relative',
+                formData.interviewType === type.value
+                  ? 'border-orange-500 bg-orange-500/10'
+                  : 'border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/50 hover:border-[#8B5A2B]'
+              )}
+            >
+              <p className="text-lg font-bold text-[#3D3229] dark:text-white">{type.label}</p>
+              <p className="text-lg text-[#3D3229] dark:text-slate-200 mt-1">{type.description}</p>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -619,261 +592,8 @@ export function InterviewSetupForm({
         </div>
       </div>
 
-      {/* ── Voice Mode ───────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={cn('rounded-xl p-3', voiceModeEnabled ? 'bg-cyan-500/10' : 'bg-[#FAF8F5] dark:bg-slate-800')}>
-              {voiceModeEnabled ? (
-                <Mic className="h-8 w-8 text-cyan-500" />
-              ) : (
-                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
-              )}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Voice Mode</h2>
-              <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                {voiceModeEnabled
-                  ? 'Practice speaking your answers out loud'
-                  : 'Upgrade to Pro for voice interviews'}
-              </p>
-            </div>
-          </div>
-
-          {voiceModeEnabled ? (
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, useVoiceMode: !formData.useVoiceMode })}
-              className={cn(
-                'relative inline-flex h-8 w-14 items-center rounded-full transition-colors',
-                formData.useVoiceMode ? 'bg-cyan-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
-              )}
-            >
-              <span
-                className={cn(
-                  'inline-block h-6 w-6 transform rounded-full bg-white transition-transform',
-                  formData.useVoiceMode ? 'translate-x-7' : 'translate-x-1'
-                )}
-              />
-            </button>
-          ) : (
-            <a
-              href="/settings?tab=billing"
-              className="text-lg text-orange-500 hover:text-orange-400 font-semibold"
-            >
-              Upgrade
-            </a>
-          )}
-        </div>
-      </div>
-
-      {/* ── Premium: Resume Targeting ────────────────────────────────────── */}
-      {subscriptionTier === 'premium' ? (
-        <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="rounded-xl bg-purple-500/10 p-3">
-              <Shield className="h-8 w-8 text-purple-500" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white flex items-center gap-3">
-                Resume Targeting
-                <span className="rounded-full bg-purple-500/20 px-3 py-1 text-base font-semibold text-purple-600 dark:text-purple-400">
-                  Premium
-                </span>
-              </h2>
-              <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                Focus the interview on your resume weak points or job-specific gaps
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            {/* Target Resume Weak Spots */}
-            {hasVulnerabilityScan && vulnerabilityCount > 0 && (
-              <div className="flex items-center justify-between p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50">
-                <div className="flex items-center gap-4">
-                  <AlertTriangle className="h-7 w-7 text-amber-500" />
-                  <div>
-                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">Target Resume Weak Spots</p>
-                    <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                      Interviewer will probe {vulnerabilityCount} vulnerable claims from your resume
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setTargetResumeWeakSpots(!targetResumeWeakSpots)}
-                  className={cn(
-                    'relative inline-flex h-8 w-14 items-center rounded-full transition-colors',
-                    targetResumeWeakSpots ? 'bg-purple-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'inline-block h-6 w-6 transform rounded-full bg-white transition-transform',
-                      targetResumeWeakSpots ? 'translate-x-7' : 'translate-x-1'
-                    )}
-                  />
-                </button>
-              </div>
-            )}
-
-            {!hasVulnerabilityScan && hasResume && (
-              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-center">
-                <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                  Run a vulnerability scan on your resume to enable targeted practice.
-                </p>
-                <a
-                  href="/dashboard"
-                  className="text-lg text-purple-500 hover:text-purple-400 mt-3 inline-block font-semibold"
-                >
-                  Go to Dashboard →
-                </a>
-              </div>
-            )}
-
-            {/* Target Job Description */}
-            {savedJobDescriptions.length > 0 && (
-              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50">
-                <div className="flex items-center gap-4 mb-4">
-                  <Target className="h-7 w-7 text-blue-500" />
-                  <div>
-                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">Practice for Job</p>
-                    <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                      Target gaps from a saved job description
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => setTargetJobDescriptionId(null)}
-                    className={cn(
-                      'w-full text-left rounded-xl border p-4 transition-colors',
-                      targetJobDescriptionId === null
-                        ? 'border-blue-500 bg-blue-500/10'
-                        : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#FAF8F5] dark:bg-slate-800/30 hover:border-[#8B5A2B]'
-                    )}
-                  >
-                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">No specific job</p>
-                    <p className="text-base text-[#3D3229] dark:text-slate-200">General interview practice</p>
-                  </button>
-                  {savedJobDescriptions.slice(0, 3).map((jd) => (
-                    <button
-                      key={jd.id}
-                      type="button"
-                      onClick={() => setTargetJobDescriptionId(jd.id)}
-                      className={cn(
-                        'w-full text-left rounded-xl border p-4 transition-colors',
-                        targetJobDescriptionId === jd.id
-                          ? 'border-blue-500 bg-blue-500/10'
-                          : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#FAF8F5] dark:bg-slate-800/30 hover:border-[#8B5A2B]'
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-lg font-bold text-[#3D3229] dark:text-white">
-                            {jd.roleTitle ?? 'Unknown Role'}
-                          </p>
-                          <p className="text-base text-[#3D3229] dark:text-slate-200">
-                            {jd.companyName ?? 'Unknown Company'}
-                          </p>
-                        </div>
-                        {jd.matchPercentage !== null && (
-                          <span
-                            className={cn(
-                              'text-base font-bold px-3 py-1 rounded-lg',
-                              jd.matchPercentage >= 80
-                                ? 'bg-green-500/20 text-green-600 dark:text-green-400'
-                                : jd.matchPercentage >= 60
-                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                                : 'bg-red-500/20 text-red-600 dark:text-red-400'
-                            )}
-                          >
-                            {jd.matchPercentage}% match
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                  {savedJobDescriptions.length > 3 && (
-                    <a
-                      href="/job-analysis"
-                      className="block text-center text-lg text-blue-500 hover:text-blue-400 py-3 font-semibold"
-                    >
-                      View all {savedJobDescriptions.length} jobs →
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {savedJobDescriptions.length === 0 && (
-              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-center">
-                <p className="text-lg text-[#3D3229] dark:text-slate-200">
-                  Save job descriptions to practice for specific roles.
-                </p>
-                <a
-                  href="/job-analysis"
-                  className="text-lg text-blue-500 hover:text-blue-400 mt-3 inline-block font-semibold"
-                >
-                  Analyze a Job Description →
-                </a>
-              </div>
-            )}
-
-            {/* Active targeting summary */}
-            {(targetResumeWeakSpots || targetJobDescriptionId) && (
-              <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
-                <p className="text-base font-bold text-purple-600 dark:text-purple-400 mb-2">Targeting active</p>
-                <div className="flex flex-wrap gap-x-6 gap-y-1">
-                  {targetResumeWeakSpots && (
-                    <p className="text-base text-purple-600 dark:text-purple-300">
-                      Resume vulnerabilities: {vulnerabilityCount} claims
-                    </p>
-                  )}
-                  {targetJobDescriptionId && (
-                    <p className="text-base text-purple-600 dark:text-purple-300">
-                      Job: {savedJobDescriptions.find(j => j.id === targetJobDescriptionId)?.roleTitle ?? 'Selected'}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        /* Locked teaser for non-premium users */
-        <div className="rounded-2xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/50 dark:bg-slate-900/30 p-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="rounded-xl bg-[#FAF8F5] dark:bg-slate-800 p-3">
-                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-[#3D3229] dark:text-slate-300 flex items-center gap-3">
-                  Resume Targeting
-                  <span className="rounded-full bg-[#3D3229]/10 dark:bg-slate-700 px-3 py-1 text-base text-[#3D3229] dark:text-slate-300">
-                    Premium
-                  </span>
-                </h2>
-                <p className="text-lg text-[#3D3229] dark:text-slate-300">
-                  Practice defending your resume weak spots and job-specific gaps
-                </p>
-              </div>
-            </div>
-            <a
-              href="/settings?tab=billing"
-              className="flex-shrink-0 text-lg text-purple-500 hover:text-purple-400 font-semibold"
-            >
-              Upgrade
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* ── Premium: Custom Scenario Builder ─────────────────────────────── */}
-      {subscriptionTier === 'premium' ? (
+      {/* ── Custom Scenario Builder ───────────────────────────────────────── */}
+      {hasPurchased ? (
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-8 space-y-10">
 
           {/* Header */}
@@ -882,11 +602,8 @@ export function InterviewSetupForm({
               <Wand2 className="h-8 w-8 text-amber-500" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white flex items-center gap-3">
+              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">
                 Custom Scenario Builder
-                <span className="rounded-full bg-amber-500/20 px-3 py-1 text-base font-semibold text-amber-600 dark:text-amber-400">
-                  Premium
-                </span>
               </h2>
               <p className="text-lg text-[#3D3229] dark:text-slate-200">
                 Hand-pick archetype, add constraints, and dial individual traits
@@ -1079,7 +796,7 @@ export function InterviewSetupForm({
           </div>
         </div>
       ) : (
-        /* Locked teaser for non-premium users */
+        /* Locked teaser for users who haven't purchased */
         <div className="rounded-2xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/50 dark:bg-slate-900/30 p-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -1087,11 +804,8 @@ export function InterviewSetupForm({
                 <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[#3D3229] dark:text-slate-300 flex items-center gap-3">
+                <h2 className="text-xl font-bold text-[#3D3229] dark:text-slate-300">
                   Custom Scenario Builder
-                  <span className="rounded-full bg-[#3D3229]/10 dark:bg-slate-700 px-3 py-1 text-base text-[#3D3229] dark:text-slate-300">
-                    Premium
-                  </span>
                 </h2>
                 <p className="text-lg text-[#3D3229] dark:text-slate-300">
                   Hand-pick archetypes, add constraints, and dial individual personality traits
@@ -1102,16 +816,260 @@ export function InterviewSetupForm({
               href="/settings?tab=billing"
               className="flex-shrink-0 text-lg text-amber-500 hover:text-amber-400 font-semibold"
             >
-              Upgrade
+              Buy Credits
             </a>
           </div>
         </div>
       )}
+      {/* ── Voice Mode ───────────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={cn('rounded-xl p-3', voiceModeEnabled ? 'bg-cyan-500/10' : 'bg-[#FAF8F5] dark:bg-slate-800')}>
+              {voiceModeEnabled ? (
+                <Mic className="h-8 w-8 text-cyan-500" />
+              ) : (
+                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
+              )}
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">Voice Mode</h2>
+              <p className="text-lg text-[#3D3229] dark:text-slate-200">
+                {voiceModeEnabled
+                  ? 'Practice speaking your answers out loud'
+                  : 'Upgrade to Pro for voice interviews'}
+              </p>
+            </div>
+          </div>
 
+          {voiceModeEnabled ? (
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, useVoiceMode: !formData.useVoiceMode })}
+              className={cn(
+                'relative inline-flex h-8 w-14 items-center rounded-full transition-colors',
+                formData.useVoiceMode ? 'bg-cyan-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
+              )}
+            >
+              <span
+                className={cn(
+                  'inline-block h-6 w-6 transform rounded-full bg-white transition-transform',
+                  formData.useVoiceMode ? 'translate-x-7' : 'translate-x-1'
+                )}
+              />
+            </button>
+          ) : (
+            <a
+              href="/settings?tab=billing"
+              className="text-lg text-orange-500 hover:text-orange-400 font-semibold"
+            >
+              Upgrade
+            </a>
+          )}
+        </div>
+      </div>
+      {/* ── Resume Targeting ──────────────────────────────────────────────── */}
+      {hasPurchased ? (
+        <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="rounded-xl bg-purple-500/10 p-3">
+              <Shield className="h-8 w-8 text-purple-500" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-[#3D3229] dark:text-white">
+                Resume Targeting
+              </h2>
+              <p className="text-lg text-[#3D3229] dark:text-slate-200">
+                Focus the interview on your resume weak points or job-specific gaps
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            {/* Target Resume Weak Spots */}
+            {hasVulnerabilityScan && vulnerabilityCount > 0 && (
+              <div className="flex items-center justify-between p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50">
+                <div className="flex items-center gap-4">
+                  <AlertTriangle className="h-7 w-7 text-amber-500" />
+                  <div>
+                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">Target Resume Weak Spots</p>
+                    <p className="text-lg text-[#3D3229] dark:text-slate-200">
+                      Interviewer will probe {vulnerabilityCount} vulnerable claims from your resume
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTargetResumeWeakSpots(!targetResumeWeakSpots)}
+                  className={cn(
+                    'relative inline-flex h-8 w-14 items-center rounded-full transition-colors',
+                    targetResumeWeakSpots ? 'bg-purple-500' : 'bg-[#3D3229]/10 dark:bg-slate-700'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'inline-block h-6 w-6 transform rounded-full bg-white transition-transform',
+                      targetResumeWeakSpots ? 'translate-x-7' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+              </div>
+            )}
+
+            {!hasVulnerabilityScan && hasResume && (
+              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-center">
+                <p className="text-lg text-[#3D3229] dark:text-slate-200">
+                  Run a vulnerability scan on your resume to enable targeted practice.
+                </p>
+                <a
+                  href="/dashboard"
+                  className="text-lg text-purple-500 hover:text-purple-400 mt-3 inline-block font-semibold"
+                >
+                  Go to Dashboard →
+                </a>
+              </div>
+            )}
+
+            {/* Target Job Description */}
+            {savedJobDescriptions.length > 0 && (
+              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50">
+                <div className="flex items-center gap-4 mb-4">
+                  <Target className="h-7 w-7 text-blue-500" />
+                  <div>
+                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">Practice for Job</p>
+                    <p className="text-lg text-[#3D3229] dark:text-slate-200">
+                      Target gaps from a saved job description
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => setTargetJobDescriptionId(null)}
+                    className={cn(
+                      'w-full text-left rounded-xl border p-4 transition-colors',
+                      targetJobDescriptionId === null
+                        ? 'border-blue-500 bg-blue-500/10'
+                        : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#FAF8F5] dark:bg-slate-800/30 hover:border-[#8B5A2B]'
+                    )}
+                  >
+                    <p className="text-lg font-bold text-[#3D3229] dark:text-white">No specific job</p>
+                    <p className="text-base text-[#3D3229] dark:text-slate-200">General interview practice</p>
+                  </button>
+                  {savedJobDescriptions.slice(0, 3).map((jd) => (
+                    <button
+                      key={jd.id}
+                      type="button"
+                      onClick={() => setTargetJobDescriptionId(jd.id)}
+                      className={cn(
+                        'w-full text-left rounded-xl border p-4 transition-colors',
+                        targetJobDescriptionId === jd.id
+                          ? 'border-blue-500 bg-blue-500/10'
+                          : 'border-[#3D3229]/20 dark:border-slate-600 bg-[#FAF8F5] dark:bg-slate-800/30 hover:border-[#8B5A2B]'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-lg font-bold text-[#3D3229] dark:text-white">
+                            {jd.roleTitle ?? 'Unknown Role'}
+                          </p>
+                          <p className="text-base text-[#3D3229] dark:text-slate-200">
+                            {jd.companyName ?? 'Unknown Company'}
+                          </p>
+                        </div>
+                        {jd.matchPercentage !== null && (
+                          <span
+                            className={cn(
+                              'text-base font-bold px-3 py-1 rounded-lg',
+                              jd.matchPercentage >= 80
+                                ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                                : jd.matchPercentage >= 60
+                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                                : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                            )}
+                          >
+                            {jd.matchPercentage}% match
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                  {savedJobDescriptions.length > 3 && (
+                    <a
+                      href="/job-analysis"
+                      className="block text-center text-lg text-blue-500 hover:text-blue-400 py-3 font-semibold"
+                    >
+                      View all {savedJobDescriptions.length} jobs →
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {savedJobDescriptions.length === 0 && (
+              <div className="p-5 rounded-xl border border-[#3D3229]/15 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-center">
+                <p className="text-lg text-[#3D3229] dark:text-slate-200">
+                  Save job descriptions to practice for specific roles.
+                </p>
+                <a
+                  href="/job-analysis"
+                  className="text-lg text-blue-500 hover:text-blue-400 mt-3 inline-block font-semibold"
+                >
+                  Analyze a Job Description →
+                </a>
+              </div>
+            )}
+
+            {/* Active targeting summary */}
+            {(targetResumeWeakSpots || targetJobDescriptionId) && (
+              <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+                <p className="text-base font-bold text-purple-600 dark:text-purple-400 mb-2">Targeting active</p>
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                  {targetResumeWeakSpots && (
+                    <p className="text-base text-purple-600 dark:text-purple-300">
+                      Resume vulnerabilities: {vulnerabilityCount} claims
+                    </p>
+                  )}
+                  {targetJobDescriptionId && (
+                    <p className="text-base text-purple-600 dark:text-purple-300">
+                      Job: {savedJobDescriptions.find(j => j.id === targetJobDescriptionId)?.roleTitle ?? 'Selected'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Locked teaser for users who haven't purchased */
+        <div className="rounded-2xl border border-[#3D3229]/15 dark:border-slate-700 bg-[#FAF8F5]/50 dark:bg-slate-900/30 p-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="rounded-xl bg-[#FAF8F5] dark:bg-slate-800 p-3">
+                <Lock className="h-8 w-8 text-[#3D3229] dark:text-slate-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#3D3229] dark:text-slate-300">
+                  Resume Targeting
+                </h2>
+                <p className="text-lg text-[#3D3229] dark:text-slate-300">
+                  Practice defending your resume weak spots and job-specific gaps
+                </p>
+              </div>
+            </div>
+            <a
+              href="/settings?tab=billing"
+              className="flex-shrink-0 text-lg text-purple-500 hover:text-purple-400 font-semibold"
+            >
+              Buy Credits
+            </a>
+          </div>
+        </div>
+      )}
       {/* ── Submit ───────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between pt-6">
         <p className="text-lg text-[#3D3229] dark:text-slate-300">
-          {subscriptionTier === 'free' && 'Uses 1 of your 3 monthly interviews'}
+          Uses 1 interview credit
         </p>
         <button
           type="submit"

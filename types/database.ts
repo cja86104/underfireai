@@ -433,7 +433,8 @@ export interface Database {
           email: string
           full_name: string | null
           id: string
-          monthly_interviews_used: number
+          interviews_used: number
+          purchased_interviews: number
           onboarding_completed: boolean
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -448,7 +449,8 @@ export interface Database {
           email: string
           full_name?: string | null
           id: string
-          monthly_interviews_used?: number
+          interviews_used?: number
+          purchased_interviews?: number
           onboarding_completed?: boolean
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -463,7 +465,8 @@ export interface Database {
           email?: string
           full_name?: string | null
           id?: string
-          monthly_interviews_used?: number
+          interviews_used?: number
+          purchased_interviews?: number
           onboarding_completed?: boolean
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -473,6 +476,53 @@ export interface Database {
           updated_at?: string
         }
         Relationships: []
+      }
+      interview_purchases: {
+        Row: {
+          id: string
+          user_id: string
+          stripe_payment_intent_id: string | null
+          stripe_checkout_session_id: string | null
+          product_type: "starter_6" | "pro_11" | "refill_5"
+          interviews_granted: number
+          amount_cents: number
+          currency: string
+          status: "pending" | "completed" | "refunded"
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          stripe_payment_intent_id?: string | null
+          stripe_checkout_session_id?: string | null
+          product_type: "starter_6" | "pro_11" | "refill_5"
+          interviews_granted: number
+          amount_cents: number
+          currency?: string
+          status?: "pending" | "completed" | "refunded"
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          stripe_payment_intent_id?: string | null
+          stripe_checkout_session_id?: string | null
+          product_type?: "starter_6" | "pro_11" | "refill_5"
+          interviews_granted?: number
+          amount_cents?: number
+          currency?: string
+          status?: "pending" | "completed" | "refunded"
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       session_scores: {
         Row: {
@@ -1269,6 +1319,45 @@ export const SESSION_LENGTH_CONFIG: Record<SessionLength, {
 };
 
 // ============================================
+// INTERVIEW PRODUCT CONFIGURATION
+// ============================================
+export type InterviewProduct = 'starter_6' | 'pro_11' | 'refill_5';
+
+export const INTERVIEW_PRODUCT_CONFIG: Record<InterviewProduct, {
+  label: string;
+  description: string;
+  interviews: number;
+  priceCents: number;
+  priceDisplay: string;
+  isRefill: boolean;
+}> = {
+  starter_6: {
+    label: 'Starter Pack',
+    description: '6 AI mock interviews',
+    interviews: 6,
+    priceCents: 2500,
+    priceDisplay: '$25',
+    isRefill: false,
+  },
+  pro_11: {
+    label: 'Pro Pack',
+    description: '11 AI mock interviews',
+    interviews: 11,
+    priceCents: 3500,
+    priceDisplay: '$35',
+    isRefill: false,
+  },
+  refill_5: {
+    label: 'Refill Pack',
+    description: '+5 additional interviews',
+    interviews: 5,
+    priceCents: 1000,
+    priceDisplay: '$10',
+    isRefill: true,
+  },
+};
+
+// ============================================
 // ROW / INSERT / UPDATE ALIASES
 // (backwards compat — used in explicit type
 //  annotations throughout the codebase)
@@ -1285,7 +1374,8 @@ export interface Profile {
   subscription_period_end: string | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
-  monthly_interviews_used: number;
+  interviews_used: number;
+  purchased_interviews: number;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
@@ -1301,7 +1391,8 @@ export interface ProfileInsert {
   subscription_period_end?: string | null;
   stripe_customer_id?: string | null;
   stripe_subscription_id?: string | null;
-  monthly_interviews_used?: number;
+  interviews_used?: number;
+  purchased_interviews?: number;
   onboarding_completed?: boolean;
   created_at?: string;
   updated_at?: string;
@@ -1316,9 +1407,40 @@ export interface ProfileUpdate {
   subscription_period_end?: string | null;
   stripe_customer_id?: string | null;
   stripe_subscription_id?: string | null;
-  monthly_interviews_used?: number;
+  interviews_used?: number;
+  purchased_interviews?: number;
   onboarding_completed?: boolean;
   updated_at?: string;
+}
+
+// -- Interview Purchases --
+export type InterviewProductType = 'starter_6' | 'pro_11' | 'refill_5';
+export type PurchaseStatus = 'pending' | 'completed' | 'refunded';
+
+export interface InterviewPurchase {
+  id: string;
+  user_id: string;
+  stripe_payment_intent_id: string | null;
+  stripe_checkout_session_id: string | null;
+  product_type: InterviewProductType;
+  interviews_granted: number;
+  amount_cents: number;
+  currency: string;
+  status: PurchaseStatus;
+  created_at: string;
+}
+
+export interface InterviewPurchaseInsert {
+  id?: string;
+  user_id: string;
+  stripe_payment_intent_id?: string | null;
+  stripe_checkout_session_id?: string | null;
+  product_type: InterviewProductType;
+  interviews_granted: number;
+  amount_cents: number;
+  currency?: string;
+  status?: PurchaseStatus;
+  created_at?: string;
 }
 
 // -- Interviewers --

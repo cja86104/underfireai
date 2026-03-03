@@ -19,3 +19,5 @@ export {
   type CodeSubmissionReplay,
   type CodingChallengeReplay,
 } from './code-replay-panel';
+export { RecapModal } from './recap-modal';
+export { NoCreditsWrapper } from './no-credits-wrapper';

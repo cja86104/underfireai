@@ -7,7 +7,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { parseJobDescription } from '@/lib/job-description/parser';
 import type { Json } from '@/types/database';
 
@@ -38,34 +38,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const supabase = await createClient();
 
-    // Check subscription and monthly limit
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
-      .single();
+    // Check if user has purchased
+    const subscription = await getSubscriptionStatus();
 
-    if (profile?.subscription_tier === 'free') {
+    if (!subscription.hasPurchased) {
       return NextResponse.json(
-        { error: 'Upgrade required', message: 'Job description analysis is a Pro feature' },
+        { error: 'Purchase required', message: 'Job description analysis is available after purchasing interview credits' },
         { status: 403 }
       );
-    }
-
-    // Check monthly limit for Pro users (3/month)
-    if (profile?.subscription_tier === 'pro') {
-      const { count } = await supabase
-        .from('job_descriptions')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('created_at', new Date(new Date().setDate(1)).toISOString());
-
-      if (count && count >= 3) {
-        return NextResponse.json(
-          { error: 'Limit reached', message: 'Pro users can analyze 3 job descriptions per month. Upgrade to Premium for unlimited.' },
-          { status: 403 }
-        );
-      }
     }
 
     // Parse the job description

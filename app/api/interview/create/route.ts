@@ -230,46 +230,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Subscription check — needed both for the interview limit and the premium gate
+    // Credit check — user must have available interview credits
     const subscription = await getSubscriptionStatus();
 
     if (!subscription.canStartInterview) {
       return NextResponse.json(
-        { error: 'Limit reached', message: "You've used all your free interviews this month. Upgrade to continue." },
+        { 
+          error: 'No credits remaining', 
+          message: "You've used all your interview credits. Purchase more to continue.",
+          availableInterviews: subscription.availableInterviews,
+        },
         { status: 403 }
       );
     }
 
     const body = await request.json() as CreateInterviewRequest;
 
-    // ── Premium gate ─────────────────────────────────────────────────────────
-    const hasPremiumFields =
-      ((body.archetype_mix?.length ?? 0) > 0) ||
-      ((body.constraints?.length ?? 0) > 0) ||
-      (Object.keys(body.trait_overrides ?? {}).length > 0) ||
-      (body.target_resume_weak_spots === true) ||
-      (body.target_job_description_id != null);
-
-    if (hasPremiumFields && subscription.tier !== 'premium') {
-      return NextResponse.json(
-        {
-          error: 'Premium required',
-          message: 'Resume targeting and Custom Scenario Builder require a Premium subscription.',
-        },
-        { status: 403 }
-      );
-    }
-
-    // Panel interviews are premium-only
-    if (body.interview_type === 'panel' && subscription.tier !== 'premium') {
-      return NextResponse.json(
-        {
-          error: 'Premium required',
-          message: 'Panel interviews require a Premium subscription.',
-        },
-        { status: 403 }
-      );
-    }
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ALL FEATURES UNLOCKED FOR PURCHASERS
+    // No more premium gates - everyone who has purchased gets everything
+    // ═══════════════════════════════════════════════════════════════════════════
 
     const {
       interview_type,
@@ -476,28 +456,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // ── Increment monthly count for free users (optimistic lock) ─────────────
-    if (subscription.tier === 'free') {
-      const expectedCount =
-        subscription.interviewsRemaining !== undefined
-          ? 3 - subscription.interviewsRemaining
-          : 0;
+    // ── Use one interview credit (optimistic lock) ─────────────────────────────
+    const expectedUsed = subscription.usedInterviews;
 
-      const { data: updatedProfile, error: incrementError } = await supabase
-        .from('profiles')
-        .update({ monthly_interviews_used: expectedCount + 1 })
-        .eq('id', user.id)
-        .eq('monthly_interviews_used', expectedCount)
-        .select('id')
-        .single();
+    const { data: updatedProfile, error: incrementError } = await supabase
+      .from('profiles')
+      .update({ interviews_used: expectedUsed + 1 })
+      .eq('id', user.id)
+      .eq('interviews_used', expectedUsed)
+      .select('id')
+      .single();
 
-      if (incrementError || !updatedProfile) {
-        console.error('Error incrementing interview count (possible race condition):', incrementError);
-        return NextResponse.json(
-          { error: 'Conflict', message: 'Interview count changed concurrently. Please try again.' },
-          { status: 409 }
-        );
-      }
+    if (incrementError || !updatedProfile) {
+      console.error('Error using interview credit (possible race condition):', incrementError);
+      return NextResponse.json(
+        { error: 'Conflict', message: 'Interview count changed concurrently. Please try again.' },
+        { status: 409 }
+      );
     }
 
     // ── Create interview session ──────────────────────────────────────────────
@@ -596,17 +571,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (sessionError || !session) {
       console.error('Error creating session:', sessionError);
 
-      // Roll back the interview count for free users
-      if (subscription.tier === 'free') {
-        const rollbackCount =
-          subscription.interviewsRemaining !== undefined
-            ? 3 - subscription.interviewsRemaining
-            : 0;
-        await supabase
-          .from('profiles')
-          .update({ monthly_interviews_used: rollbackCount })
-          .eq('id', user.id);
-      }
+      // Roll back the interview credit
+      await supabase
+        .from('profiles')
+        .update({ interviews_used: expectedUsed })
+        .eq('id', user.id);
 
       return NextResponse.json(
         { error: 'Database error', message: 'Failed to create interview session' },

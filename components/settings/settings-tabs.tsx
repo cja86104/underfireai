@@ -10,13 +10,17 @@ import {
   Loader2,
   Check,
   Crown,
-  ExternalLink,
   Globe,
+  Sparkles,
+  Zap,
+  Package,
+  Plus,
 } from 'lucide-react';
 import { WebhooksTab } from './webhooks-tab';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
 import { getClient } from '@/lib/client';
+import { INTERVIEW_PRODUCT_CONFIG, type InterviewProduct } from '@/types/database';
 
 interface SettingsTabsProps {
   activeTab: string;
@@ -30,14 +34,19 @@ interface SettingsTabsProps {
     tier: 'free' | 'pro' | 'premium';
     status: string;
     periodEnd: string | null;
+    /** @deprecated Use availableInterviews instead */
     interviewsRemaining?: number;
+    purchasedInterviews: number;
+    usedInterviews: number;
+    availableInterviews: number;
+    hasPurchased: boolean;
   };
   onboardingCompleted: boolean;
 }
 
 const tabs = [
   { id: 'profile', label: 'Profile', icon: User },
-  { id: 'billing', label: 'Billing', icon: CreditCard },
+  { id: 'billing', label: 'Credits', icon: CreditCard },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'webhooks', label: 'Webhooks', icon: Globe },
@@ -188,158 +197,243 @@ function ProfileTab({ user }: { user: SettingsTabsProps['user'] }): React.JSX.El
 }
 
 function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscription'] }): React.JSX.Element {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<InterviewProduct | null>(null);
 
-  const plans = [
-    {
-      tier: 'free' as const,
-      name: 'Free',
-      price: '$0',
-      features: ['3 interviews/month', 'Basic feedback', 'Text mode only'],
-    },
-    {
-      tier: 'pro' as const,
-      name: 'Pro',
-      price: '$19',
-      features: ['Unlimited interviews', 'Voice mode', 'Full analytics', 'Priority support'],
-      popular: true,
-    },
-    {
-      tier: 'premium' as const,
-      name: 'Premium',
-      price: '$39',
-      features: ['Everything in Pro', 'Resume coaching', 'Company profiles', 'Priority support'],
-    },
-  ];
-
-  const handleUpgrade = async (tier: 'pro' | 'premium'): Promise<void> => {
-    setIsLoading(true);
+  const handlePurchase = async (product: InterviewProduct): Promise<void> => {
+    setIsLoading(product);
     try {
       const response = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ product }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create checkout session');
+        const error = await response.json() as { message?: string };
+        throw new Error(error.message ?? 'Failed to create checkout session');
       }
 
       const data = await response.json() as { url: string };
       window.location.href = data.url;
-    } catch {
-      toast.error('Failed to start checkout. Please try again.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to start checkout. Please try again.';
+      toast.error(message);
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
-  const handleManageBilling = async (): Promise<void> => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/stripe/create-portal', {
-        method: 'POST',
-      });
+  const products = [
+    {
+      key: 'starter_6' as const,
+      ...INTERVIEW_PRODUCT_CONFIG.starter_6,
+      icon: Package,
+      color: 'blue',
+      popular: false,
+    },
+    {
+      key: 'pro_11' as const,
+      ...INTERVIEW_PRODUCT_CONFIG.pro_11,
+      icon: Sparkles,
+      color: 'orange',
+      popular: true,
+    },
+  ];
 
-      if (!response.ok) {
-        throw new Error('Failed to create portal session');
-      }
-
-      const data = await response.json() as { url: string };
-      window.location.href = data.url;
-    } catch {
-      toast.error('Failed to open billing portal. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const refillProduct = {
+    key: 'refill_5' as const,
+    ...INTERVIEW_PRODUCT_CONFIG.refill_5,
+    icon: Plus,
+    color: 'green',
   };
 
   return (
     <div className="space-y-6">
-      {/* Current Plan */}
+      {/* Current Credits */}
       <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6">
-        <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-4">Current Plan</h2>
+        <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-4">Interview Credits</h2>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className={cn(
-              'rounded-lg p-2',
-              subscription.tier === 'premium' ? 'bg-amber-500/20' :
-              subscription.tier === 'pro' ? 'bg-orange-500/20' : 'bg-[#3D3229]/10 dark:bg-slate-700'
+              'rounded-xl p-3',
+              subscription.availableInterviews > 0 ? 'bg-green-500/10' : 'bg-amber-500/10'
             )}>
-              <Crown className={cn(
-                'h-5 w-5',
-                subscription.tier === 'premium' ? 'text-amber-400' :
-                subscription.tier === 'pro' ? 'text-orange-500' : 'text-[#6B5744] dark:text-slate-400'
+              <Zap className={cn(
+                'h-8 w-8',
+                subscription.availableInterviews > 0 ? 'text-green-500' : 'text-amber-500'
               )} />
             </div>
             <div>
-              <p className="font-semibold text-[#3D3229] dark:text-white capitalize">{subscription.tier} Plan</p>
-              <p className="text-sm text-[#6B5744] dark:text-slate-400">
-                {subscription.tier === 'free'
-                  ? `${subscription.interviewsRemaining} interviews remaining this month`
-                  : `Status: ${subscription.status}`}
+              <p className="text-3xl font-bold text-[#3D3229] dark:text-white">
+                {subscription.availableInterviews}
+                <span className="text-lg font-normal text-[#6B5744] dark:text-slate-400 ml-2">
+                  interviews remaining
+                </span>
+              </p>
+              <p className="text-sm text-[#6B5744] dark:text-slate-400 mt-1">
+                {subscription.purchasedInterviews} purchased • {subscription.usedInterviews} used
               </p>
             </div>
           </div>
-          {subscription.tier !== 'free' && (
-            <button
-              onClick={handleManageBilling}
-              disabled={isLoading}
-              className="text-sm text-orange-500 hover:text-orange-400 flex items-center gap-1"
-            >
-              Manage Billing
-              <ExternalLink className="h-3 w-3" />
-            </button>
+          {subscription.hasPurchased && (
+            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <Crown className="h-5 w-5" />
+              <span className="text-sm font-medium">All features unlocked</span>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Plan Options */}
+      {/* Purchase Options */}
       <div>
-        <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-4">Available Plans</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {plans.map((plan) => (
+        <h2 className="text-lg font-semibold text-[#3D3229] dark:text-white mb-4">
+          {subscription.hasPurchased ? 'Buy More Credits' : 'Get Started'}
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          {products.map((product) => (
             <div
-              key={plan.tier}
+              key={product.key}
               className={cn(
-                'rounded-xl border p-5',
-                plan.popular
+                'rounded-xl border p-6 relative',
+                product.popular
                   ? 'border-orange-500 bg-orange-500/5'
-                  : 'border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50',
-                subscription.tier === plan.tier && 'ring-2 ring-orange-500'
+                  : 'border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50'
               )}
             >
-              {plan.popular && (
-                <span className="inline-block rounded-full bg-orange-500 px-2 py-0.5 text-xs font-semibold text-[#3D3229] dark:text-white mb-3">
-                  Most Popular
+              {product.popular && (
+                <span className="absolute -top-3 left-4 inline-block rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white">
+                  Best Value
                 </span>
               )}
-              <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white">{plan.name}</h3>
-              <p className="text-2xl font-bold text-[#3D3229] dark:text-white mt-1">
-                {plan.price}
-                <span className="text-sm font-normal text-[#6B5744] dark:text-slate-400">/month</span>
-              </p>
-              <ul className="mt-4 space-y-2">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-[#6B5744] dark:text-slate-300">
-                    <Check className="h-4 w-4 text-green-500" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              {subscription.tier === plan.tier ? (
-                <div className="mt-4 rounded-lg bg-[#FAF8F5] dark:bg-slate-800 px-4 py-2 text-center text-sm text-[#6B5744] dark:text-slate-400">
-                  Current Plan
+              <div className="flex items-start gap-4">
+                <div className={cn(
+                  'rounded-xl p-3',
+                  product.color === 'orange' ? 'bg-orange-500/10' : 'bg-blue-500/10'
+                )}>
+                  <product.icon className={cn(
+                    'h-6 w-6',
+                    product.color === 'orange' ? 'text-orange-500' : 'text-blue-500'
+                  )} />
                 </div>
-              ) : plan.tier !== 'free' ? (
-                <button
-                  onClick={() => handleUpgrade(plan.tier)}
-                  disabled={isLoading}
-                  className="mt-4 w-full rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-[#3D3229] dark:text-white hover:bg-orange-600 transition-colors disabled:opacity-50"
-                >
-                  {isLoading ? 'Loading...' : 'Upgrade'}
-                </button>
-              ) : null}
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white">
+                    {product.label}
+                  </h3>
+                  <p className="text-sm text-[#6B5744] dark:text-slate-400 mt-1">
+                    {product.description}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-[#3D3229] dark:text-white">
+                    {product.priceDisplay}
+                  </p>
+                  <p className="text-xs text-[#6B5744] dark:text-slate-400">
+                    one-time
+                  </p>
+                </div>
+              </div>
+              
+              <ul className="mt-4 space-y-2">
+                <li className="flex items-center gap-2 text-sm text-[#6B5744] dark:text-slate-300">
+                  <Check className="h-4 w-4 text-green-500" />
+                  {product.interviews} AI mock interviews
+                </li>
+                <li className="flex items-center gap-2 text-sm text-[#6B5744] dark:text-slate-300">
+                  <Check className="h-4 w-4 text-green-500" />
+                  All interview types (behavioral, technical, panel, etc.)
+                </li>
+                <li className="flex items-center gap-2 text-sm text-[#6B5744] dark:text-slate-300">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Voice mode included
+                </li>
+                <li className="flex items-center gap-2 text-sm text-[#6B5744] dark:text-slate-300">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Resume targeting & custom scenarios
+                </li>
+                <li className="flex items-center gap-2 text-sm text-[#6B5744] dark:text-slate-300">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Credits never expire
+                </li>
+              </ul>
+
+              <button
+                onClick={() => handlePurchase(product.key)}
+                disabled={isLoading !== null}
+                className={cn(
+                  'mt-4 w-full rounded-lg px-4 py-3 text-sm font-semibold transition-colors disabled:opacity-50',
+                  product.popular
+                    ? 'bg-orange-500 text-white hover:bg-orange-600'
+                    : 'bg-[#3D3229]/10 dark:bg-slate-700 text-[#3D3229] dark:text-white hover:bg-[#3D3229]/20 dark:hover:bg-slate-600'
+                )}
+              >
+                {isLoading === product.key ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processing...
+                  </span>
+                ) : (
+                  `Buy ${product.label}`
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Refill Option (only shown after first purchase) */}
+      {subscription.hasPurchased && (
+        <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="rounded-xl bg-green-500/10 p-3">
+                <refillProduct.icon className="h-6 w-6 text-green-500" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-[#3D3229] dark:text-white">
+                  {refillProduct.label}
+                </h3>
+                <p className="text-sm text-[#6B5744] dark:text-slate-400">
+                  {refillProduct.description} • {refillProduct.priceDisplay}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => handlePurchase(refillProduct.key)}
+              disabled={isLoading !== null}
+              className="rounded-lg bg-green-500 px-6 py-2 text-sm font-semibold text-white hover:bg-green-600 transition-colors disabled:opacity-50"
+            >
+              {isLoading === refillProduct.key ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                'Add Credits'
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Features Unlocked Info */}
+      <div className="rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-800/50 p-6">
+        <h3 className="text-sm font-semibold text-[#3D3229] dark:text-white mb-3">
+          What&apos;s included with every purchase:
+        </h3>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {[
+            'All interview types unlocked',
+            'Voice mode for realistic practice',
+            'AI-powered feedback & scoring',
+            'Resume vulnerability scanning',
+            'Custom interviewer personalities',
+            'Panel interview simulations',
+            'Job description gap analysis',
+            'Interview replay & history',
+          ].map((feature) => (
+            <div key={feature} className="flex items-center gap-2 text-sm text-[#6B5744] dark:text-slate-300">
+              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+              {feature}
             </div>
           ))}
         </div>

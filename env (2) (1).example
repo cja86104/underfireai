@@ -1,0 +1,88 @@
+# UnderFireAI Environment Variables
+# Copy this file to .env.local and fill in your values
+
+# ===========================================
+# SUPABASE
+# ===========================================
+# Get these from your Supabase project settings > API
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+
+# ===========================================
+# AI / LLM
+# ===========================================
+# OpenRouter API key for AI model access
+# Get from https://openrouter.ai/keys
+OPENROUTER_API_KEY=sk-or-v1-your-key-here
+
+# NOTE: OPENAI_API_KEY is NOT used by this application.
+# All AI completions go through OpenRouter (OPENROUTER_API_KEY).
+# Text-to-speech uses Cartesia (CARTESIA_API_KEY below).
+# This entry is kept as a placeholder in case you add direct OpenAI calls.
+# OPENAI_API_KEY=sk-your-openai-key-here
+
+# ===========================================
+# STRIPE (Payments)
+# ===========================================
+# Get from https://dashboard.stripe.com/apikeys
+STRIPE_SECRET_KEY=sk_test_your-key-here
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your-key-here
+
+# Webhook signing secret
+# Get from https://dashboard.stripe.com/webhooks
+STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
+
+# ───────────────────────────────────────────
+# ONE-TIME PAYMENT PRICE IDs (Current System)
+# ───────────────────────────────────────────
+# Create these as ONE-TIME prices in Stripe Dashboard:
+# - Starter Pack: 6 interviews for $25
+# - Pro Pack: 11 interviews for $35
+# - Refill Pack: +5 interviews for $10
+STRIPE_STARTER_PRICE_ID=price_starter_6_interviews
+STRIPE_PRO_PACK_PRICE_ID=price_pro_11_interviews
+STRIPE_REFILL_PRICE_ID=price_refill_5_interviews
+
+# ───────────────────────────────────────────
+# LEGACY SUBSCRIPTION PRICE IDs (Deprecated)
+# ───────────────────────────────────────────
+# Keep these for existing subscribers during transition
+# These are no longer used for new purchases
+STRIPE_PRO_PRICE_ID=price_pro_monthly_id
+STRIPE_PREMIUM_PRICE_ID=price_premium_monthly_id
+
+# ===========================================
+# APPLICATION
+# ===========================================
+NEXT_PUBLIC_APP_NAME=UnderFireAI
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# ===========================================
+# IMAGE GENERATION (Segmind)
+# ===========================================
+# For generating interview scene background images (REQUIRED for scene visuals).
+# Used by: /api/interview/generate-scene → lib/image/segmind.ts
+# Scene text descriptions still work without this key; only images require it.
+# Get from https://www.segmind.com/
+SEGMIND_API_KEY=your-segmind-key
+
+# ===========================================
+# CARTESIA (Text-to-Speech)
+# ===========================================
+# For interviewer voice mode (Pro/Premium only)
+# Get from https://play.cartesia.ai/
+CARTESIA_API_KEY=your-cartesia-api-key
+
+# ===========================================
+# CODE EXECUTION (Judge0)
+# ===========================================
+# For real code execution in coding interviews
+# Sign up at https://rapidapi.com/judge0-official/api/judge0-ce
+JUDGE0_API_KEY=your-rapidapi-key-here
+JUDGE0_API_HOST=judge0-ce.p.rapidapi.com
+
+# ===========================================
+# DEVELOPMENT
+# ===========================================
+NODE_ENV=development

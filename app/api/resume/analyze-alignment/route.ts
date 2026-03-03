@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import {
   generateAndSaveAlignmentAnalysis,
   getSessionInsight,
@@ -23,24 +23,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Check subscription tier (free users don't get this feature)
-    const supabase = await createClient();
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
-      .single();
+    // Check if user has purchased (free users don't get this feature)
+    const subscription = await getSubscriptionStatus();
 
-    if (!profile || profile.subscription_tier === 'free') {
+    if (!subscription.hasPurchased) {
       return NextResponse.json(
         {
-          error: 'Upgrade required',
-          message: 'Resume alignment analysis is available on Pro and Premium plans',
+          error: 'Purchase required',
+          message: 'Resume alignment analysis is available after purchasing interview credits',
         },
         { status: 403 }
       );
     }
 
+    const supabase = await createClient();
     const body = (await request.json()) as { sessionId?: string };
     const { sessionId } = body;
 

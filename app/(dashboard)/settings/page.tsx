@@ -40,10 +40,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps):
       {reason === 'limit_reached' && (
         <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
           <p className="text-amber-400 font-medium">
-            You&apos;ve reached your monthly interview limit
+            You&apos;ve used all your interview credits
           </p>
           <p className="text-sm text-slate-300 mt-1">
-            Upgrade to Pro for unlimited interviews and voice mode.
+            Purchase more credits to continue practicing.
           </p>
         </div>
       )}
@@ -60,7 +60,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps):
           tier: subscription.tier,
           status: subscription.status,
           periodEnd: subscription.periodEnd ?? null,
-          interviewsRemaining: subscription.interviewsRemaining,
+          interviewsRemaining: subscription.availableInterviews,
+          purchasedInterviews: subscription.purchasedInterviews,
+          usedInterviews: subscription.usedInterviews,
+          availableInterviews: subscription.availableInterviews,
+          hasPurchased: subscription.hasPurchased,
         }}
         onboardingCompleted={profile?.onboarding_completed ?? false}
       />

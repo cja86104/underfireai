@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/database';
+import type { Database, InterviewProduct } from '@/types/database';
+import { INTERVIEW_PRODUCT_CONFIG } from '@/types/database';
 
 // Lazy initialization to avoid build-time errors
 let _stripe: Stripe | null = null;
@@ -71,39 +72,49 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     switch (event.type) {
+      // ONE-TIME PAYMENT EVENTS (new credit system)
       case 'checkout.session.completed': {
         const session = event.data.object;
-        await handleCheckoutCompleted(session);
+        
+        // Only handle payment mode (one-time purchases)
+        if (session.mode === 'payment') {
+          await handlePaymentCompleted(session);
+        }
+        // Legacy: handle subscription mode for backwards compatibility
+        else if (session.mode === 'subscription') {
+          await handleLegacySubscriptionCheckout(session);
+        }
         break;
       }
 
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object;
+        await handlePaymentIntentSucceeded(paymentIntent);
+        break;
+      }
+
+      // LEGACY SUBSCRIPTION EVENTS (for existing subscribers during transition)
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
-        await handleSubscriptionUpdate(subscription);
+        await handleLegacySubscriptionUpdate(subscription);
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
-        await handleSubscriptionCanceled(subscription);
-        break;
-      }
-
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object;
-        await handlePaymentSucceeded(invoice);
+        await handleLegacySubscriptionCanceled(subscription);
         break;
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object;
-        await handlePaymentFailed(invoice);
+        await handleLegacyPaymentFailed(invoice);
         break;
       }
 
       default:
-        console.warn(`Unhandled event type: ${event.type}`);
+        console.log(`Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
@@ -117,66 +128,215 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
+// ═══════════════════════════════════════════════════════════════════════════════
+// ONE-TIME PAYMENT HANDLERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handlePaymentCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  const userId = session.metadata?.user_id;
+  const product = session.metadata?.product as InterviewProduct | undefined;
+  const interviews = session.metadata?.interviews;
+  const amountCents = session.metadata?.amount_cents;
+
+  if (!userId || !product || !interviews) {
+    console.error('Missing metadata in checkout session:', { userId, product, interviews });
+    return;
+  }
+
+  if (!INTERVIEW_PRODUCT_CONFIG[product]) {
+    console.error('Unknown product in checkout session:', product);
+    return;
+  }
+
+  const interviewCount = parseInt(interviews, 10);
+  const amount = amountCents ? parseInt(amountCents, 10) : INTERVIEW_PRODUCT_CONFIG[product].priceCents;
+
+  // Check if this session has already been processed (idempotency)
+  const { data: existingPurchase } = await getSupabaseAdmin()
+    .from('interview_purchases')
+    .select('id')
+    .eq('stripe_checkout_session_id', session.id)
+    .single();
+
+  if (existingPurchase) {
+    console.log('Checkout session already processed:', session.id);
+    return;
+  }
+
+  // Get current purchased count
+  const { data: profile } = await getSupabaseAdmin()
+    .from('profiles')
+    .select('purchased_interviews')
+    .eq('id', userId)
+    .single();
+
+  const currentPurchased = profile?.purchased_interviews ?? 0;
+
+  // Update profile with new credits
+  const { error: profileError } = await getSupabaseAdmin()
+    .from('profiles')
+    .update({
+      purchased_interviews: currentPurchased + interviewCount,
+      subscription_tier: 'pro',
+      subscription_status: 'active',
+    })
+    .eq('id', userId);
+
+  if (profileError) {
+    console.error('Error updating profile:', profileError);
+    throw profileError;
+  }
+
+  // Record the purchase
+  const { error: purchaseError } = await getSupabaseAdmin()
+    .from('interview_purchases')
+    .insert({
+      user_id: userId,
+      stripe_payment_intent_id: session.payment_intent as string | null,
+      stripe_checkout_session_id: session.id,
+      product_type: product,
+      interviews_granted: interviewCount,
+      amount_cents: amount,
+      status: 'completed',
+    });
+
+  if (purchaseError) {
+    console.error('Error recording purchase:', purchaseError);
+  }
+
+  console.log(`Successfully granted ${interviewCount} interviews to user ${userId} for product ${product}`);
+}
+
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+  const userId = paymentIntent.metadata?.user_id;
+  const product = paymentIntent.metadata?.product as InterviewProduct | undefined;
+
+  if (!userId || !product) {
+    return;
+  }
+
+  // Check if already processed via checkout session
+  const { data: existingPurchase } = await getSupabaseAdmin()
+    .from('interview_purchases')
+    .select('id')
+    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .single();
+
+  if (existingPurchase) {
+    console.log('Payment intent already processed:', paymentIntent.id);
+    return;
+  }
+
+  const interviews = paymentIntent.metadata?.interviews;
+  const amountCents = paymentIntent.metadata?.amount_cents;
+
+  if (!interviews) {
+    console.error('Missing interviews in payment intent metadata');
+    return;
+  }
+
+  const interviewCount = parseInt(interviews, 10);
+  const amount = amountCents ? parseInt(amountCents, 10) : INTERVIEW_PRODUCT_CONFIG[product].priceCents;
+
+  const { data: profile } = await getSupabaseAdmin()
+    .from('profiles')
+    .select('purchased_interviews')
+    .eq('id', userId)
+    .single();
+
+  const currentPurchased = profile?.purchased_interviews ?? 0;
+
+  const { error: profileError } = await getSupabaseAdmin()
+    .from('profiles')
+    .update({
+      purchased_interviews: currentPurchased + interviewCount,
+      subscription_tier: 'pro',
+      subscription_status: 'active',
+    })
+    .eq('id', userId);
+
+  if (profileError) {
+    console.error('Error updating profile:', profileError);
+    throw profileError;
+  }
+
+  const { error: purchaseError } = await getSupabaseAdmin()
+    .from('interview_purchases')
+    .insert({
+      user_id: userId,
+      stripe_payment_intent_id: paymentIntent.id,
+      product_type: product,
+      interviews_granted: interviewCount,
+      amount_cents: amount,
+      status: 'completed',
+    });
+
+  if (purchaseError) {
+    console.error('Error recording purchase:', purchaseError);
+  }
+
+  console.log(`Successfully granted ${interviewCount} interviews to user ${userId} via payment intent`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LEGACY SUBSCRIPTION HANDLERS (for backwards compatibility)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleLegacySubscriptionCheckout(session: Stripe.Checkout.Session): Promise<void> {
   const userId = session.metadata?.user_id;
   const tier = session.metadata?.tier as 'pro' | 'premium';
 
   if (!userId || !tier) {
-    console.error('Missing metadata in checkout session');
+    console.error('Missing metadata in legacy subscription checkout session');
     return;
   }
 
   const subscriptionId = session.subscription as string;
-
-  // Fetch subscription details
   const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
+  const interviewsToGrant = 11;
+
+  const { data: profile } = await getSupabaseAdmin()
+    .from('profiles')
+    .select('purchased_interviews')
+    .eq('id', userId)
+    .single();
+
+  const currentPurchased = profile?.purchased_interviews ?? 0;
 
   const { error } = await getSupabaseAdmin()
     .from('profiles')
     .update({
-      subscription_tier: tier,
+      purchased_interviews: currentPurchased + interviewsToGrant,
+      subscription_tier: 'pro',
       subscription_status: 'active',
       stripe_customer_id: session.customer as string,
       stripe_subscription_id: subscriptionId,
       subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      monthly_interviews_used: 0, // Reset on upgrade
     })
     .eq('id', userId);
 
   if (error) {
-    console.error('Error updating profile after checkout:', error);
+    console.error('Error updating profile after legacy checkout:', error);
     throw error;
   }
 
-  // User upgraded successfully
+  console.log(`Legacy subscription converted: granted ${interviewsToGrant} interviews to user ${userId}`);
 }
 
-async function handleSubscriptionUpdate(subscription: Stripe.Subscription): Promise<void> {
+async function handleLegacySubscriptionUpdate(subscription: Stripe.Subscription): Promise<void> {
   const customerId = subscription.customer as string;
 
-  // Find user by customer ID
   const { data: profile, error: findError } = await getSupabaseAdmin()
     .from('profiles')
-    .select('id')
+    .select('id, purchased_interviews')
     .eq('stripe_customer_id', customerId)
     .single();
 
   if (findError || !profile) {
-    console.error('Could not find user for subscription update');
+    console.error('Could not find user for legacy subscription update');
     return;
   }
 
-  // Determine tier from price
-  const priceId = subscription.items.data[0]?.price.id;
-  let tier: 'free' | 'pro' | 'premium' = 'free';
-  
-  if (priceId === process.env.STRIPE_PRO_PRICE_ID) {
-    tier = 'pro';
-  } else if (priceId === process.env.STRIPE_PREMIUM_PRICE_ID) {
-    tier = 'premium';
-  }
-
-  // Map Stripe status to our status
   let status: 'active' | 'canceled' | 'past_due' | 'trialing' = 'active';
   if (subscription.status === 'past_due') status = 'past_due';
   else if (subscription.status === 'canceled') status = 'canceled';
@@ -185,7 +345,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription): Prom
   const { error } = await getSupabaseAdmin()
     .from('profiles')
     .update({
-      subscription_tier: tier,
+      subscription_tier: 'pro',
       subscription_status: status,
       stripe_subscription_id: subscription.id,
       subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
@@ -193,17 +353,14 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription): Prom
     .eq('id', profile.id);
 
   if (error) {
-    console.error('Error updating subscription:', error);
+    console.error('Error updating legacy subscription:', error);
     throw error;
   }
-
-  // Subscription updated successfully
 }
 
-async function handleSubscriptionCanceled(subscription: Stripe.Subscription): Promise<void> {
+async function handleLegacySubscriptionCanceled(subscription: Stripe.Subscription): Promise<void> {
   const customerId = subscription.customer as string;
 
-  // Find user by customer ID
   const { data: profile, error: findError } = await getSupabaseAdmin()
     .from('profiles')
     .select('id')
@@ -211,14 +368,13 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription): Pr
     .single();
 
   if (findError || !profile) {
-    console.error('Could not find user for subscription cancellation');
+    console.error('Could not find user for legacy subscription cancellation');
     return;
   }
 
   const { error } = await getSupabaseAdmin()
     .from('profiles')
     .update({
-      subscription_tier: 'free',
       subscription_status: 'canceled',
       stripe_subscription_id: null,
       subscription_period_end: null,
@@ -226,48 +382,16 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription): Pr
     .eq('id', profile.id);
 
   if (error) {
-    console.error('Error canceling subscription:', error);
+    console.error('Error canceling legacy subscription:', error);
     throw error;
   }
 
-  // Subscription canceled successfully
+  console.log(`Legacy subscription canceled for user ${profile.id}, credits retained`);
 }
 
-async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
+async function handleLegacyPaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const customerId = invoice.customer as string;
 
-  // Find user by customer ID
-  const { data: profile, error: findError } = await getSupabaseAdmin()
-    .from('profiles')
-    .select('id')
-    .eq('stripe_customer_id', customerId)
-    .single();
-
-  if (findError || !profile) {
-    // Not necessarily an error - could be a one-time payment
-    return;
-  }
-
-  // Reset monthly interview count on successful renewal
-  const { error } = await getSupabaseAdmin()
-    .from('profiles')
-    .update({
-      subscription_status: 'active',
-      monthly_interviews_used: 0,
-    })
-    .eq('id', profile.id);
-
-  if (error) {
-    console.error('Error updating after payment:', error);
-  }
-
-  // Payment succeeded
-}
-
-async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-  const customerId = invoice.customer as string;
-
-  // Find user by customer ID
   const { data: profile, error: findError } = await getSupabaseAdmin()
     .from('profiles')
     .select('id')
@@ -289,5 +413,5 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
     console.error('Error updating after failed payment:', error);
   }
 
-  console.warn(`Payment failed for user ${profile.id}`);
+  console.warn(`Legacy payment failed for user ${profile.id}`);
 }

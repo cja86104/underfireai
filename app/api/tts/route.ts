@@ -33,11 +33,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Check if user has voice mode access
+    // Check if user has voice mode access (requires purchase)
     const subscription = await getSubscriptionStatus();
-    if (subscription.tier === 'free') {
+    if (!subscription.hasPurchased) {
       return NextResponse.json(
-        { error: 'Upgrade required', message: 'Voice mode requires Pro or Premium subscription' },
+        { error: 'Purchase required', message: 'Voice mode is available after purchasing interview credits' },
         { status: 403 }
       );
     }

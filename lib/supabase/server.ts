@@ -269,12 +269,21 @@ export interface SubscriptionStatusResponse {
   tier: 'free' | 'pro' | 'premium';
   status: 'active' | 'canceled' | 'past_due' | 'trialing';
   periodEnd?: string | null;
+  /** @deprecated Use interviewsRemaining instead */
   interviewsRemaining?: number;
+  /** Total interviews purchased (lifetime) */
+  purchasedInterviews: number;
+  /** Total interviews used (lifetime) */
+  usedInterviews: number;
+  /** Interviews available to use right now */
+  availableInterviews: number;
   canStartInterview: boolean;
+  /** True if user has ever purchased (unlocks all features) */
+  hasPurchased: boolean;
 }
 
 /**
- * Check subscription status
+ * Check subscription/credit status
  */
 export async function getSubscriptionStatus(): Promise<SubscriptionStatusResponse> {
   const profile = await getUserProfile();
@@ -283,21 +292,29 @@ export async function getSubscriptionStatus(): Promise<SubscriptionStatusRespons
     return {
       tier: 'free',
       status: 'active',
+      purchasedInterviews: 0,
+      usedInterviews: 0,
+      availableInterviews: 0,
+      interviewsRemaining: 0,
       canStartInterview: false,
+      hasPurchased: false,
     };
   }
   
-  // Free tier: 3 interviews per month
-  const interviewsRemaining = profile.subscription_tier === 'free' 
-    ? Math.max(0, 3 - (profile.monthly_interviews_used || 0))
-    : undefined;
+  const purchased = profile.purchased_interviews ?? 0;
+  const used = profile.interviews_used ?? 0;
+  const available = Math.max(0, purchased - used);
+  const hasPurchased = purchased > 0;
   
   return {
     tier: profile.subscription_tier || 'free',
     status: profile.subscription_status || 'active',
     periodEnd: profile.subscription_period_end,
-    interviewsRemaining,
-    canStartInterview: profile.subscription_status === 'active' && 
-      (profile.subscription_tier !== 'free' || (interviewsRemaining ?? 0) > 0),
+    purchasedInterviews: purchased,
+    usedInterviews: used,
+    availableInterviews: available,
+    interviewsRemaining: available, // backwards compat
+    canStartInterview: available > 0,
+    hasPurchased,
   };
 }
