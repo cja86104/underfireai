@@ -23,6 +23,7 @@ import {
   SlidersHorizontal,
   Shield,
   Target,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
@@ -387,7 +388,7 @@ export function InterviewSetupForm({
                 />
               </div>
             </div>
-            {resumeSkills.length > 0 && (
+            {hasResume && resumeSkills.length > 0 && (
               <div>
                 <p className="text-sm text-[#6B5744] dark:text-slate-400 mb-2">From your resume:</p>
                 <div className="flex flex-wrap gap-2">
@@ -568,7 +569,7 @@ export function InterviewSetupForm({
           </div>
 
           {/* Resume Targeting */}
-          {hasPurchased ? (
+          {hasPurchased && hasResume ? (
             <div className="rounded-2xl border border-[#8B5A2B]/30 bg-[#8B5A2B]/5 p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="rounded-xl bg-[#8B5A2B]/10 p-2">
@@ -629,7 +630,20 @@ export function InterviewSetupForm({
                 Analyze a Job Description <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
-          ) : (
+          ) : hasPurchased && !hasResume ? (
+            <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-800/30 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="rounded-xl bg-[#3D3229]/5 dark:bg-slate-700 p-2">
+                  <FileText className="h-6 w-6 text-[#8B7355] dark:text-slate-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#3D3229] dark:text-white">Resume Targeting</h2>
+                  <p className="text-sm text-[#6B5744] dark:text-slate-400">Upload your resume to unlock interview targeting based on your weak spots and job gaps</p>
+                </div>
+              </div>
+              <Link href="/resume" className="inline-flex items-center gap-2 text-[#8B5A2B] hover:text-[#8B5A2B] font-semibold text-sm">Upload Resume <ChevronRight className="h-4 w-4" /></Link>
+            </div>
+          ) : !hasPurchased ? (
             <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-800/30 p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="rounded-xl bg-[#3D3229]/5 dark:bg-slate-700 p-2">
@@ -642,7 +656,7 @@ export function InterviewSetupForm({
               </div>
               <Link href="/settings?tab=billing" className="inline-flex items-center gap-2 text-[#8B5A2B] hover:text-[#8B5A2B] font-semibold text-sm">Buy Credits <ChevronRight className="h-4 w-4" /></Link>
             </div>
-          )}
+          ) : null}
 
         </div>
       </div>

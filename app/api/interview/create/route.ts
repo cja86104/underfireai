@@ -456,6 +456,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // ── Sync existing interviewer voice config with session voice setting ───────
+    // When reusing an existing interviewer, their stored tts_enabled may not
+    // match the current session's use_voice_mode toggle. Update it.
+    if (interviewer_id && !generate_new_interviewer) {
+      const { data: existingInterviewer } = await supabase
+        .from('interviewers')
+        .select('voice_config')
+        .eq('id', finalInterviewerId)
+        .single();
+
+      if (existingInterviewer?.voice_config) {
+        const currentConfig = existingInterviewer.voice_config as unknown as { voice_id: string; speed: number; pitch: number; tts_enabled?: boolean };
+        if (currentConfig.tts_enabled !== body.use_voice_mode) {
+          await supabase
+            .from('interviewers')
+            .update({
+              voice_config: {
+                ...currentConfig,
+                tts_enabled: body.use_voice_mode,
+              } as unknown as Json,
+            })
+            .eq('id', finalInterviewerId);
+        }
+      }
+    }
+
     // ── Use one interview credit (optimistic lock) ─────────────────────────────
     const expectedUsed = subscription.usedInterviews;
 

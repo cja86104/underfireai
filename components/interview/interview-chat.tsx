@@ -214,6 +214,7 @@ export function InterviewChat({
       });
     } catch (error) {
       console.error('TTS playback error:', error);
+      toast.error('Voice playback failed. You can still read the response above.');
     }
   }, [interviewer.voiceConfig]);
 
@@ -807,7 +808,6 @@ export function InterviewChat({
             sessionId={sessionId}
             isActive={sessionStatus === 'in_progress' && !isLoading}
             isLoading={isLoading}
-            voiceConfig={interviewer.voiceConfig}
             onTranscript={handleVoiceTranscript}
             onSpeakText={handleSpeakText}
             lastInterviewerMessage={lastInterviewerMessage}

@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
-import type { VoiceConfig } from '@/types/database';
 
 // Number of frequency bars in the visualization
 const BAR_COUNT = 20;
@@ -21,7 +20,6 @@ interface VoiceModeProps {
   sessionId: string;
   isActive: boolean;
   isLoading: boolean;
-  voiceConfig: VoiceConfig | null;
   onTranscript: (transcript: string) => void;
   onSpeakText: (text: string) => Promise<void>;
   lastInterviewerMessage: string | null;
@@ -64,7 +62,6 @@ export function VoiceMode({
   sessionId,
   isActive,
   isLoading,
-  voiceConfig,
   onTranscript,
   onSpeakText,
   lastInterviewerMessage,
@@ -284,9 +281,11 @@ export function VoiceMode({
     setRecordingState('idle');
   }, [stopAudioLevelMonitoring]);
 
-  // Auto-play interviewer messages
+  // Auto-play interviewer messages via TTS
+  // This component only renders when voiceEnabled is true (gated by parent),
+  // so we don't re-check tts_enabled here — just mute state and activity.
   useEffect(() => {
-    if (!lastInterviewerMessage || !voiceConfig?.tts_enabled || isMuted || !isActive) {
+    if (!lastInterviewerMessage || isMuted || !isActive) {
       return;
     }
 
@@ -305,7 +304,7 @@ export function VoiceMode({
     };
 
     void speak();
-  }, [lastInterviewerMessage, voiceConfig?.tts_enabled, isMuted, isActive, onSpeakText]);
+  }, [lastInterviewerMessage, isMuted, isActive, onSpeakText]);
 
   // Suppress unused sessionId warning - reserved for future session-specific features
   void sessionId;

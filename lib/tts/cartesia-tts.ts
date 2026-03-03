@@ -276,45 +276,17 @@ export async function generateVoicePreview(
 }
 
 /**
- * Get voices available for a subscription tier
+ * Get all available voices (all purchasers get all voices)
  */
-export function getVoicesForTier(tier: string): typeof CARTESIA_VOICES {
-  // Free users get no voice access
-  if (tier === 'free') {
-    return {} as typeof CARTESIA_VOICES;
-  }
-
-  // All paid tiers get all voices
+export function getAvailableVoices(): typeof CARTESIA_VOICES {
   return CARTESIA_VOICES;
 }
 
 /**
- * Get voice usage limits by tier (characters per month)
+ * Check if user has voice access (any purchase unlocks voice)
  */
-export function getVoiceLimitForTier(tier: string): number {
-  switch (tier) {
-    case 'premium':
-      return 500000; // ~250 minutes
-    case 'pro':
-      return 200000; // ~100 minutes
-    default:
-      return 0; // No voice for free tier
-  }
-}
-
-/**
- * Estimate cost for character count
- */
-export function estimateVoiceCost(characterCount: number): number {
-  // Cartesia pricing: ~$0.038 per 1,000 characters
-  return (characterCount / 1000) * 0.038;
-}
-
-/**
- * Check if user has voice access based on tier
- */
-export function hasVoiceAccess(tier: string): boolean {
-  return ['pro', 'premium'].includes(tier);
+export function hasVoiceAccess(hasPurchased: boolean): boolean {
+  return hasPurchased;
 }
 
 /**
