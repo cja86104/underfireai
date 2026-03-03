@@ -479,7 +479,12 @@ Analyze this response and return JSON:
       }
     );
 
-    const content = completion.choices[0]?.message?.content ?? '{}';
+    const rawContent = completion.choices[0]?.message?.content ?? '{}';
+    // Strip markdown code blocks if present (```json ... ``` or ``` ... ```)
+    const content = rawContent
+      .replace(/^```(?:json)?\s*\n?/i, '')
+      .replace(/\n?```\s*$/i, '')
+      .trim();
     const parsed = JSON.parse(content) as Record<string, unknown>;
 
     return {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { createClient, getCurrentUser, getUserResume } from '@/lib/supabase/server';
 import { InterviewChat } from '@/components/interview/interview-chat';
+import { is3DHudEnabled } from '@/lib/hud/feature-flags';
 import { CodingInterviewPage } from '@/components/coding/coding-interview-page';
 import type { PersonalityBase, InterviewerMood, VoiceConfig, InterviewMessage, CommunicationStyle, QuestionPatterns } from '@/types/database';
 import type { CodingChallenge, ProgrammingLanguage, TestCase } from '@/types/coding';
@@ -217,6 +218,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
         voiceEnabled={!!session.voice_enabled}
         panelMembers={panelMembers}
         maxUserMessages={session.max_user_messages ?? 20}
+        isHudMode={is3DHudEnabled()}
       />
     </div>
   );

@@ -431,6 +431,9 @@ export async function POST(
         .pop();
 
       if (lastInterviewerMessage) {
+        // Small delay to reduce rate limit collisions with the main chat completion
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         analysis = await analyzeResponse(
           message,
           lastInterviewerMessage.content,

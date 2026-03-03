@@ -11,8 +11,8 @@ export const AI_MODELS = {
   // Primary interview model - cost optimized
   INTERVIEW: 'deepseek/deepseek-chat',
   
-  // Analysis model - for scoring and detailed feedback
-  ANALYSIS: 'deepseek/deepseek-chat',
+  // Analysis model - Mistral Small (different provider to avoid DeepSeek rate limits)
+  ANALYSIS: 'mistralai/mistral-small-3.1-24b-instruct',
   
   // Fallback for complex reasoning
   FALLBACK: 'anthropic/claude-3-haiku-20240307',

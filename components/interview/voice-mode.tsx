@@ -311,6 +311,9 @@ export function VoiceMode({
     setRecordingState('idle');
   }, [stopAudioLevelMonitoring]);
 
+  // Track which message was already spoken to prevent re-reads
+  const lastSpokenMessageRef = useRef<string | null>(null);
+
   // Auto-play interviewer messages via TTS
   // This component only renders when voiceEnabled is true (gated by parent),
   // so we don't re-check tts_enabled here — just mute state and activity.
@@ -319,9 +322,15 @@ export function VoiceMode({
       return;
     }
 
-    // Guard against duplicate calls
+    // Skip if we already spoke this exact message
+    if (lastSpokenMessageRef.current === lastInterviewerMessage) {
+      return;
+    }
+
+    // Guard against duplicate calls while speaking
     if (isSpeakingRef.current) return;
     isSpeakingRef.current = true;
+    lastSpokenMessageRef.current = lastInterviewerMessage;
 
     const speak = async (): Promise<void> => {
       setPlaybackState('loading');
@@ -341,12 +350,12 @@ export function VoiceMode({
 
   if (!isSupported) {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-        <div className="flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600" />
+      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-amber-400" />
           <div>
-            <p className="font-medium text-amber-800">Voice mode not supported</p>
-            <p className="text-sm text-amber-600">
+            <p className="text-sm font-medium text-amber-300">Voice mode not supported</p>
+            <p className="text-xs text-amber-400/70">
               Your browser doesn&apos;t support speech recognition. Try Chrome or Edge.
             </p>
           </div>
@@ -356,27 +365,27 @@ export function VoiceMode({
   }
 
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div
             className={cn(
-              'rounded-full p-2',
+              'rounded-full p-1.5',
               recordingState === 'listening'
-                ? 'bg-red-100 text-red-600'
-                : 'bg-fire-100 text-fire-600'
+                ? 'bg-red-500/20 text-red-400'
+                : 'bg-amber-500/20 text-amber-400'
             )}
           >
             {recordingState === 'listening' ? (
-              <Mic className="h-5 w-5 animate-pulse" />
+              <Mic className="h-4 w-4 animate-pulse" />
             ) : (
-              <Mic className="h-5 w-5" />
+              <Mic className="h-4 w-4" />
             )}
           </div>
-          <span className="font-medium text-charcoal-900">Voice Mode</span>
+          <span className="text-sm font-medium text-slate-300">Voice Mode</span>
           {recordingState === 'listening' && (
-            <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full">
               Recording
             </span>
           )}
@@ -386,31 +395,31 @@ export function VoiceMode({
           type="button"
           onClick={() => setIsMuted(!isMuted)}
           className={cn(
-            'rounded-lg p-2 transition-colors',
+            'rounded-md p-1.5 transition-colors',
             isMuted
-              ? 'bg-stone-100 text-charcoal-400'
-              : 'bg-fire-100 text-fire-600 hover:bg-fire-200'
+              ? 'bg-white/5 text-slate-500'
+              : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
           )}
           aria-label={isMuted ? 'Unmute interviewer' : 'Mute interviewer'}
         >
           {isMuted ? (
-            <VolumeX className="h-5 w-5" />
+            <VolumeX className="h-4 w-4" />
           ) : (
-            <Volume2 className="h-5 w-5" />
+            <Volume2 className="h-4 w-4" />
           )}
         </button>
       </div>
 
       {/* REAL Audio Level Visualization - frequency bars from actual FFT data */}
       {recordingState === 'listening' && (
-        <div className="mb-4">
-          <div className="flex items-center gap-1 h-8">
+        <div className="mb-3">
+          <div className="flex items-center gap-0.5 h-6">
             {frequencyBars.map((level, i) => (
               <div
                 key={i}
                 className={cn(
                   'flex-1 rounded-full transition-all duration-75',
-                  level > 0.1 ? 'bg-fire-500' : 'bg-stone-200'
+                  level > 0.1 ? 'bg-amber-500' : 'bg-white/10'
                 )}
                 style={{
                   // Height driven by REAL frequency data
@@ -425,30 +434,30 @@ export function VoiceMode({
 
       {/* Transcript Display */}
       {(finalTranscript || interimTranscript) && (
-        <div className="mb-4 p-3 rounded-lg bg-stone-50 border border-stone-200">
-          <p className="text-sm text-charcoal-700">
+        <div className="mb-3 p-2 rounded-md bg-white/5 border border-white/10">
+          <p className="text-xs text-slate-300">
             {finalTranscript}
             {interimTranscript && (
-              <span className="text-charcoal-400">{interimTranscript}</span>
+              <span className="text-slate-500">{interimTranscript}</span>
             )}
           </p>
         </div>
       )}
 
       {/* Controls */}
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-center justify-center gap-2">
         {recordingState === 'idle' ? (
           <button
             type="button"
             onClick={startRecording}
             disabled={isLoading || !isActive}
             className={cn(
-              'flex items-center gap-2 rounded-xl px-6 py-3 font-medium transition-all',
-              'bg-fire-500 text-white shadow-glow-fire hover:bg-fire-600',
-              'disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none'
+              'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all',
+              'bg-amber-600 text-white hover:bg-amber-500',
+              'disabled:opacity-50 disabled:cursor-not-allowed'
             )}
           >
-            <Mic className="h-5 w-5" />
+            <Mic className="h-4 w-4" />
             Start Speaking
           </button>
         ) : recordingState === 'listening' ? (
@@ -456,23 +465,23 @@ export function VoiceMode({
             <button
               type="button"
               onClick={stopRecording}
-              className="flex items-center gap-2 rounded-xl px-6 py-3 font-medium bg-green-500 text-white hover:bg-green-600 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-500 transition-colors"
             >
-              <Square className="h-5 w-5" />
+              <Square className="h-3.5 w-3.5" />
               Done
             </button>
             <button
               type="button"
               onClick={cancelRecording}
-              className="flex items-center gap-2 rounded-xl px-4 py-3 font-medium bg-stone-100 text-charcoal-600 hover:bg-stone-200 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium bg-white/10 text-slate-300 hover:bg-white/15 transition-colors"
             >
-              <RotateCcw className="h-5 w-5" />
+              <RotateCcw className="h-3.5 w-3.5" />
               Cancel
             </button>
           </>
         ) : (
-          <div className="flex items-center gap-2 text-charcoal-500">
-            <Loader2 className="h-5 w-5 animate-spin" />
+          <div className="flex items-center gap-2 text-slate-400 text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" />
             Processing...
           </div>
         )}
@@ -480,15 +489,15 @@ export function VoiceMode({
 
       {/* Playback Status */}
       {playbackState !== 'idle' && (
-        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-charcoal-500">
+        <div className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
           {playbackState === 'loading' ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
               Loading audio...
             </>
           ) : (
             <>
-              <Volume2 className="h-4 w-4 animate-pulse text-fire-500" />
+              <Volume2 className="h-3.5 w-3.5 animate-pulse text-amber-400" />
               Interviewer speaking...
             </>
           )}
@@ -497,7 +506,7 @@ export function VoiceMode({
 
       {/* Instructions */}
       {recordingState === 'idle' && !finalTranscript && (
-        <p className="mt-4 text-center text-xs text-charcoal-400">
+        <p className="mt-2 text-center text-[10px] text-slate-500">
           Click to start speaking. Your response will be transcribed automatically.
         </p>
       )}

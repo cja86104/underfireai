@@ -30,6 +30,13 @@ import type {
   ResponseAnalysis,
 } from '@/types/database';
 import type { PanelTurnInterviewerUtterance, PanelState } from '@/types/panel';
+import { AudioLevelProvider, useAudioLevelWriter } from '@/lib/hud/audio-context';
+import { useHudSessionStore } from '@/lib/hud/session-store';
+import { is3DHudEnabled } from '@/lib/hud/feature-flags';
+import { isWebGLAvailable } from '@/lib/hud/webgl';
+import { responseAnalysisToHudTurn } from '@/types/hud';
+import type { AudioLevelData, HudTurnAnalysis } from '@/types/hud';
+import { InterviewHUD } from '@/components/hud/interview-hud';
 
 /** Panel member info for UI */
 interface PanelMember {
@@ -94,6 +101,55 @@ interface InterviewChatProps {
   panelMembers?: PanelMember[];
   // Session length limit
   maxUserMessages?: number;
+  /** When true, renders 3D HUD layout instead of 2D chat. Set via is3DHudEnabled(). */
+  isHudMode?: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AudioWiredVoiceMode
+// Inner component that must live inside <AudioLevelProvider> to call the hook.
+// ─────────────────────────────────────────────────────────────────────────────
+interface AudioWiredVoiceModeProps {
+  sessionId: string;
+  isActive: boolean;
+  isLoading: boolean;
+  onTranscript: (text: string) => void;
+  onSpeakText: (text: string) => Promise<void>;
+  lastInterviewerMessage: string | null;
+  hudEnabled: boolean;
+}
+
+function AudioWiredVoiceMode({
+  sessionId,
+  isActive,
+  isLoading,
+  onTranscript,
+  onSpeakText,
+  lastInterviewerMessage,
+  hudEnabled,
+}: AudioWiredVoiceModeProps): React.JSX.Element {
+  const { updateAudioLevel, resetAudioLevel } = useAudioLevelWriter();
+
+  const handleAudioFrame = hudEnabled
+    ? (data: AudioLevelData) => { updateAudioLevel(data); }
+    : undefined;
+
+  // Reset audio level when voice mode deactivates
+  useEffect(() => {
+    if (!isActive) resetAudioLevel();
+  }, [isActive, resetAudioLevel]);
+
+  return (
+    <VoiceMode
+      sessionId={sessionId}
+      isActive={isActive}
+      isLoading={isLoading}
+      onTranscript={onTranscript}
+      onSpeakText={onSpeakText}
+      lastInterviewerMessage={lastInterviewerMessage}
+      onAudioFrame={handleAudioFrame}
+    />
+  );
 }
 
 export function InterviewChat({
@@ -111,6 +167,7 @@ export function InterviewChat({
   voiceEnabled: initialVoiceEnabled,
   panelMembers = [],
   maxUserMessages = 20,
+  isHudMode = false,
 }: InterviewChatProps): React.JSX.Element {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -135,6 +192,60 @@ export function InterviewChat({
   const userMessageCount = useMemo(() => {
     return messages.filter((m) => m.role === 'candidate').length;
   }, [messages]);
+  // ── HUD wiring ──────────────────────────────────────────────────────────
+  // addTurn is called once per answer with the analysis from the chat API.
+  // Audio frame writes come from the onAudioFrame callback via AudioLevelProvider.
+  const addTurn    = useHudSessionStore((s) => s.addTurn);
+  const clearSession = useHudSessionStore((s) => s.clearSession);
+  const hudEnabled = is3DHudEnabled() && isWebGLAvailable();
+
+  // Clear HUD session when the component unmounts (page navigation)
+  useEffect(() => { return () => { clearSession(); }; }, [clearSession]);
+
+  // Rehydrate HUD state from stored analysis data on mount (for page refresh)
+  useEffect(() => {
+    if (!hudEnabled) return;
+    
+    // Find all candidate messages with analysis data and rebuild HUD turns
+    let turnIndex = 0;
+    let previousTurn: HudTurnAnalysis | undefined;
+    
+    for (const msg of initialMessages) {
+      if (msg.role === 'candidate' && msg.analysis) {
+        turnIndex++;
+        const analysis = msg.analysis as ResponseAnalysis;
+        const responseTime = msg.response_time_seconds ?? 30;
+        
+        const turn = responseAnalysisToHudTurn(
+          analysis,
+          msg.id,
+          turnIndex,
+          responseTime,
+          previousTurn
+        );
+        
+        addTurn(turn);
+        previousTurn = turn;
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  // isSpeaking: true while TTS audio is actively playing → drives avatar animation
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
+  // pendingEnd: true when interview should end but we're waiting for TTS to finish
+  const [pendingEnd, setPendingEnd] = useState(false);
+  // Track if TTS has started for the final message (to avoid ending before TTS even begins)
+  const ttsStartedForEndRef = useRef(false);
+
+  // hudReady: WebGL check deferred to client-side to avoid hydration mismatch.
+  // isWebGLAvailable() reads window so it must run inside useEffect.
+  const [hudReady, setHudReady] = useState(false);
+  useEffect(() => {
+    if (isHudMode) setHudReady(isWebGLAvailable());
+  }, [isHudMode]);
+  const showHud = isHudMode && hudReady;
   const messagesRemaining = maxUserMessages - userMessageCount;
   const isNearLimit = messagesRemaining <= 3 && messagesRemaining > 0;
   const isAtLimit = messagesRemaining <= 0;
@@ -197,22 +308,31 @@ export function InterviewChat({
       });
 
       if (!response.ok) {
-        throw new Error('TTS request failed');
+        const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        const errorMsg = errorData.message || errorData.error || `HTTP ${response.status}`;
+        console.error('TTS API error:', response.status, errorData);
+        throw new Error(errorMsg);
       }
 
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
 
+      setIsSpeaking(true);
       await audio.play();
 
-      // Clean up object URL after playback
+      // Clean up object URL after playback and reset speaking flag
       audio.addEventListener('ended', () => {
+        setIsSpeaking(false);
         URL.revokeObjectURL(audioUrl);
+      });
+      audio.addEventListener('error', () => {
+        setIsSpeaking(false);
       });
     } catch (error) {
       console.error('TTS playback error:', error);
-      toast.error('Voice playback failed. You can still read the response above.');
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Voice playback failed: ${msg}`);
     }
   }, [interviewer.voiceConfig]);
 
@@ -378,9 +498,28 @@ export function InterviewChat({
         ];
       });
 
+      // ── HUD: dispatch turn analysis ────────────────────────────────────
+      if (hudEnabled && data.analysis && data.user_message_id) {
+        const previousTurns = useHudSessionStore.getState().turns;
+        const previous = previousTurns.length > 0 ? previousTurns[previousTurns.length - 1] : undefined;
+        const hudTurn = responseAnalysisToHudTurn(
+          data.analysis,
+          data.user_message_id,
+          userMessageCount,
+          responseTime ?? 0,
+          previous,
+        );
+        addTurn(hudTurn);
+      }
+
       // Check if interview should end
       if (data.should_end) {
-        await endInterview();
+        // If voice is enabled, wait for TTS to finish before ending
+        if (voiceEnabled) {
+          setPendingEnd(true);
+        } else {
+          await endInterview();
+        }
       }
     } catch (error) {
       toast.error('Failed to send message. Please try again.');
@@ -390,6 +529,8 @@ export function InterviewChat({
     } finally {
       setIsLoading(false);
       responseStartTimeRef.current = Date.now();
+      // Auto-focus the input so user can type again immediately
+      textareaRef.current?.focus();
     }
   };
 
@@ -452,6 +593,42 @@ export function InterviewChat({
     }
   };
 
+  // Handle delayed interview end - wait for TTS to finish before ending
+  useEffect(() => {
+    if (!pendingEnd) {
+      ttsStartedForEndRef.current = false;
+      return;
+    }
+    
+    // Track when TTS starts
+    if (isSpeaking) {
+      ttsStartedForEndRef.current = true;
+      return;
+    }
+    
+    // Only end after TTS has started and then finished
+    if (ttsStartedForEndRef.current && !isSpeaking) {
+      const timeout = setTimeout(() => {
+        void endInterview();
+        setPendingEnd(false);
+        ttsStartedForEndRef.current = false;
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+    
+    // If TTS hasn't started yet, wait a bit then check again
+    // (handles case where TTS takes time to load)
+    const waitTimeout = setTimeout(() => {
+      // If still no TTS after 3 seconds, just end anyway
+      if (pendingEnd && !ttsStartedForEndRef.current) {
+        void endInterview();
+        setPendingEnd(false);
+      }
+    }, 3000);
+    return () => clearTimeout(waitTimeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingEnd, isSpeaking]);
+
   const handleKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -459,7 +636,152 @@ export function InterviewChat({
     }
   };
 
+  // ── HUD render path ─────────────────────────────────────────────────────
+  // Extracted message bubbles so they can be passed as a slot to InterviewHUD
+  const hudMessageBubbles: React.ReactNode = (
+    <>
+      {messages.map((message) => {
+        const extendedMsg = message as InterviewMessage & { _speakerName?: string; _tone?: string; interviewer_id?: string };
+        const interviewerId = extendedMsg.interviewer_id;
+        const panelMember = interviewerId ? panelMemberMap.get(interviewerId) : null;
+        const colorIndex = panelMember?.colorIndex ?? 0;
+        const panelColor = PANEL_COLORS[colorIndex];
+        return (
+          <div
+            key={message.id}
+            className={cn('flex gap-3', message.role === 'candidate' && 'flex-row-reverse')}
+          >
+            <div className={cn(
+              'h-7 w-7 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-medium',
+              message.role === 'interviewer'
+                ? isPanelMode && panelMember
+                  ? cn(panelColor.bg, panelColor.text)
+                  : 'bg-slate-700 text-slate-300'
+                : 'bg-orange-500 text-white',
+            )}>
+              {message.role === 'interviewer' ? panelMember?.name[0] ?? interviewer.name[0] : 'Y'}
+            </div>
+            <div className="max-w-[85%]">
+              {message.role === 'interviewer' && isPanelMode && (panelMember ?? extendedMsg._speakerName) && (
+                <p className={cn('text-[10px] mb-1 font-medium', panelColor.text.replace('-100', '-400'))}>
+                  {extendedMsg._speakerName ?? `${panelMember?.name ?? ''}${panelMember?.roleLabel ? ` (${panelMember.roleLabel})` : ''}`}
+                </p>
+              )}
+              <div className={cn(
+                'rounded-xl px-3 py-2 text-sm',
+                message.role === 'interviewer'
+                  ? isPanelMode && panelMember
+                    ? cn('bg-slate-800/80 border-l-2', panelColor.border, 'text-slate-100')
+                    : 'bg-slate-800 text-slate-100'
+                  : 'bg-orange-500 text-white',
+              )}>
+                <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                {message.response_time_seconds && message.role === 'candidate' && (
+                  <p className="mt-1 text-[10px] opacity-60">Response: {message.response_time_seconds}s</p>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      {isLoading && (
+        <div className="flex gap-3">
+          <div className={cn('h-7 w-7 rounded-full flex items-center justify-center text-[11px]', 'bg-slate-700 text-slate-300')}>
+            {interviewer.name[0]}
+          </div>
+          <div className="bg-slate-800 rounded-xl px-3 py-2">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
+        </div>
+      )}
+      <div ref={messagesEndRef} />
+    </>
+  );
+
+  if (showHud) {
+    const hudVoicePanel = voiceEnabled ? (
+      <AudioWiredVoiceMode
+        sessionId={sessionId}
+        isActive={sessionStatus === 'in_progress' && !isLoading}
+        isLoading={isLoading}
+        onTranscript={handleVoiceTranscript}
+        onSpeakText={handleSpeakText}
+        lastInterviewerMessage={lastInterviewerMessage}
+        hudEnabled={hudEnabled}
+      />
+    ) : initialVoiceEnabled ? (
+      // Show activate button when voice is available but disabled
+      <button
+        onClick={() => setVoiceEnabled(true)}
+        className="flex items-center justify-center gap-2 w-full rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-400 hover:bg-amber-500/20 transition-colors"
+      >
+        <Mic className="h-4 w-4" />
+        Activate Voice Mode
+      </button>
+    ) : null;
+
+    const hudInputArea = (
+      <div className="flex gap-2">
+        {/* Voice toggle button */}
+        <button
+          onClick={() => setVoiceEnabled(!voiceEnabled)}
+          className={cn(
+            'self-end rounded-lg px-3 py-2 transition-colors',
+            voiceEnabled
+              ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+              : 'bg-white/10 text-slate-400 hover:bg-white/20 hover:text-white'
+          )}
+          aria-label={voiceEnabled ? 'Disable voice mode' : 'Enable voice mode'}
+        >
+          {voiceEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+        </button>
+        <textarea
+          ref={textareaRef}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={isAtLimit ? 'Response limit reached' : 'Type your response…'}
+          disabled={isLoading || isAtLimit}
+          rows={2}
+          autoFocus
+          className="flex-1 resize-none rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-40"
+        />
+        <button
+          onClick={() => void sendMessage()}
+          disabled={!inputValue.trim() || isLoading || isAtLimit}
+          className="self-end rounded-lg bg-orange-500 px-3 py-2 text-white hover:bg-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </button>
+      </div>
+    );
+
+    return (
+      <AudioLevelProvider>
+        <InterviewHUD
+          messageHistory={hudMessageBubbles}
+          voicePanel={hudVoicePanel}
+          inputArea={hudInputArea}
+          isSpeaking={isSpeaking}
+          interviewerName={interviewer.name}
+          turnCount={userMessageCount}
+          sessionStatus={sessionStatus}
+          elapsedTime={elapsedTime}
+          formatTime={formatTime}
+          onEnd={endInterview}
+          onPause={pauseInterview}
+          onResume={resumeInterview}
+        />
+      </AudioLevelProvider>
+    );
+  }
+
   return (
+    <AudioLevelProvider>
     <div className="flex flex-col h-full rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-900">
@@ -796,13 +1118,14 @@ export function InterviewChat({
       {/* Voice Mode Panel */}
       {sessionStatus === 'in_progress' && voiceEnabled && (
         <div className="px-4 pt-4 border-t border-[#3D3229]/10 dark:border-slate-800">
-          <VoiceMode
+          <AudioWiredVoiceMode
             sessionId={sessionId}
             isActive={sessionStatus === 'in_progress' && !isLoading}
             isLoading={isLoading}
             onTranscript={handleVoiceTranscript}
             onSpeakText={handleSpeakText}
             lastInterviewerMessage={lastInterviewerMessage}
+            hudEnabled={hudEnabled}
           />
         </div>
       )}
@@ -836,6 +1159,7 @@ export function InterviewChat({
               placeholder={isAtLimit ? 'Response limit reached' : 'Type your response...'}
               disabled={isLoading || isAtLimit}
               rows={2}
+              autoFocus
               className="flex-1 resize-none rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-slate-900 dark:text-slate-100 placeholder:text-[#8B7355] dark:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
             />
             <button
@@ -856,5 +1180,6 @@ export function InterviewChat({
         </div>
       )}
     </div>
+    </AudioLevelProvider>
   );
 }

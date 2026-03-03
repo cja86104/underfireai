@@ -204,7 +204,9 @@ export async function generateSpeech(
         },
         language,
         output_format: {
+          // Cartesia: use 'mp3' container for mp3 audio output
           container: 'mp3',
+          sample_rate: 44100,
           bit_rate: 128000,
         },
         // Generation config for Sonic 3
