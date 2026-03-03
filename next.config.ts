@@ -7,7 +7,9 @@ const supabaseHostname = new URL(
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['gsap'],
+  // three + R3F are ESM/CJS hybrids; Next.js 15 requires them transpiled.
+  // gsap was already here; keeping it alongside the new entries.
+  transpilePackages: ['gsap', 'three', '@react-three/fiber', '@react-three/drei'],
 
   // Fix pdf-parse module initialization in Next.js 15 serverless environments.
   // pdf-parse v1.x tries to read local test files at require-time; the

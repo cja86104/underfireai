@@ -12,8 +12,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
+import type { AudioLevelData } from '@/types/hud';
 
-// Number of frequency bars in the visualization
+// Number of frequency bars in the visualization.
+// Must match the frequencies array length in AudioLevelData (types/hud.ts).
 const BAR_COUNT = 20;
 
 interface VoiceModeProps {
@@ -23,6 +25,15 @@ interface VoiceModeProps {
   onTranscript: (transcript: string) => void;
   onSpeakText: (text: string) => Promise<void>;
   lastInterviewerMessage: string | null;
+  /**
+   * Optional: called every animation frame while the microphone is active.
+   * Receives the current FFT snapshot (rms, peak, 20 frequency bands).
+   * Used by the 3D HUD AudioLevelContext to drive avatar animations without
+   * triggering React re-renders.
+   *
+   * Read via ref internally so callback changes never restart the audio loop.
+   */
+  onAudioFrame?: (data: AudioLevelData) => void;
 }
 
 type RecordingState = 'idle' | 'listening' | 'processing';
@@ -65,6 +76,7 @@ export function VoiceMode({
   onTranscript,
   onSpeakText,
   lastInterviewerMessage,
+  onAudioFrame,
 }: VoiceModeProps): React.JSX.Element {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [playbackState, setPlaybackState] = useState<PlaybackState>('idle');
@@ -83,6 +95,9 @@ export function VoiceMode({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const isSpeakingRef = useRef(false);
+  // Stable ref for onAudioFrame: loop never restarts on parent re-render.
+  const onAudioFrameRef = useRef<((data: AudioLevelData) => void) | undefined>(onAudioFrame);
+  useEffect(() => { onAudioFrameRef.current = onAudioFrame; }, [onAudioFrame]);
 
   // Check browser support - derived constant, not state
   const isSupported = typeof window !== 'undefined' && 
@@ -211,6 +226,21 @@ export function VoiceMode({
         });
         
         setFrequencyBars(newBars);
+
+        // If the 3D HUD is listening, fire the audio frame callback.
+        // Compute rms and peak from the normalized bar values and dispatch
+        // to the AudioLevelContext ref — zero React re-renders.
+        if (onAudioFrameRef.current) {
+          const rms = Math.sqrt(newBars.reduce((sum, v) => sum + v * v, 0) / newBars.length);
+          const peak = Math.max(...newBars);
+          onAudioFrameRef.current({
+            rms: Math.min(1, rms),
+            peak: Math.min(1, peak),
+            frequencies: newBars,
+            isActive: true,
+          });
+        }
+
         animationFrameRef.current = requestAnimationFrame(updateLevels);
       };
 
