@@ -239,13 +239,21 @@ export function InterviewChat({
   // Track if TTS has started for the final message (to avoid ending before TTS even begins)
   const ttsStartedForEndRef = useRef(false);
 
-  // hudReady: WebGL check deferred to client-side to avoid hydration mismatch.
-  // isWebGLAvailable() reads window so it must run inside useEffect.
-  const [hudReady, setHudReady] = useState(false);
+  // showHud is resolved in a single effect so the mobile check and WebGL check
+  // are never evaluated in separate render cycles. Two separate effects caused a
+  // race where hudReady briefly became true before isMobile was set, making the
+  // broken 3-column HUD flash on mobile and causing the glitchy STAR ring.
+  const [showHud, setShowHud] = useState(false);
   useEffect(() => {
-    if (isHudMode) setHudReady(isWebGLAvailable());
+    const evaluate = () => {
+      const mobile = window.innerWidth < 768;
+      const webgl  = isHudMode ? isWebGLAvailable() : false;
+      setShowHud(isHudMode && webgl && !mobile);
+    };
+    evaluate();
+    window.addEventListener('resize', evaluate);
+    return () => window.removeEventListener('resize', evaluate);
   }, [isHudMode]);
-  const showHud = isHudMode && hudReady;
   const messagesRemaining = maxUserMessages - userMessageCount;
   const isNearLimit = messagesRemaining <= 3 && messagesRemaining > 0;
   const isAtLimit = messagesRemaining <= 0;

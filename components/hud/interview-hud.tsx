@@ -180,20 +180,12 @@ export function InterviewHUD({
       {/* ── 3-column body ─────────────────────────────────────────────────── */}
       <div className="flex-1 grid grid-cols-[340px_1fr_280px] min-h-0 overflow-hidden">
 
-        {/* ── LEFT: messages + STAR ──────────────────────────────────────── */}
+        {/* ── LEFT: messages only ────────────────────────────────────────── */}
         <div className="flex flex-col border-r border-white/[0.06] overflow-hidden">
-          {/* Scrollable messages */}
+          {/* Full-height scrollable messages — nothing pinned below */}
           <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.2) transparent' }}>
             <SectionLabel>Conversation</SectionLabel>
             <div className="mt-2 space-y-3">{messageHistory}</div>
-          </div>
-
-          {/* STAR ring pinned at bottom */}
-          <div className="flex-shrink-0 border-t border-white/[0.06] p-4">
-            <SectionLabel>STAR Analysis</SectionLabel>
-            <div className="mt-2">
-              <StarRing star={latest?.star ?? null} />
-            </div>
           </div>
         </div>
 
@@ -264,6 +256,14 @@ export function InterviewHUD({
             <SectionLabel>Score trend</SectionLabel>
             <div className="mt-2">
               <HistoryChart turns={turns} />
+            </div>
+          </div>
+
+          {/* STAR Analysis */}
+          <div>
+            <SectionLabel>STAR Analysis</SectionLabel>
+            <div className="mt-2">
+              <StarRing star={latest?.star ?? null} />
             </div>
           </div>
 

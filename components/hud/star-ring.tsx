@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { cn } from '@/lib/utils/cn';
 import type { HudStarBreakdown } from '@/types/hud';
 
@@ -54,6 +54,11 @@ function scoreRadius(score: number): number {
 
 export function StarRing({ star }: StarRingProps): React.JSX.Element {
   const [hovered, setHovered] = useState<string | null>(null);
+  // Track whether the last interaction was touch so we can suppress the
+  // synthetic mouse events that mobile browsers fire after touchend.
+  // Without this, onMouseEnter fires after every tap causing the ring to
+  // flicker between hovered/unhovered states rapidly.
+  const touchActiveRef = useRef(false);
 
   const overall = star?.overallScore ?? 0;
   const has     = star !== null;
@@ -96,8 +101,24 @@ export function StarRing({ star }: StarRingProps): React.JSX.Element {
                 filter:      isHov ? `drop-shadow(0 0 6px ${s.glowColor})` : undefined,
                 cursor:      has ? 'pointer' : 'default',
               }}
-              onMouseEnter={() => has && setHovered(s.key)}
-              onMouseLeave={() => setHovered(null)}
+              onMouseEnter={() => {
+                // Suppress synthetic mouse event fired by mobile browsers after touch
+                if (touchActiveRef.current) return;
+                if (has) setHovered(s.key);
+              }}
+              onMouseLeave={() => {
+                if (touchActiveRef.current) return;
+                setHovered(null);
+              }}
+              onTouchStart={() => {
+                touchActiveRef.current = true;
+                if (has) setHovered((prev) => prev === s.key ? null : s.key);
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                // Clear touch flag after synthetic mouse events have been suppressed
+                setTimeout(() => { touchActiveRef.current = false; }, 500);
+              }}
             />
           );
         })}
@@ -166,8 +187,8 @@ export function StarRing({ star }: StarRingProps): React.JSX.Element {
           </div>
         );
       })() : (
-        <p className="text-[10px] text-slate-600 text-center">
-          Hover a segment for detail
+        <p className="text-[10px] text-slate-600 text-center select-none">
+          Tap a segment for detail
         </p>
       )}
     </div>
