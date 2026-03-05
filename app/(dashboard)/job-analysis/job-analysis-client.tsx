@@ -219,7 +219,7 @@ export function JobAnalysisClient(): React.JSX.Element {
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-[#3D3229]/8 dark:divide-slate-700 max-h-[500px] overflow-y-auto">
+              <div className="divide-y divide-[#3D3229]/8 dark:divide-slate-700 max-h-[500px] overflow-y-auto" data-lenis-prevent>
                 {savedJobs.map((jd) => (
                   <div
                     key={jd.id}

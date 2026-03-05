@@ -390,13 +390,13 @@ export function NegotiationSessionClient({
 
       {/* ── Content ── */}
       {sessionEnded && result ? (
-        <div className="flex-1 overflow-y-auto py-8">
+        <div className="flex-1 overflow-y-auto py-8" data-lenis-prevent>
           <ResultsPanel result={result} />
         </div>
       ) : (
         <>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto py-6 space-y-6">
+          <div className="flex-1 overflow-y-auto py-6 space-y-6" data-lenis-prevent>
             {/* Opening context */}
             {messages.length === 0 && (
               <div className="rounded-2xl border border-[#3D3229]/10 dark:border-slate-700 bg-[#FAF8F5] dark:bg-slate-800/30 p-6">

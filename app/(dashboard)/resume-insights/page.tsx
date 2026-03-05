@@ -332,7 +332,7 @@ export default async function ResumeInsightsPage(): Promise<React.JSX.Element> {
                     </div>
                   </div>
                 </div>
-                <div className="divide-y divide-[#3D3229]/10 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
+                <div className="divide-y divide-[#3D3229]/10 dark:divide-slate-800 max-h-[600px] overflow-y-auto" data-lenis-prevent>
                   {groupedDiscrepancies.map((d, i) => (
                     <div key={i} className="p-6 hover:bg-[#FAF8F5]/50 dark:hover:bg-slate-800/50 transition-colors">
                       <div className="flex items-start gap-5">
@@ -375,7 +375,7 @@ export default async function ResumeInsightsPage(): Promise<React.JSX.Element> {
                     </div>
                   </div>
                 </div>
-                <div className="divide-y divide-[#3D3229]/10 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
+                <div className="divide-y divide-[#3D3229]/10 dark:divide-slate-800 max-h-[600px] overflow-y-auto" data-lenis-prevent>
                   {groupedConfirmations.map((c, i) => (
                     <div key={i} className="p-6 hover:bg-green-50/30 dark:hover:bg-green-900/10 transition-colors">
                       <div className="flex items-start gap-5">
