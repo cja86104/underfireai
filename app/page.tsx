@@ -94,7 +94,7 @@ export default function LandingPage(): React.JSX.Element {
     {
       icon: Brain,
       title: 'Custom Scenario Builder',
-      desc: "Blend two interviewer archetypes, add custom constraints, and dial individual personality traits for a scenario that matches exactly what you're walking into. Preparing for a panel with a skeptical VP and a detail-oriented engineer? Build it. Facing a case study with time pressure? Create it.",
+      desc: "Blend two interviewer archetypes, add custom constraints, and dial individual personality traits for a scenario that matches exactly what you're walking into. Preparing for a panel with a skeptical VP and a detail-oriented engineer? Build it.",
     },
   ];
 
@@ -279,33 +279,34 @@ export default function LandingPage(): React.JSX.Element {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#3D3229] antialiased overflow-x-hidden">
-      {/* Mouse-tracked warm glow */}
+    <div className="min-h-screen bg-[#08080a] text-[#fafafa] antialiased overflow-x-hidden">
+
+      {/* Mouse-tracked glow */}
       <div
-        className="fixed inset-0 z-0 transition-all duration-500 ease-out pointer-events-none"
+        className="fixed inset-0 z-0 pointer-events-none transition-all duration-500 ease-out"
         style={{
-          background: `radial-gradient(1100px circle at ${mousePos.x}% ${mousePos.y}%, rgba(139,90,43,0.05), transparent 40%)`,
+          background: `radial-gradient(1100px circle at ${mousePos.x}% ${mousePos.y}%, rgba(249,115,22,0.06), transparent 40%)`,
         }}
       />
 
-      {/* Static warm gradients */}
+      {/* Static gradient orbs */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-gradient-to-bl from-[#D4A574]/10 to-transparent blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-gradient-to-tr from-[#8B5A2B]/8 to-transparent blur-3xl" />
-        <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-[#C4956A]/6 to-transparent blur-3xl" />
+        <div className="absolute top-0 left-0 w-[900px] h-[900px] bg-gradient-to-br from-orange-500/[0.07] to-transparent blur-3xl" />
+        <div className="absolute top-[30%] right-0 w-[700px] h-[700px] bg-gradient-to-bl from-red-500/[0.06] to-transparent blur-3xl" />
+        <div className="absolute bottom-[10%] left-[30%] w-[500px] h-[500px] bg-gradient-to-tr from-blue-500/[0.06] to-transparent blur-3xl" />
       </div>
 
-      {/* Subtle grid */}
+      {/* Grid overlay */}
       <div
-        className="fixed inset-0 z-0 opacity-[0.015] pointer-events-none"
+        className="fixed inset-0 z-0 pointer-events-none opacity-[0.025]"
         style={{
-          backgroundImage: 'linear-gradient(rgba(61,50,41,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(61,50,41,0.6) 1px, transparent 1px)',
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
           backgroundSize: '64px 64px',
         }}
       />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[#FAF8F5]/80 backdrop-blur-xl border-b border-[#3D3229]/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[#08080a]/85 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
@@ -314,7 +315,7 @@ export default function LandingPage(): React.JSX.Element {
                 <Flame className="h-5 w-5 text-white" />
               </div>
             </div>
-            <span className="font-bold text-xl tracking-tight text-[#3D3229]">UnderFireAI</span>
+            <span className="font-bold text-xl tracking-tight text-[#fafafa]">UnderFireAI</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -327,7 +328,7 @@ export default function LandingPage(): React.JSX.Element {
               <a
                 key={item.label}
                 href={item.href}
-                className="px-4 py-2 text-base text-[#6B5744] hover:text-[#3D3229] transition-colors"
+                className="px-4 py-2 text-base text-[#a1a1aa] hover:text-[#fafafa] transition-colors rounded-lg"
               >
                 {item.label}
               </a>
@@ -335,12 +336,12 @@ export default function LandingPage(): React.JSX.Element {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/login" className="px-4 py-2 text-base text-[#6B5744] hover:text-[#3D3229] transition-colors">
+            <Link href="/login" className="px-4 py-2 text-base text-[#a1a1aa] hover:text-[#fafafa] transition-colors">
               Sign in
             </Link>
             <Link
               href="/register"
-              className="px-6 py-2.5 text-base font-semibold rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-lg shadow-[#8B5A2B]/20"
+              className="px-6 py-2.5 text-base font-semibold rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-lg shadow-orange-900/30"
             >
               Get Started Free
             </Link>
@@ -353,37 +354,37 @@ export default function LandingPage(): React.JSX.Element {
         <div className="relative z-10 max-w-7xl mx-auto w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#8B5A2B]/10 border border-[#8B5A2B]/20 mb-8">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#8B5A2B] animate-pulse" />
-                <span className="text-base text-[#6B5744] font-medium">AI-powered interview coaching</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 mb-8">
+                <div className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
+                <span className="text-base text-[#a1a1aa] font-medium">AI-powered interview coaching</span>
               </div>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight mb-7">
-                <span className="text-[#3D3229]">Train Under Fire.</span>
+                <span className="text-[#fafafa]">Train Under Fire.</span>
                 <br />
-                <span className="bg-gradient-to-r from-[#8B5A2B] via-[#A0522D] to-[#CD853F] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 bg-clip-text text-transparent">
                   So the real thing feels easy.
                 </span>
               </h1>
 
-              <p className="text-xl lg:text-2xl text-[#6B5744] leading-relaxed max-w-xl mb-8">
+              <p className="text-xl lg:text-2xl text-[#a1a1aa] leading-relaxed max-w-xl mb-8">
                 Practice with AI interviewers who have{' '}
-                <strong className="text-[#3D3229]">hidden personalities</strong> you must discover.
-                Get <strong className="text-[#3D3229]">real-time STAR analysis</strong>, brutally honest feedback,
+                <strong className="text-[#fafafa]">hidden personalities</strong> you must discover.
+                Get <strong className="text-[#fafafa]">real-time STAR analysis</strong>, brutally honest feedback,
                 and track your improvement over time.
               </p>
 
               <div className="flex flex-wrap items-center gap-4 mb-10">
                 <Link
                   href="/register"
-                  className="group inline-flex items-center gap-2 px-9 py-4 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white text-lg font-bold hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-xl shadow-[#8B5A2B]/25 hover:shadow-[#8B5A2B]/40 hover:-translate-y-0.5"
+                  className="group inline-flex items-center gap-2 px-9 py-4 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white text-lg font-bold hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-xl shadow-orange-900/30 hover:shadow-orange-900/50 hover:-translate-y-0.5"
                 >
                   Start Practicing — Packs from $25
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
 
-              <p className="text-base text-[#8B7355]">
+              <p className="text-base text-[#71717a]">
                 No subscriptions &middot; Buy interview credits &middot; Use at your pace
               </p>
             </div>
@@ -391,58 +392,58 @@ export default function LandingPage(): React.JSX.Element {
             {/* Hero card */}
             <div className="hidden lg:block">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5A2B]/15 to-[#D4A574]/15 rounded-3xl blur-2xl" />
-                <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl border border-[#3D3229]/10 p-7 shadow-2xl shadow-[#8B5A2B]/10">
-                  <div className="flex items-center gap-4 pb-5 border-b border-[#3D3229]/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/12 to-amber-400/8 rounded-3xl blur-2xl" />
+                <div className="relative bg-[#18181b]/95 backdrop-blur-xl rounded-3xl border border-white/10 p-7 shadow-2xl shadow-black/40">
+                  <div className="flex items-center gap-4 pb-5 border-b border-white/[0.06]">
                     <div className="relative">
                       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] flex items-center justify-center text-2xl font-bold text-white">
                         AI
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-white" />
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#18181b]" />
                     </div>
                     <div>
-                      <p className="font-bold text-lg text-[#3D3229]">Technical Interviewer</p>
-                      <p className="text-base text-[#8B7355]">Senior Engineering &middot; Personality: Hidden</p>
+                      <p className="font-bold text-lg text-[#fafafa]">Technical Interviewer</p>
+                      <p className="text-base text-[#71717a]">Senior Engineering &middot; Personality: Hidden</p>
                     </div>
-                    <div className="ml-auto px-3 py-1.5 rounded-full bg-[#8B5A2B]/10 text-sm font-semibold text-[#8B5A2B]">
+                    <div className="ml-auto px-3 py-1.5 rounded-full bg-orange-500/12 text-sm font-semibold text-orange-400">
                       Discover it
                     </div>
                   </div>
 
                   <div className="py-6 space-y-4">
-                    <div className="bg-[#FAF8F5] rounded-2xl rounded-tl-sm p-5 max-w-[92%]">
-                      <p className="text-base text-[#3D3229] leading-relaxed">
+                    <div className="bg-white/[0.05] rounded-2xl rounded-tl-sm p-5 max-w-[92%]">
+                      <p className="text-base text-[#fafafa] leading-relaxed">
                         &ldquo;Tell me about a time you had to make a critical technical decision
                         with incomplete information. Walk me through your thought process.&rdquo;
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-[#8B7355]">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#8B5A2B] animate-pulse" />
+                    <div className="flex items-center gap-2 text-sm text-[#71717a]">
+                      <div className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
                       STAR Analysis: Listening for Situation...
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-[#3D3229]/10">
-                    <div className="flex items-center gap-3 bg-[#FAF8F5] rounded-xl px-5 py-3.5">
-                      <Mic className="h-5 w-5 text-[#8B5A2B]" />
-                      <span className="text-base text-[#8B7355]">Press to respond with voice...</span>
+                  <div className="pt-4 border-t border-white/[0.06]">
+                    <div className="flex items-center gap-3 bg-white/[0.04] rounded-xl px-5 py-3.5">
+                      <Mic className="h-5 w-5 text-orange-400" />
+                      <span className="text-base text-[#71717a]">Press to respond with voice...</span>
                       <div className="ml-auto flex items-center gap-1.5">
-                        <Volume2 className="h-4 w-4 text-[#8B5A2B]" />
-                        <span className="text-sm text-[#8B5A2B] font-semibold">Voice Mode</span>
+                        <Volume2 className="h-4 w-4 text-orange-400" />
+                        <span className="text-sm text-orange-400 font-semibold">Voice Mode</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-5 grid grid-cols-4 gap-3">
                     {[
-                      { label: 'Clarity', score: 87, color: 'text-green-600' },
-                      { label: 'Structure', score: 72, color: 'text-[#D4A574]' },
-                      { label: 'Impact', score: 91, color: 'text-green-600' },
-                      { label: 'Confidence', score: 68, color: 'text-[#CD853F]' },
+                      { label: 'Clarity', score: 87, color: 'text-green-400' },
+                      { label: 'Structure', score: 72, color: 'text-amber-400' },
+                      { label: 'Impact', score: 91, color: 'text-green-400' },
+                      { label: 'Confidence', score: 68, color: 'text-orange-400' },
                     ].map((item) => (
-                      <div key={item.label} className="bg-[#FAF8F5] rounded-xl p-3 text-center">
+                      <div key={item.label} className="bg-white/[0.04] rounded-xl p-3 text-center">
                         <p className={`text-xl font-bold ${item.color}`}>{item.score}</p>
-                        <p className="text-sm text-[#8B7355]">{item.label}</p>
+                        <p className="text-sm text-[#71717a]">{item.label}</p>
                       </div>
                     ))}
                   </div>
@@ -457,11 +458,11 @@ export default function LandingPage(): React.JSX.Element {
       <section id="features" className="relative py-28 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <p className="text-[#8B5A2B] font-bold tracking-widest text-sm mb-5 uppercase">Core Features</p>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#3D3229]">
+            <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Core Features</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#fafafa]">
               Everything you need to land the offer
             </h2>
-            <p className="text-xl text-[#6B5744]">
+            <p className="text-xl text-[#a1a1aa]">
               Every feature is designed to create real interview pressure and give you actionable feedback you can act on immediately.
             </p>
           </div>
@@ -472,24 +473,24 @@ export default function LandingPage(): React.JSX.Element {
               return (
                 <div
                   key={f.title}
-                  className={`group p-9 rounded-2xl bg-white border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#8B5A2B]/10 ${
+                  className={`group p-9 rounded-2xl bg-[#18181b] border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-900/15 ${
                     f.highlight
-                      ? 'border-[#8B5A2B]/30 shadow-lg shadow-[#8B5A2B]/5'
-                      : 'border-[#3D3229]/10 hover:border-[#8B5A2B]/30'
+                      ? 'border-orange-500/25 shadow-lg shadow-orange-900/10'
+                      : 'border-white/[0.06] hover:border-orange-500/25'
                   }`}
                 >
                   <div className="flex items-start gap-6">
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-[#8B5A2B]/20">
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-orange-900/25">
                       <Icon className="h-8 w-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold mb-3 text-[#3D3229]">{f.title}</h3>
-                      <p className="text-base text-[#6B5744] leading-relaxed">{f.desc}</p>
+                      <h3 className="text-xl font-bold mb-3 text-[#fafafa]">{f.title}</h3>
+                      <p className="text-base text-[#a1a1aa] leading-relaxed">{f.desc}</p>
                     </div>
                   </div>
                   {f.highlight && (
-                    <div className="mt-6 pt-6 border-t border-[#8B5A2B]/20">
-                      <span className="inline-flex items-center gap-2 text-base font-semibold text-[#8B5A2B]">
+                    <div className="mt-6 pt-6 border-t border-orange-500/15">
+                      <span className="inline-flex items-center gap-2 text-base font-semibold text-orange-400">
                         <Sparkles className="h-4 w-4" />
                         Our most unique feature — what makes us different
                       </span>
@@ -503,14 +504,14 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Interview Types */}
-      <section className="relative py-24 px-6 bg-gradient-to-b from-[#FAF8F5] to-white">
+      <section className="relative py-24 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <p className="text-[#8B5A2B] font-bold tracking-widest text-sm mb-5 uppercase">Interview Types</p>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-5 text-[#3D3229]">
+            <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Interview Types</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-5 text-[#fafafa]">
               Prepare for any interview format
             </h2>
-            <p className="text-xl text-[#6B5744]">
+            <p className="text-xl text-[#a1a1aa]">
               All six types included with every purchase.
             </p>
           </div>
@@ -521,13 +522,13 @@ export default function LandingPage(): React.JSX.Element {
               return (
                 <div
                   key={type.name}
-                  className="p-6 rounded-xl bg-white border border-[#3D3229]/10 hover:border-[#8B5A2B]/30 hover:shadow-lg transition-all text-center group"
+                  className="p-6 rounded-xl bg-[#18181b] border border-white/[0.06] hover:border-orange-500/30 hover:shadow-lg hover:shadow-orange-900/15 transition-all text-center group"
                 >
-                  <div className="w-14 h-14 rounded-lg bg-[#8B5A2B]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[#8B5A2B]/20 transition-colors">
-                    <Icon className="h-7 w-7 text-[#8B5A2B]" />
+                  <div className="w-14 h-14 rounded-lg bg-orange-500/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-500/20 transition-colors">
+                    <Icon className="h-7 w-7 text-orange-400" />
                   </div>
-                  <h3 className="font-bold text-base text-[#3D3229] mb-1">{type.name}</h3>
-                  <p className="text-sm text-[#8B7355]">{type.desc}</p>
+                  <h3 className="font-bold text-base text-[#fafafa] mb-1">{type.name}</h3>
+                  <p className="text-sm text-[#71717a]">{type.desc}</p>
                 </div>
               );
             })}
@@ -540,11 +541,11 @@ export default function LandingPage(): React.JSX.Element {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-[#8B5A2B] font-bold tracking-widest text-sm mb-5 uppercase">Resume Intelligence</p>
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#3D3229]">
+              <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Resume Intelligence</p>
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#fafafa]">
                 Your resume becomes your interview prep guide
               </h2>
-              <p className="text-xl text-[#6B5744] mb-12">
+              <p className="text-xl text-[#a1a1aa] mb-12">
                 Upload your resume and we identify exactly where interviewers will probe.
                 Know your weak points before you walk in the door.
               </p>
@@ -554,12 +555,12 @@ export default function LandingPage(): React.JSX.Element {
                   const Icon = f.icon;
                   return (
                     <div key={f.title} className="flex gap-5">
-                      <div className="w-12 h-12 rounded-lg bg-[#8B5A2B]/10 flex items-center justify-center flex-shrink-0">
-                        <Icon className="h-6 w-6 text-[#8B5A2B]" />
+                      <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                        <Icon className="h-6 w-6 text-orange-400" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg text-[#3D3229] mb-1.5">{f.title}</h3>
-                        <p className="text-base text-[#6B5744] leading-relaxed">{f.desc}</p>
+                        <h3 className="font-bold text-lg text-[#fafafa] mb-1.5">{f.title}</h3>
+                        <p className="text-base text-[#a1a1aa] leading-relaxed">{f.desc}</p>
                       </div>
                     </div>
                   );
@@ -568,44 +569,44 @@ export default function LandingPage(): React.JSX.Element {
             </div>
 
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#8B5A2B]/10 to-[#D4A574]/10 rounded-3xl blur-2xl" />
-              <div className="relative bg-white rounded-2xl border border-[#3D3229]/10 p-7 shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/8 to-amber-400/5 rounded-3xl blur-2xl" />
+              <div className="relative bg-[#18181b] rounded-2xl border border-white/[0.06] p-7 shadow-xl shadow-black/30">
                 <div className="flex items-center gap-3 mb-7">
-                  <FileText className="h-6 w-6 text-[#8B5A2B]" />
-                  <span className="font-bold text-lg text-[#3D3229]">Resume Analysis</span>
-                  <span className="ml-auto px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
+                  <FileText className="h-6 w-6 text-orange-400" />
+                  <span className="font-bold text-lg text-[#fafafa]">Resume Analysis</span>
+                  <span className="ml-auto px-3 py-1.5 rounded-full bg-green-500/12 text-green-400 text-sm font-semibold">
                     Analyzed
                   </span>
                 </div>
 
                 <div className="mb-7">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-base text-[#6B5744]">Overall Health Score</span>
-                    <span className="text-3xl font-bold text-[#8B5A2B]">78/100</span>
+                    <span className="text-base text-[#a1a1aa]">Overall Health Score</span>
+                    <span className="text-3xl font-bold text-orange-400">78/100</span>
                   </div>
-                  <div className="h-2.5 bg-[#FAF8F5] rounded-full overflow-hidden">
-                    <div className="h-full w-[78%] bg-gradient-to-r from-[#8B5A2B] to-[#D4A574] rounded-full" />
+                  <div className="h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="h-full w-[78%] bg-gradient-to-r from-[#8B5A2B] to-orange-400 rounded-full" />
                   </div>
                 </div>
 
                 <div className="space-y-3 mb-7">
-                  <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                  <div className="p-4 rounded-lg bg-amber-500/8 border border-amber-500/20">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <Eye className="h-4 w-4 text-amber-600" />
-                      <span className="font-semibold text-amber-800 text-sm">Vulnerability Found</span>
+                      <Eye className="h-4 w-4 text-amber-400" />
+                      <span className="font-semibold text-amber-400 text-sm">Vulnerability Found</span>
                     </div>
-                    <p className="text-sm text-amber-700">3-month employment gap — prepare your story</p>
+                    <p className="text-sm text-[#a1a1aa]">3-month employment gap — prepare your story</p>
                   </div>
-                  <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+                  <div className="p-4 rounded-lg bg-green-500/8 border border-green-500/20">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <span className="font-semibold text-green-800 text-sm">Strong Point</span>
+                      <CheckCircle2 className="h-4 w-4 text-green-400" />
+                      <span className="font-semibold text-green-400 text-sm">Strong Point</span>
                     </div>
-                    <p className="text-sm text-green-700">Clear quantified impact metrics in recent roles</p>
+                    <p className="text-sm text-[#a1a1aa]">Clear quantified impact metrics in recent roles</p>
                   </div>
                 </div>
 
-                <button className="w-full py-3.5 rounded-xl bg-[#8B5A2B]/10 text-[#8B5A2B] font-semibold hover:bg-[#8B5A2B]/20 transition-colors text-base">
+                <button className="w-full py-3.5 rounded-xl bg-orange-500/8 text-orange-400 font-semibold hover:bg-orange-500/15 transition-colors text-base">
                   Generate Practice Questions from Resume
                 </button>
               </div>
@@ -615,14 +616,14 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Company Types */}
-      <section className="relative py-24 px-6 bg-gradient-to-b from-[#FAF8F5] to-white">
+      <section className="relative py-24 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <p className="text-[#8B5A2B] font-bold tracking-widest text-sm mb-5 uppercase">Company-Specific Prep</p>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-5 text-[#3D3229]">
+            <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Company-Specific Prep</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-5 text-[#fafafa]">
               Tailored to your target company
             </h2>
-            <p className="text-xl text-[#6B5744]">
+            <p className="text-xl text-[#a1a1aa]">
               Different companies interview differently. We match the style, questions, and evaluation criteria.
             </p>
           </div>
@@ -633,13 +634,13 @@ export default function LandingPage(): React.JSX.Element {
               return (
                 <div
                   key={company.name}
-                  className="p-6 rounded-xl bg-white border border-[#3D3229]/10 hover:border-[#8B5A2B]/30 hover:shadow-lg transition-all text-center group"
+                  className="p-6 rounded-xl bg-[#18181b] border border-white/[0.06] hover:border-orange-500/30 hover:shadow-lg hover:shadow-orange-900/15 transition-all text-center group"
                 >
-                  <div className="w-14 h-14 rounded-lg bg-[#8B5A2B]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[#8B5A2B]/20 transition-colors">
-                    <Icon className="h-7 w-7 text-[#8B5A2B]" />
+                  <div className="w-14 h-14 rounded-lg bg-orange-500/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-500/20 transition-colors">
+                    <Icon className="h-7 w-7 text-orange-400" />
                   </div>
-                  <h3 className="font-bold text-base text-[#3D3229] mb-1">{company.name}</h3>
-                  <p className="text-sm text-[#8B7355]">{company.desc}</p>
+                  <h3 className="font-bold text-base text-[#fafafa] mb-1">{company.name}</h3>
+                  <p className="text-sm text-[#71717a]">{company.desc}</p>
                 </div>
               );
             })}
@@ -651,17 +652,17 @@ export default function LandingPage(): React.JSX.Element {
       <section id="how-it-works" className="relative py-28 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <p className="text-[#8B5A2B] font-bold tracking-widest text-sm mb-5 uppercase">How It Works</p>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#3D3229]">
+            <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">How It Works</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#fafafa]">
               From nervous to offer-ready in 5 steps
             </h2>
-            <p className="text-xl text-[#6B5744]">
+            <p className="text-xl text-[#a1a1aa]">
               A systematic approach to interview preparation that actually builds real skills.
             </p>
           </div>
 
           <div className="relative mt-14">
-            <div className="hidden lg:block absolute left-[calc(50%-1px)] top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#8B5A2B]/20 via-[#8B5A2B]/40 to-[#8B5A2B]/20" />
+            <div className="hidden lg:block absolute left-[calc(50%-1px)] top-0 bottom-0 w-0.5 bg-gradient-to-b from-orange-500/15 via-orange-500/40 to-orange-500/15" />
 
             <div className="space-y-14 lg:space-y-0">
               {howItWorks.map((step, index) => (
@@ -671,14 +672,14 @@ export default function LandingPage(): React.JSX.Element {
                 >
                   <div className={index % 2 === 0 ? 'lg:text-right lg:pr-20' : 'lg:order-2 lg:pl-20'}>
                     <div className={`inline-flex items-center gap-4 mb-5 ${index % 2 === 0 ? 'lg:flex-row-reverse' : ''}`}>
-                      <span className="text-6xl font-bold text-[#8B5A2B]/20">{step.step}</span>
-                      <div className="hidden lg:block w-14 h-0.5 bg-[#8B5A2B]/30" />
+                      <span className="text-6xl font-bold text-orange-500/15">{step.step}</span>
+                      <div className="hidden lg:block w-14 h-0.5 bg-orange-500/25" />
                     </div>
-                    <h3 className="text-2xl font-bold mb-3 text-[#3D3229]">{step.title}</h3>
-                    <p className="text-lg text-[#6B5744] leading-relaxed">{step.desc}</p>
+                    <h3 className="text-2xl font-bold mb-3 text-[#fafafa]">{step.title}</h3>
+                    <p className="text-lg text-[#a1a1aa] leading-relaxed">{step.desc}</p>
                   </div>
 
-                  <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-[#8B5A2B] border-4 border-[#FAF8F5]" />
+                  <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-orange-500 border-4 border-[#08080a]" />
 
                   <div className={`${index % 2 === 0 ? 'lg:order-2' : ''} mt-6 lg:mt-0`} />
                 </div>
@@ -689,14 +690,14 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="relative py-28 px-6 bg-gradient-to-b from-[#FAF8F5] to-white">
+      <section id="pricing" className="relative py-28 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <p className="text-[#8B5A2B] font-bold tracking-widest text-sm mb-5 uppercase">Pricing</p>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#3D3229]">
+            <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Pricing</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-[#fafafa]">
               Invest in your career
             </h2>
-            <p className="text-xl text-[#6B5744]">
+            <p className="text-xl text-[#a1a1aa]">
               Buy interview credits, use them at your pace. Every purchase unlocks all features &mdash; no tiers, no restrictions.
             </p>
           </div>
@@ -707,10 +708,10 @@ export default function LandingPage(): React.JSX.Element {
                 key={p.name}
                 className={`relative p-9 rounded-2xl transition-all ${
                   p.highlight
-                    ? 'bg-gradient-to-b from-[#8B5A2B]/10 to-white border-2 border-[#8B5A2B]/50 shadow-2xl shadow-[#8B5A2B]/10 lg:scale-105'
+                    ? 'bg-gradient-to-b from-orange-500/8 to-[#18181b] border-2 border-orange-500/40 shadow-2xl shadow-orange-900/15 lg:scale-105'
                     : p.variant === 'refill'
-                      ? 'bg-white border border-green-500/25 hover:border-green-500/50'
-                      : 'bg-white border border-[#3D3229]/10 hover:border-[#8B5A2B]/30'
+                      ? 'bg-[#18181b] border border-green-500/20 hover:border-green-500/40'
+                      : 'bg-[#18181b] border border-white/[0.06] hover:border-orange-500/25'
                 }`}
               >
                 {p.highlight && (
@@ -722,16 +723,16 @@ export default function LandingPage(): React.JSX.Element {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-1 text-[#3D3229]">{p.name}</h3>
-                  <p className="text-base text-[#8B7355]">{p.desc}</p>
+                  <h3 className="text-2xl font-bold mb-1 text-[#fafafa]">{p.name}</h3>
+                  <p className="text-base text-[#71717a]">{p.desc}</p>
                 </div>
 
                 <div className="mb-2">
-                  <span className="text-5xl font-bold text-[#3D3229]">${p.price}</span>
-                  <span className="text-lg text-[#8B7355] ml-2">{p.period}</span>
+                  <span className="text-5xl font-bold text-[#fafafa]">${p.price}</span>
+                  <span className="text-lg text-[#71717a] ml-2">{p.period}</span>
                 </div>
 
-                <p className={`text-sm font-semibold mb-7 ${p.variant === 'refill' ? 'text-green-600' : 'text-[#8B5A2B]'}`}>
+                <p className={`text-sm font-semibold mb-7 ${p.variant === 'refill' ? 'text-green-400' : 'text-orange-400'}`}>
                   {p.perInterview}
                 </p>
 
@@ -740,14 +741,10 @@ export default function LandingPage(): React.JSX.Element {
                     <li key={feature} className="flex items-start gap-3">
                       <CheckCircle2
                         className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                          p.highlight
-                            ? 'text-[#8B5A2B]'
-                            : p.variant === 'refill'
-                              ? 'text-green-500'
-                              : 'text-[#A0522D]'
+                          p.variant === 'refill' ? 'text-green-400' : 'text-orange-400'
                         }`}
                       />
-                      <span className="text-base text-[#3D3229]">{feature}</span>
+                      <span className="text-base text-[#a1a1aa]">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -756,10 +753,10 @@ export default function LandingPage(): React.JSX.Element {
                   href={p.ctaHref}
                   className={`block w-full py-4 rounded-xl text-center text-base font-bold transition-all ${
                     p.highlight
-                      ? 'bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white hover:from-[#9A6B3C] hover:to-[#6B4420] shadow-lg shadow-[#8B5A2B]/20'
+                      ? 'bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white hover:from-[#9A6B3C] hover:to-[#6B4420] shadow-lg shadow-orange-900/25'
                       : p.variant === 'refill'
-                        ? 'bg-[#FAF8F5] text-green-600 hover:bg-green-500/10 border border-green-500/30'
-                        : 'bg-[#FAF8F5] text-[#3D3229] hover:bg-[#8B5A2B]/10 border border-[#3D3229]/10'
+                        ? 'bg-green-500/8 text-green-400 hover:bg-green-500/15 border border-green-500/25'
+                        : 'bg-white/[0.05] text-[#fafafa] hover:bg-orange-500/8 border border-white/10'
                   }`}
                 >
                   {p.cta}
@@ -768,7 +765,7 @@ export default function LandingPage(): React.JSX.Element {
             ))}
           </div>
 
-          <p className="text-center text-base text-[#8B7355] mt-8 max-w-xl mx-auto">
+          <p className="text-center text-base text-[#71717a] mt-8 max-w-xl mx-auto">
             No subscriptions. No recurring charges. Credits never expire. Every purchase unlocks all features instantly.
           </p>
         </div>
@@ -778,8 +775,8 @@ export default function LandingPage(): React.JSX.Element {
       <section id="faq" className="relative py-28 px-6">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-[#8B5A2B] font-bold tracking-widest text-sm mb-5 uppercase">FAQ</p>
-            <h2 className="text-4xl lg:text-5xl font-bold text-[#3D3229]">
+            <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">FAQ</p>
+            <h2 className="text-4xl lg:text-5xl font-bold text-[#fafafa]">
               Common questions
             </h2>
           </div>
@@ -788,10 +785,10 @@ export default function LandingPage(): React.JSX.Element {
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className="p-7 rounded-xl bg-white border border-[#3D3229]/10 hover:border-[#8B5A2B]/30 transition-all"
+                className="p-7 rounded-xl bg-[#18181b] border border-white/[0.06] hover:border-orange-500/25 transition-all"
               >
-                <h3 className="font-bold text-lg text-[#3D3229] mb-3">{faq.q}</h3>
-                <p className="text-base text-[#6B5744] leading-relaxed">{faq.a}</p>
+                <h3 className="font-bold text-lg text-[#fafafa] mb-3">{faq.q}</h3>
+                <p className="text-base text-[#a1a1aa] leading-relaxed">{faq.a}</p>
               </div>
             ))}
           </div>
@@ -799,29 +796,29 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* CTA */}
-      <section className="relative py-28 px-6 bg-gradient-to-b from-[#FAF8F5] to-white">
+      <section className="relative py-28 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/60">
         <div className="max-w-4xl mx-auto">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#8B5A2B]/15 to-[#D4A574]/15 rounded-3xl blur-3xl" />
-            <div className="relative p-14 lg:p-24 rounded-3xl bg-white border border-[#3D3229]/10 text-center shadow-xl">
-              <div className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] mb-9 shadow-xl shadow-[#8B5A2B]/25 p-5">
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-400/8 rounded-3xl blur-3xl" />
+            <div className="relative p-14 lg:p-24 rounded-3xl bg-[#18181b] border border-white/10 text-center shadow-2xl shadow-black/40">
+              <div className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] mb-9 shadow-xl shadow-orange-900/30 p-5">
                 <Flame className="h-10 w-10 text-white" />
               </div>
-              <h2 className="text-4xl lg:text-5xl font-bold mb-7 text-[#3D3229]">
+              <h2 className="text-4xl lg:text-5xl font-bold mb-7 text-[#fafafa]">
                 Ready to transform your interviews?
               </h2>
-              <p className="text-xl lg:text-2xl text-[#6B5744] mb-12 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-xl lg:text-2xl text-[#a1a1aa] mb-12 max-w-2xl mx-auto leading-relaxed">
                 Grab a Starter or Pro Pack and unlock every feature instantly.
                 No subscriptions, no limits on when you use your credits.
               </p>
               <Link
                 href="/register"
-                className="inline-flex items-center gap-3 px-10 py-5 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white text-xl font-bold hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-xl shadow-[#8B5A2B]/25 hover:shadow-[#8B5A2B]/40 hover:-translate-y-0.5"
+                className="inline-flex items-center gap-3 px-10 py-5 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white text-xl font-bold hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-xl shadow-orange-900/30 hover:shadow-orange-900/50 hover:-translate-y-0.5"
               >
                 Get Started
                 <ArrowRight className="h-5 w-5" />
               </Link>
-              <p className="text-base text-[#8B7355] mt-7">
+              <p className="text-base text-[#71717a] mt-7">
                 Starter Pack $25 &middot; Pro Pack $35 &middot; Refills $10 &middot; Credits never expire
               </p>
             </div>
@@ -830,7 +827,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Footer */}
-      <footer className="relative py-14 px-6 border-t border-[#3D3229]/10 bg-white">
+      <footer className="relative py-14 px-6 border-t border-white/[0.06] bg-[#0f0f12]">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-10 mb-14">
             <div>
@@ -838,35 +835,35 @@ export default function LandingPage(): React.JSX.Element {
                 <div className="p-2.5 rounded-lg bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A]">
                   <Flame className="h-5 w-5 text-white" />
                 </div>
-                <span className="font-bold text-lg text-[#3D3229]">UnderFireAI</span>
+                <span className="font-bold text-lg text-[#fafafa]">UnderFireAI</span>
               </div>
-              <p className="text-base text-[#8B7355] leading-relaxed">
+              <p className="text-base text-[#71717a] leading-relaxed">
                 AI-powered interview coaching that builds real skills under real pressure.
               </p>
             </div>
 
             <div>
-              <h4 className="font-bold text-base text-[#3D3229] mb-5">Product</h4>
-              <ul className="space-y-3 text-base text-[#6B5744]">
-                <li><a href="#features" className="hover:text-[#8B5A2B] transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-[#8B5A2B] transition-colors">Pricing</a></li>
-                <li><a href="#how-it-works" className="hover:text-[#8B5A2B] transition-colors">How It Works</a></li>
-                <li><Link href="/faq" className="hover:text-[#8B5A2B] transition-colors">FAQ</Link></li>
+              <h4 className="font-bold text-base text-[#fafafa] mb-5">Product</h4>
+              <ul className="space-y-3 text-base text-[#a1a1aa]">
+                <li><a href="#features" className="hover:text-orange-400 transition-colors">Features</a></li>
+                <li><a href="#pricing" className="hover:text-orange-400 transition-colors">Pricing</a></li>
+                <li><a href="#how-it-works" className="hover:text-orange-400 transition-colors">How It Works</a></li>
+                <li><Link href="/faq" className="hover:text-orange-400 transition-colors">FAQ</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold text-base text-[#3D3229] mb-5">Account</h4>
-              <ul className="space-y-3 text-base text-[#6B5744]">
-                <li><Link href="/login" className="hover:text-[#8B5A2B] transition-colors">Sign In</Link></li>
-                <li><Link href="/register" className="hover:text-[#8B5A2B] transition-colors">Create Account</Link></li>
-                <li><Link href="/settings" className="hover:text-[#8B5A2B] transition-colors">Settings</Link></li>
+              <h4 className="font-bold text-base text-[#fafafa] mb-5">Account</h4>
+              <ul className="space-y-3 text-base text-[#a1a1aa]">
+                <li><Link href="/login" className="hover:text-orange-400 transition-colors">Sign In</Link></li>
+                <li><Link href="/register" className="hover:text-orange-400 transition-colors">Create Account</Link></li>
+                <li><Link href="/settings" className="hover:text-orange-400 transition-colors">Settings</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold text-base text-[#3D3229] mb-5">Packs</h4>
-              <ul className="space-y-3 text-base text-[#8B7355]">
+              <h4 className="font-bold text-base text-[#fafafa] mb-5">Packs</h4>
+              <ul className="space-y-3 text-base text-[#71717a]">
                 <li>Starter &mdash; $25 (6 interviews)</li>
                 <li>Pro &mdash; $35 (11 interviews)</li>
                 <li>Refill &mdash; $10 (5 interviews)</li>
@@ -874,13 +871,13 @@ export default function LandingPage(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-[#3D3229]/10 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-base text-[#8B7355]">
+          <div className="pt-8 border-t border-white/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-base text-[#71717a]">
               &copy; {new Date().getFullYear()} UnderFireAI. All rights reserved.
             </p>
-            <div className="flex items-center gap-6 text-base text-[#8B7355]">
-              <Link href="/privacy" className="hover:text-[#8B5A2B] transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-[#8B5A2B] transition-colors">Terms of Service</Link>
+            <div className="flex items-center gap-6 text-base text-[#71717a]">
+              <Link href="/privacy" className="hover:text-orange-400 transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-orange-400 transition-colors">Terms of Service</Link>
             </div>
           </div>
         </div>
