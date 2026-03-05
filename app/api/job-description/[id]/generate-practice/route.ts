@@ -4,7 +4,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { generatePracticeConfig, type NarrativeGap } from '@/lib/job-description/gap-analyzer';
 import type { ParsedJobDescription, ExperienceRequirements, EducationRequirements } from '@/lib/job-description/parser';
 
@@ -35,16 +35,12 @@ export async function POST(
 
     const supabase = await createClient();
 
-    // Check subscription - premium only
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
-      .single();
+    // Check subscription - requires any purchase
+    const subscription = await getSubscriptionStatus();
 
-    if (profile?.subscription_tier !== 'premium') {
+    if (!subscription.hasPurchased) {
       return NextResponse.json(
-        { error: 'Upgrade required', message: 'JD-targeted practice is a Premium feature' },
+        { error: 'Purchase required', message: 'JD-targeted practice is included with every interview credit purchase.' },
         { status: 403 }
       );
     }

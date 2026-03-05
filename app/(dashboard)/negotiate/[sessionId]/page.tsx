@@ -26,7 +26,7 @@ export default async function NegotiateSessionPage({ params }: NegotiateSessionP
 
   const subscription = await getSubscriptionStatus();
 
-  if (subscription.tier !== 'premium') {
+  if (!subscription.hasPurchased) {
     redirect('/negotiate');
   }
 

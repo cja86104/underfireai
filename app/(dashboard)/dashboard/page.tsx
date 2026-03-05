@@ -19,20 +19,36 @@ import {
   getUserSessions,
   getSubscriptionStatus,
 } from '@/lib/supabase/server';
+import { INTERVIEW_PRODUCT_CONFIG, type InterviewProduct } from '@/types/database';
 import { formatDistanceToNow } from 'date-fns';
 import { VulnerabilityScannerCard, ResumeHealthScore } from '@/components/resume';
+import { PurchaseSuccessToast } from '@/components/dashboard/purchase-success-toast';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
   description: 'Your UnderFireAI interview coaching dashboard.',
 };
 
-export default async function DashboardPage(): Promise<React.JSX.Element> {
-  const [progress, sessions, subscription] = await Promise.all([
+interface DashboardPageProps {
+  searchParams: Promise<{ purchase?: string; product?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps): Promise<React.JSX.Element> {
+  const [progress, sessions, subscription, params] = await Promise.all([
     getUserProgress(),
     getUserSessions(5),
     getSubscriptionStatus(),
+    searchParams,
   ]);
+
+  // Resolve purchase success notification data
+  const showPurchaseSuccess = params.purchase === 'success' && typeof params.product === 'string';
+  const purchasedProduct = showPurchaseSuccess
+    ? (params.product as InterviewProduct)
+    : null;
+  const productConfig = purchasedProduct && INTERVIEW_PRODUCT_CONFIG[purchasedProduct]
+    ? INTERVIEW_PRODUCT_CONFIG[purchasedProduct]
+    : null;
 
   const isPaidUser = subscription.hasPurchased;
 
@@ -69,6 +85,15 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
 
   return (
     <div className="space-y-10 max-w-[1600px] mx-auto">
+      {/* Purchase success toast — fires once on landing from Stripe checkout */}
+      {showPurchaseSuccess && productConfig && purchasedProduct && (
+        <PurchaseSuccessToast
+          product={purchasedProduct}
+          productLabel={productConfig.label}
+          interviewsGranted={productConfig.interviews}
+        />
+      )}
+
       {/* Welcome Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <div>

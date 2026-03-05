@@ -24,11 +24,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const subscription = await getSubscriptionStatus();
 
-    if (subscription.tier !== 'premium') {
+    if (!subscription.hasPurchased) {
       return NextResponse.json(
         {
-          error: 'Premium required',
-          message: 'Salary Negotiation Prep requires a Premium subscription.',
+          error: 'Purchase required',
+          message: 'Salary Negotiation Prep is included with every interview credit purchase.',
         },
         { status: 403 }
       );

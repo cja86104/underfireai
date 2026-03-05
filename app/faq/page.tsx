@@ -32,11 +32,11 @@ const sections: FaqSection[] = [
       },
       {
         q: 'Do I need a credit card to sign up?',
-        a: 'No. The Free plan requires no credit card. You get 3 full mock interviews at no cost. You only need a payment method when upgrading to Pro or Premium.',
+        a: 'Creating an account is free and requires no payment. To start practicing, you purchase an interview credit pack — Starter (6 interviews for $25), Pro Pack (11 interviews for $35), or a Refill Pack (+5 interviews for $10) once you have an initial pack.',
       },
       {
-        q: 'What do I get on the Free plan?',
-        a: '3 mock interviews per month, all interview types (behavioral, technical, phone screen, HR, case study, panel), full session replay, and your score breakdown after each interview. No credit card required.',
+        q: 'How does the credit system work?',
+        a: 'You purchase interview credits once and use them at your own pace — there are no subscriptions, no monthly charges, and no expiry dates. Each completed interview session uses one credit. Credits accumulate if you purchase multiple packs.',
       },
     ],
   },
@@ -53,7 +53,7 @@ const sections: FaqSection[] = [
       },
       {
         q: 'How does voice mode work?',
-        a: 'Speak naturally into your microphone and the AI interviewer responds in real time using speech synthesis, creating a conversational flow that simulates the pressure of a real phone or video interview. Voice mode is available on Pro and Premium plans.',
+        a: 'Speak naturally into your microphone and the AI interviewer responds in real time using speech synthesis, creating a conversational flow that simulates the pressure of a real phone or video interview. Voice mode is included with every credit pack purchase.',
       },
       {
         q: 'How does the coding challenge work?',
@@ -65,7 +65,7 @@ const sections: FaqSection[] = [
       },
       {
         q: 'What is the Salary Negotiation Simulator?',
-        a: "A Premium feature where you practice negotiating a job offer against an AI recruiter who pushes back realistically. You are scored on confidence, framing, strategy, and composure — and you see what offer your technique would have likely closed. Available exclusively on the Premium plan.",
+        a: 'Practice negotiating a job offer against an AI recruiter who pushes back realistically. You are scored on confidence, framing, strategy, and composure — and you see what offer your technique would have likely closed. Included with every credit pack purchase.',
       },
     ],
   },
@@ -78,11 +78,11 @@ const sections: FaqSection[] = [
       },
       {
         q: 'Can I prepare for a specific company?',
-        a: 'Yes. Select your target company style — FAANG, startup, consulting, enterprise, finance, or government — and the AI adjusts its interview style, question types, and evaluation criteria to match. On Pro and Premium plans you can also upload a specific job description for gap analysis and alignment scoring.',
+        a: 'Yes. Select your target company style — FAANG, startup, consulting, enterprise, finance, or government — and the AI adjusts its interview style, question types, and evaluation criteria to match. You can also upload a specific job description for gap analysis and alignment scoring, included with every purchase.',
       },
       {
         q: 'What is Job Analysis and Gap Analysis?',
-        a: 'Upload a job description and UnderFireAI compares it against your uploaded resume to identify skill gaps, highlight strong matches, and generate a targeted practice plan. This feature is available on Pro and Premium plans.',
+        a: 'Upload a job description and UnderFireAI compares it against your uploaded resume to identify skill gaps, highlight strong matches, and generate a targeted practice plan. Included with every credit pack purchase.',
       },
       {
         q: 'What resume file formats are supported?',
@@ -91,23 +91,23 @@ const sections: FaqSection[] = [
     ],
   },
   {
-    title: 'Plans & Billing',
+    title: 'Pricing & Billing',
     items: [
       {
-        q: 'What are the plan differences?',
-        a: 'Free gives you 3 interviews per month with full scoring and replay. Pro ($19/month) adds unlimited interviews, voice mode, resume targeting, job analysis, and custom interviewer creation. Premium ($39/month) adds everything in Pro plus the Salary Negotiation Simulator, panel interviews, priority processing, and advanced analytics.',
+        q: 'How is UnderFireAI priced?',
+        a: 'UnderFireAI uses a one-time credit model — no subscriptions, no recurring charges. Starter Pack: 6 interviews for $25. Pro Pack: 11 interviews for $35. Refill Pack: +5 interviews for $10 (requires an existing Starter or Pro purchase). Every pack unlocks all features including voice mode, resume targeting, job analysis, salary negotiation, panel interviews, and custom interviewers.',
       },
       {
-        q: 'Can I cancel my subscription at any time?',
-        a: 'Yes. You can cancel at any time from your account settings. Your plan remains active until the end of the current billing period. After cancellation you revert to the Free plan — your interview history and data are retained.',
+        q: 'Do credits expire?',
+        a: 'No. Credits never expire. Purchase at your own pace and use them whenever you are ready.',
       },
       {
         q: 'Do you offer refunds?',
-        a: 'Refunds are evaluated on a case-by-case basis. If you have a billing issue or believe you were charged in error, contact us at support@underfireai.com and we will review your situation promptly.',
+        a: 'All purchases are generally non-refundable as credits are delivered immediately upon payment. Refunds may be considered on a case-by-case basis for documented billing errors or service failures. Contact us at support@underfireai.com and we will review your situation promptly.',
       },
       {
-        q: 'Is there a discount for annual billing?',
-        a: 'Annual billing options are coming soon. If you are interested in an annual plan or have questions about pricing for teams, contact us at support@underfireai.com.',
+        q: 'Will you add subscription plans in the future?',
+        a: 'We may introduce team or volume plans in the future. If you are interested in bulk pricing for a team or organization, contact us at support@underfireai.com.',
       },
     ],
   },
@@ -224,13 +224,13 @@ export default function FaqPage(): React.JSX.Element {
         <div className="max-w-3xl mx-auto text-center p-12 rounded-2xl bg-white border border-[#3D3229]/10 shadow-sm">
           <h2 className="text-2xl font-bold text-[#3D3229] mb-3">Ready to start practicing?</h2>
           <p className="text-[#6B5744] mb-8">
-            3 free interviews — no credit card required.
+            Create your account and pick the credit pack that fits your prep schedule.
           </p>
           <Link
             href="/register"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white font-bold hover:from-[#9A6B3C] hover:to-[#6B4420] transition-all shadow-lg shadow-[#8B5A2B]/20"
           >
-            Start Free
+            Get Started
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>

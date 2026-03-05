@@ -72,7 +72,7 @@ export default function TermsPage(): React.JSX.Element {
                   'Use automated tools to scrape, crawl, or extract data from UnderFireAI.',
                   'Impersonate any person or entity or misrepresent your affiliation with any person or entity.',
                   'Upload content that is illegal, harmful, defamatory, or that infringes intellectual property rights.',
-                  'Attempt to circumvent subscription restrictions or access features not included in your plan.',
+                  'Attempt to circumvent credit restrictions or access features not included in your purchase.',
                   'Share your account with others or resell access to the platform.',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
@@ -84,32 +84,27 @@ export default function TermsPage(): React.JSX.Element {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-[#3D3229] mb-4 pb-2 border-b border-[#3D3229]/10">2. Subscriptions & Billing</h2>
+              <h2 className="text-xl font-bold text-[#3D3229] mb-4 pb-2 border-b border-[#3D3229]/10">2. Purchases & Billing</h2>
 
-              <h3 className="font-bold text-[#3D3229] mb-2 mt-5">Plans</h3>
+              <h3 className="font-bold text-[#3D3229] mb-2 mt-5">Credit Packs</h3>
               <p className="text-[#6B5744] leading-relaxed mb-4">
-                UnderFireAI offers a Free plan and paid subscription plans (Pro and Premium). Plan features and prices are listed
-                on our pricing page and may change with notice. Your continued use of a paid plan after a price change constitutes
-                acceptance of the new price.
+                UnderFireAI operates on a one-time credit model. You purchase an interview credit pack and use those credits
+                at your own pace. There are no subscriptions, no recurring charges, and credits do not expire. Current pack
+                options and prices are listed on our pricing page and may change with notice; changes do not affect credits
+                already purchased.
               </p>
 
               <h3 className="font-bold text-[#3D3229] mb-2 mt-5">Billing</h3>
               <p className="text-[#6B5744] leading-relaxed mb-4">
-                Paid subscriptions are billed monthly in advance. By subscribing, you authorize us to charge your payment method
-                on a recurring basis. All payments are processed by Stripe. We do not store your payment card details.
-              </p>
-
-              <h3 className="font-bold text-[#3D3229] mb-2 mt-5">Cancellation</h3>
-              <p className="text-[#6B5744] leading-relaxed mb-4">
-                You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of
-                the current billing period. You will retain access to paid features through that date. We do not prorate
-                cancellations for partial billing periods.
+                All purchases are one-time payments processed by Stripe. You will be charged only when you complete a
+                checkout. We do not store your payment card details and do not initiate recurring charges.
               </p>
 
               <h3 className="font-bold text-[#3D3229] mb-2 mt-5">Refunds</h3>
               <p className="text-[#6B5744] leading-relaxed">
-                All purchases are generally non-refundable. Refunds may be considered on a case-by-case basis for documented
-                billing errors or service failures. To request a review, contact{' '}
+                All purchases are generally non-refundable as credits are delivered immediately upon successful payment.
+                Refunds may be considered on a case-by-case basis for documented billing errors or service failures.
+                To request a review, contact{' '}
                 <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#8B5A2B] hover:underline">{CONTACT_EMAIL}</a>.
               </p>
             </section>

@@ -33,10 +33,12 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your-key-here
 # Get from https://dashboard.stripe.com/webhooks
 STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
 
-# Price IDs for subscription tiers
-# Create products/prices in Stripe Dashboard
-STRIPE_PRO_PRICE_ID=price_pro_monthly_id
-STRIPE_PREMIUM_PRICE_ID=price_premium_monthly_id
+# Price IDs for one-time interview credit packs
+# Create products/prices in Stripe Dashboard as one-time (not recurring) prices
+# Used by: app/api/stripe/create-checkout/route.ts
+STRIPE_STARTER_PRICE_ID=price_your_starter_6_id
+STRIPE_PRO_PACK_PRICE_ID=price_your_pro_11_id
+STRIPE_REFILL_PRICE_ID=price_your_refill_5_id
 
 # ===========================================
 # APPLICATION
@@ -56,7 +58,7 @@ SEGMIND_API_KEY=your-segmind-key
 # ===========================================
 # CARTESIA (Text-to-Speech)
 # ===========================================
-# For interviewer voice mode (Pro/Premium only)
+# For interviewer voice mode (included with every purchase)
 # Get from https://play.cartesia.ai/
 CARTESIA_API_KEY=your-cartesia-api-key
 

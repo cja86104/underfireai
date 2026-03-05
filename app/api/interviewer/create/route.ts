@@ -63,11 +63,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const subscription = await getSubscriptionStatus();
 
-    if (subscription.tier !== 'premium') {
+    if (!subscription.hasPurchased) {
       return NextResponse.json(
         {
-          error: 'Premium required',
-          message: 'Custom Interviewer Creator requires a Premium subscription.',
+          error: 'Purchase required',
+          message: 'Custom Interviewer Creator is included with every interview credit purchase.',
         },
         { status: 403 }
       );

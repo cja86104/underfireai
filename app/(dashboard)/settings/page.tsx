@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 interface SettingsPageProps {
-  searchParams: Promise<{ tab?: string; reason?: string }>;
+  searchParams: Promise<{ tab?: string; reason?: string; canceled?: string }>;
 }
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps): Promise<React.JSX.Element> {
@@ -27,6 +27,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps):
   const params = await searchParams;
   const activeTab = params.tab ?? 'profile';
   const reason = params.reason;
+  const canceled = params.canceled === 'true';
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -36,6 +37,15 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps):
           Manage your account and preferences
         </p>
       </div>
+
+      {canceled && (
+        <div className="mb-6 rounded-xl border border-slate-700/50 bg-slate-800/50 p-4">
+          <p className="text-slate-300 font-medium">Purchase canceled</p>
+          <p className="text-sm text-slate-400 mt-1">
+            No charge was made. Your credits are unchanged.
+          </p>
+        </div>
+      )}
 
       {reason === 'limit_reached' && (
         <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">

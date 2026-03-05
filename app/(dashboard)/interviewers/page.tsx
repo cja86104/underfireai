@@ -30,7 +30,7 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
     getSubscriptionStatus(),
   ]);
 
-  const isPremium = subscription.tier === 'premium';
+  const isPremium = subscription.hasPurchased;
 
   // Group by interview type
   const groupedInterviewers = interviewers.reduce<Record<string, typeof interviewers>>((acc, interviewer) => {
