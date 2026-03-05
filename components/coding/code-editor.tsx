@@ -130,6 +130,7 @@ export function CodeEditor({
           onKeyDown={handleKeyDown}
           disabled={disabled}
           placeholder={placeholder}
+          data-lenis-prevent
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"

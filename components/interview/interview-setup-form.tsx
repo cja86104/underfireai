@@ -510,7 +510,7 @@ export function InterviewSetupForm({
                     <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[#3D3229]/15 dark:border-slate-700" /></div>
                     <div className="relative flex justify-center"><span className="bg-white dark:bg-slate-900 px-4 text-sm text-[#6B5744] dark:text-slate-400">or select existing</span></div>
                   </div>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-2 max-h-40 overflow-y-auto" data-lenis-prevent>
                     {interviewers.slice(0, 4).map((interviewer) => (
                       <button
                         key={interviewer.id}

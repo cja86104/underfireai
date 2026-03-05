@@ -1014,7 +1014,7 @@ export function InterviewChat({
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin" data-lenis-prevent>
         {messages.map((message) => {
           // For panel mode, get speaker info
           const extendedMsg = message as InterviewMessage & { _speakerName?: string; _tone?: string; interviewer_id?: string };

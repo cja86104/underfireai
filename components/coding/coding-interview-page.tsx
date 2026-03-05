@@ -409,7 +409,7 @@ export function CodingInterviewPage({
       <div className="flex-1 flex overflow-hidden">
         {/* Code Panel */}
         {(viewMode === 'code' || viewMode === 'split') && (
-          <div className={cn('flex-1 p-4 overflow-auto', viewMode === 'split' && 'lg:w-2/3')}>
+          <div className={cn('flex-1 p-4 overflow-auto', viewMode === 'split' && 'lg:w-2/3')} data-lenis-prevent>
             <CodingChallengeUI
               sessionId={sessionId}
               challenge={challenge}
@@ -430,7 +430,7 @@ export function CodingInterviewPage({
             )}
           >
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin" data-lenis-prevent>
               {messages.map((message) => (
                 <div
                   key={message.id}

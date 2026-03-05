@@ -613,7 +613,7 @@ export function InterviewResults({ session, interviewer, scores, messages, isPai
           </div>
         </button>
         {showTranscript && (
-          <div className="border-t border-[#3D3229]/10 dark:border-slate-800 p-8 space-y-5 max-h-[700px] overflow-y-auto">
+          <div className="border-t border-[#3D3229]/10 dark:border-slate-800 p-8 space-y-5 max-h-[700px] overflow-y-auto" data-lenis-prevent>
             {messages.map((message) => (
               <div key={message.id} className={cn('flex gap-4', message.role === 'candidate' && 'flex-row-reverse')}>
                 <div className={cn('h-12 w-12 rounded-full flex-shrink-0 flex items-center justify-center text-lg font-bold', message.role === 'interviewer' ? 'bg-[#3D3229]/10 text-[#3D3229] dark:bg-slate-700 dark:text-white' : 'bg-orange-500 text-white')}>

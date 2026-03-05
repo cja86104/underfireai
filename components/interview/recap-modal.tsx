@@ -134,7 +134,7 @@ Score: ${s.overallScore ?? 'N/A'}%
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 rounded-2xl bg-white dark:bg-slate-900 shadow-2xl" data-lenis-prevent>
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div className="flex items-center gap-3">

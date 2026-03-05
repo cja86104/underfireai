@@ -457,7 +457,7 @@ export function ResumePreview({
           </div>
         ) : (
           /* Raw Text View */
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto" data-lenis-prevent>
             <pre className="text-xs text-charcoal-600 whitespace-pre-wrap font-mono leading-relaxed bg-stone-50 p-4 rounded-lg">
               {resume.raw_text}
             </pre>
