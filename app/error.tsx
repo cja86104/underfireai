@@ -25,7 +25,14 @@ export default function Error({
 
         <h1 className="text-2xl font-bold text-white mb-2">Something went wrong</h1>
         <p className="text-slate-400 mb-2 max-w-md mx-auto">
-          We encountered an unexpected error. Our team has been notified.
+          We encountered an unexpected error. If this keeps happening, contact us at{' '}
+          <a
+            href="mailto:support@underfireai.com"
+            className="text-orange-400 hover:text-orange-300 transition-colors"
+          >
+            support@underfireai.com
+          </a>
+          .
         </p>
         
         {error.digest && (
