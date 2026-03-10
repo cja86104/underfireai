@@ -111,6 +111,7 @@ export async function signUpWithEmail(
     password,
     options: {
       data: metadata,
+      emailRedirectTo: `${window.location.origin}/callback`,
     },
   });
   
@@ -148,7 +149,7 @@ export async function signInWithOAuth(
 export async function resetPassword(email: string): Promise<object> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/reset-password`,
+    redirectTo: `${window.location.origin}/reset-password`,
   });
   
   if (error) {

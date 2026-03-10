@@ -152,15 +152,39 @@ async function handlePaymentCompleted(session: Stripe.Checkout.Session): Promise
   const amount = amountCents ? parseInt(amountCents, 10) : INTERVIEW_PRODUCT_CONFIG[product].priceCents;
 
   // Check if this session has already been processed (idempotency)
-  const { data: existingPurchase } = await getSupabaseAdmin()
+  // Check BOTH ids: if payment_intent.succeeded fired first it will have inserted
+  // a row with stripe_payment_intent_id but no stripe_checkout_session_id.
+  // Checking only checkout_session_id would miss that and double-grant credits.
+  const paymentIntentId = session.payment_intent as string | null;
+
+  const { data: existingBySession } = await getSupabaseAdmin()
     .from('interview_purchases')
     .select('id')
     .eq('stripe_checkout_session_id', session.id)
     .single();
 
-  if (existingPurchase) {
+  if (existingBySession) {
     console.log('Checkout session already processed:', session.id);
     return;
+  }
+
+  if (paymentIntentId) {
+    const { data: existingByIntent } = await getSupabaseAdmin()
+      .from('interview_purchases')
+      .select('id')
+      .eq('stripe_payment_intent_id', paymentIntentId)
+      .single();
+
+    if (existingByIntent) {
+      // payment_intent.succeeded already ran — update the row with the checkout session id
+      // so future checks by either id both hit the same record, then stop
+      await getSupabaseAdmin()
+        .from('interview_purchases')
+        .update({ stripe_checkout_session_id: session.id })
+        .eq('id', existingByIntent.id);
+      console.log('Checkout session already processed via payment intent:', paymentIntentId);
+      return;
+    }
   }
 
   // Get current purchased count
@@ -192,7 +216,7 @@ async function handlePaymentCompleted(session: Stripe.Checkout.Session): Promise
     .from('interview_purchases')
     .insert({
       user_id: userId,
-      stripe_payment_intent_id: session.payment_intent as string | null,
+      stripe_payment_intent_id: paymentIntentId,
       stripe_checkout_session_id: session.id,
       product_type: product,
       interviews_granted: interviewCount,
