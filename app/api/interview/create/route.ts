@@ -625,7 +625,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       if (sessionInterviewersError) {
         console.error('Error creating session_interviewers:', sessionInterviewersError);
-        // Non-fatal for now, but log for debugging
+
+        // Fatal — the chat route requires session_interviewers to exist for panel mode.
+        // Roll back the session and the interview credit so the user is not charged.
+        await supabase
+          .from('interview_sessions')
+          .delete()
+          .eq('id', session.id);
+
+        await supabase
+          .from('profiles')
+          .update({ interviews_used: expectedUsed })
+          .eq('id', user.id);
+
+        return NextResponse.json(
+          { error: 'Database error', message: 'Failed to create panel interview session' },
+          { status: 500 }
+        );
       }
     }
 

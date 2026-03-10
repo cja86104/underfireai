@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
 
@@ -26,6 +26,23 @@ export async function POST(
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const supabase = await createClient();
+
+    // Verify the session belongs to this user before burning AI credits
+    const { data: session, error: sessionError } = await supabase
+      .from('interview_sessions')
+      .select('id')
+      .eq('id', sessionId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { error: 'Not found', message: 'Interview session not found' },
+        { status: 404 }
+      );
     }
 
     const body = (await request.json()) as CoachingRequestBody;

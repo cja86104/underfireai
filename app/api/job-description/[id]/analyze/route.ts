@@ -4,7 +4,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { analyzeGaps } from '@/lib/job-description/gap-analyzer';
 import type { ParsedJobDescription, ExperienceRequirements, EducationRequirements } from '@/lib/job-description/parser';
 import type { Json } from '@/types/database';
@@ -36,17 +36,11 @@ export async function POST(
 
     const supabase = await createClient();
 
-    // Gate: Job Analysis requires Pro or Premium
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
-      .single();
-
-    const tier = profile?.subscription_tier ?? 'free';
-    if (tier !== 'pro' && tier !== 'premium') {
+    // Gate: Job Analysis requires any interview pack purchase
+    const subscription = await getSubscriptionStatus();
+    if (!subscription.hasPurchased) {
       return NextResponse.json(
-        { error: 'Upgrade required', message: 'Job Description Analysis requires a Pro or Premium plan.' },
+        { error: 'Purchase required', message: 'Job Description Analysis is included with every interview credit purchase.' },
         { status: 403 }
       );
     }
