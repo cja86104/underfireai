@@ -40,10 +40,17 @@ export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
           setIsLoading(false);
           return;
         }
-        await signUpWithEmail(formData.email, formData.password, {
+        const signUpData = await signUpWithEmail(formData.email, formData.password, {
           full_name: formData.fullName,
         });
-        toast.success('Account created! Check your email to verify.');
+        // If email confirmation is required the session will be null —
+        // user must verify before accessing the dashboard.
+        if (!signUpData.session) {
+          toast.success('Account created! Check your email to verify your address.');
+          setIsLoading(false);
+          return;
+        }
+        toast.success('Account created! Welcome to UnderFire AI.');
       }
       router.push(redirectTo);
       router.refresh();

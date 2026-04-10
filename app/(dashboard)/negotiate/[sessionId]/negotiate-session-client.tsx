@@ -346,7 +346,7 @@ export function NegotiationSessionClient({
   const gapLabel = offerGap > 0 ? `+${formatAmount(offerGap)}` : formatAmount(offerGap);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] max-w-4xl mx-auto">
+    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] max-w-4xl mx-auto">
       {/* ── Header ── */}
       <div className="flex items-center justify-between gap-6 pb-6 border-b border-[#3D3229]/10 dark:border-slate-800 flex-shrink-0">
         <div className="flex items-center gap-4 min-w-0">

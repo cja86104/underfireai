@@ -168,7 +168,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
   // Render coding interview UI if in coding mode with a challenge
   if (isCodingMode && codingChallenge) {
     return (
-      <div className="h-[calc(100vh-8rem)] flex flex-col">
+      <div className="h-[calc(100vh-4rem)] lg:h-[calc(100vh-8rem)] flex flex-col">
         <CodingInterviewPage
           sessionId={session.id}
           sessionStatus={session.status}
@@ -187,7 +187,7 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col">
+    <div className="h-[calc(100vh-4rem)] lg:h-[calc(100vh-8rem)] flex flex-col">
       <InterviewChat
         sessionId={session.id}
         sessionStatus={session.status}

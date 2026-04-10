@@ -125,7 +125,7 @@ export default async function InterviewReplayPage({ params }: ReplayPageProps): 
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col">
+    <div className="h-[calc(100vh-4rem)] lg:h-[calc(100vh-8rem)] flex flex-col">
       <InterviewReplay
         sessionId={session.id}
         messages={(messages ?? []) as unknown as InterviewMessage[]}
