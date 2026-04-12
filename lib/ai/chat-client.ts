@@ -214,7 +214,6 @@ export function generateInterviewSystemPrompt(params: {
   favoriteTopics: string[] | null;
   resumeContext: string | null;
   currentMood?: { current: string; intensity: number; triggers: string[] } | null;
-  generatedQuestions?: string[] | null;
   hasResume?: boolean;
   /** Premium: Additional context for resume-targeted practice */
   resumeTargetingContext?: string | null;
@@ -234,7 +233,6 @@ export function generateInterviewSystemPrompt(params: {
     favoriteTopics,
     resumeContext,
     currentMood,
-    generatedQuestions,
     hasResume,
     resumeTargetingContext,
   } = params;
@@ -316,16 +314,6 @@ export function generateInterviewSystemPrompt(params: {
   // Premium: Resume-targeted practice mode
   if (resumeTargetingContext) {
     prompt += resumeTargetingContext;
-  }
-
-  // Pre-generated question guide
-  if (generatedQuestions && generatedQuestions.length > 0) {
-    prompt += `## Suggested Question Guide\n`;
-    prompt += `These questions were generated based on this candidate's background, the role, and the company context. Use them as your primary question pool. You are not required to ask them verbatim or in order — adapt naturally based on the conversation flow, but stay within this scope rather than generating generic questions from scratch.\n\n`;
-    generatedQuestions.forEach((q, i) => {
-      prompt += `${i + 1}. ${q}\n`;
-    });
-    prompt += '\n';
   }
 
   const openingInstruction = hasResume
@@ -435,11 +423,11 @@ export async function analyzeResponse(
   key_points: string[];
   coaching_note: string | null;
 }> {
-  const systemPrompt = `You are an expert interview coach analyzing a candidate's response.
-Analyze the following response and provide scores from 0-100 for each category.
+  const systemPrompt = `You are an expert interview coach analyzing a single candidate response.
+Score each dimension 0-100 and write one specific coaching note.
 Return ONLY valid JSON with no additional text.
 
-Categories:
+Scoring dimensions:
 - star_score: How well does the response follow STAR format (Situation, Task, Action, Result)? For ${interviewType} interviews.
 - clarity_score: How clear and well-structured is the response?
 - confidence_score: How confident does the candidate sound based on language used?
@@ -447,24 +435,31 @@ Categories:
 - depth_score: How much depth and detail does the response provide?
 
 Also identify:
-- filler_words: Array of filler words used (um, like, you know, etc.)
-- key_points: Array of 2-4 key takeaways from the response
-- coaching_note: A specific, actionable 2-3 sentence coaching note written directly to the candidate about THIS particular answer. Reference what they actually said. Focus on the single most important thing they should improve or reinforce. If the answer was strong across all dimensions (all scores >= 70), return null.`;
+- filler_words: Array of filler words used (um, like, you know, so, basically, etc.)
+- key_points: Array of 2-4 key takeaways from what the candidate actually said
+- coaching_note: Follow these rules exactly:
+  1. Find the single lowest-scoring dimension. That is your ONLY focus.
+  2. Quote or closely paraphrase a specific phrase the candidate actually used — something they literally said.
+  3. Explain in one sentence why that specific phrase weakened their answer for that dimension.
+  4. Give one concrete, specific fix — not a general technique, but what they should have said instead.
+  5. NEVER write generic advice like "use the STAR method", "be more specific", or "quantify your achievements" without tying it directly to a specific phrase they used and explaining exactly where they lost points.
+  6. If all scores are 70 or above, return null — the answer was strong.
+  Your note must be 2-3 sentences maximum. It must feel like a coach who was in the room, not a rubric.`;
 
-  const userPrompt = `Question: ${question}
+  const userPrompt = `Question asked: "${question}"
 
-Response: ${response}
+Candidate's response: "${response}"
 
-Analyze this response and return JSON:
+Analyze and return JSON:
 {
-  "star_score": <number>,
-  "clarity_score": <number>,
-  "confidence_score": <number>,
-  "relevance_score": <number>,
-  "depth_score": <number>,
+  "star_score": <0-100>,
+  "clarity_score": <0-100>,
+  "confidence_score": <0-100>,
+  "relevance_score": <0-100>,
+  "depth_score": <0-100>,
   "filler_words": [<strings>],
   "key_points": [<strings>],
-  "coaching_note": <string or null>
+  "coaching_note": <specific string referencing their actual words, or null>
 }`;
 
   const maxRetries = 3;

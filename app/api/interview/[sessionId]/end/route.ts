@@ -154,16 +154,16 @@ export async function POST(
       .map((m) => `${m.role === 'interviewer' ? 'Interviewer' : 'Candidate'}: ${m.content}`)
       .join('\n\n');
 
-    const feedbackPrompt = `You are an expert interview coach. Analyze this interview transcript and provide feedback.
+    const feedbackPrompt = `You are a senior interview coach who just watched this entire interview. Write feedback that proves it.
 
 Interview Type: ${session.interview_type}
 ${session.target_role ? `Target Role: ${session.target_role}` : ''}
 Difficulty: ${session.difficulty}/10
 
-TRANSCRIPT:
+FULL TRANSCRIPT:
 ${conversationTranscript}
 
-CALCULATED SCORES:
+SCORES (calculated from per-answer analysis):
 - Overall: ${scores.overall_score}%
 - Clarity: ${scores.clarity_score}%
 - Confidence: ${scores.confidence_score}%
@@ -171,30 +171,38 @@ CALCULATED SCORES:
 - STAR Usage: ${scores.star_usage_score}%
 - Communication: ${scores.communication_score}%
 
+RULES — read these before writing a single word:
+1. Every strength must reference a specific answer or moment from the transcript above. Name the question or quote a phrase the candidate used. NEVER write a strength that could apply to any candidate.
+2. Every improvement must identify a specific answer that fell short, quote or paraphrase what the candidate said, and explain exactly what was missing or weak about that specific answer. NEVER write generic advice like "use STAR more" or "quantify your achievements" without pointing to where in this interview that was a problem.
+3. The interviewer_impression must sound like it came from THIS interviewer who just finished THIS conversation — not a generic evaluation template.
+4. The ai_feedback must reference at least two specific exchanges from the transcript by question topic or candidate quote. It should feel like feedback from someone who was paying attention.
+5. key_moments must identify real turning points — specific questions where the candidate either shone or stumbled. Reference what was said.
+6. If the candidate did well overall, acknowledge it honestly — do not invent weaknesses.
+
 Provide a JSON response with:
 {
-  "strengths": ["strength 1", "strength 2", "strength 3"],
-  "improvements": ["improvement 1", "improvement 2", "improvement 3"],
-  "interviewer_impression": "A 2-3 sentence summary of how the interviewer likely perceived the candidate",
-  "ai_feedback": "A 3-4 sentence overall assessment with specific, actionable advice",
+  "strengths": ["specific strength tied to a real answer in this interview", "..."],
+  "improvements": ["specific improvement tied to a real answer that fell short", "..."],
+  "interviewer_impression": "2-3 sentences from the interviewer's perspective about this specific candidate",
+  "ai_feedback": "3-4 sentences referencing specific exchanges from this interview",
   "key_moments": [
-    {"type": "strong|weak|turning_point", "description": "brief description"}
+    {"type": "strong|weak|turning_point", "description": "reference to a specific moment in the conversation"}
   ]
 }
 
 Return ONLY valid JSON, no markdown or additional text.`;
 
     let feedback = {
-      strengths: ['Good communication', 'Showed enthusiasm', 'Answered questions directly'],
-      improvements: ['Provide more specific examples', 'Use STAR format more consistently', 'Quantify achievements when possible'],
-      interviewer_impression: 'The candidate showed potential but could strengthen their responses with more concrete examples.',
-      ai_feedback: 'Overall solid interview performance. Focus on structuring answers using the STAR method and providing measurable outcomes from your experiences.',
+      strengths: ['Review your transcript for specific strengths'],
+      improvements: ['Review your transcript for specific areas to improve'],
+      interviewer_impression: 'Feedback could not be generated for this session. Please review your transcript.',
+      ai_feedback: 'Feedback generation failed. Your transcript is saved and you can review it in the replay.',
       key_moments: [] as { type: string; description: string }[],
     };
 
     try {
       const aiMessages: ChatMessage[] = [
-        { role: 'system', content: 'You are an expert interview coach providing structured feedback. Return only valid JSON.' },
+        { role: 'system', content: 'You are a direct, specific interview coach. You watched this entire interview. Reference what the candidate actually said. Generic advice is unacceptable. Return only valid JSON.' },
         { role: 'user', content: feedbackPrompt },
       ];
 

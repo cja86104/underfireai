@@ -6,7 +6,6 @@ import {
   analyzeResponse,
   type ChatMessage,
 } from '@/lib/ai/chat-client';
-import { generateQuestions } from '@/lib/interview/question-generator';
 import { detectMoodTriggers, calculateMoodUpdate } from '@/lib/ai/mood-engine';
 import { runPanelTurn } from '@/lib/ai/interview';
 import { sanitizeInterviewerResponse, containsStageDirections } from '@/lib/ai/response-sanitizer';
@@ -18,7 +17,6 @@ import type {
   CommunicationStyle,
   QuestionPatterns,
   Json,
-  CompanyStyle,
 } from '@/types/database';
 import type { PanelInterviewer, PanelState } from '@/types/panel';
 import { INTERVIEWER_ARCHETYPES, type InterviewerArchetype } from '@/types/interviewer';
@@ -303,12 +301,14 @@ export async function POST(
       });
     }
 
-    // On session start, generate a question set from full context (resume, role, company, difficulty)
-    let generatedQuestions: string[] = [];
+    // On session start, fetch resume so the system prompt knows whether
+    // to open with a targeted question or a generic introduction.
+    // No pre-generated question pool — the AI reads all context (backstory,
+    // personality, resume, role, company style) and questions naturally
+    // from the conversation in real time.
     let hasResume = false;
 
     if (isStarting) {
-      // Fetch resume server-side — authoritative source, not reliant on client
       const { data: resume } = await supabase
         .from('user_resumes')
         .select('skills, experience_years, parsed_data')
@@ -317,30 +317,8 @@ export async function POST(
         .limit(1)
         .maybeSingle();
 
-      const resumeSkills: string[] = resume?.skills ?? [];
-      const experienceYears: number | undefined = resume?.experience_years ?? undefined;
-      hasResume = resumeSkills.length > 0 || !!resume?.parsed_data;
-
-      try {
-        const questions = await generateQuestions(
-          {
-            interviewType: interviewType as Parameters<typeof generateQuestions>[0]['interviewType'],
-            companyStyle: (companyStyle as CompanyStyle) ?? null,
-            targetCompany: targetCompany ?? null,
-            roleTarget: targetRole ?? null,
-            skills: resumeSkills,
-            experienceYears,
-            difficulty: sessionData?.difficulty ?? 5,
-          },
-          7
-        );
-        generatedQuestions = questions.map(q => q.question);
-      } catch (qErr) {
-        // Non-fatal — interview proceeds without pre-generated questions
-        console.error('Failed to pre-generate questions:', qErr);
-      }
+      hasResume = (resume?.skills?.length ?? 0) > 0 || !!resume?.parsed_data;
     } else {
-      // For ongoing messages, check if resume exists to inform opening style
       hasResume = !!resumeContext && resumeContext.length > 0;
     }
 
@@ -365,7 +343,6 @@ export async function POST(
       favoriteTopics: interviewerPersonality?.favoriteTopics ?? null,
       resumeContext,
       currentMood: interviewer.currentMood,
-      generatedQuestions: generatedQuestions.length > 0 ? generatedQuestions : null,
       hasResume,
       resumeTargetingContext: resumeTargetingContext?.promptContext ?? null,
     });
