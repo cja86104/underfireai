@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Flame, Loader2, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
@@ -11,7 +11,9 @@ interface AuthFormProps {
   mode: 'login' | 'register';
 }
 
-export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
+// Isolated so useSearchParams is inside a Suspense boundary, which is required
+// by Next.js when the component renders during SSR.
+function AuthFormInner({ mode }: AuthFormProps): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') ?? '/dashboard';
@@ -208,5 +210,15 @@ export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
         )}
       </div>
     </div>
+  );
+}
+
+// Public export wraps the inner form in a Suspense boundary so useSearchParams
+// is safe during server-side rendering.
+export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
+  return (
+    <Suspense fallback={null}>
+      <AuthFormInner mode={mode} />
+    </Suspense>
   );
 }

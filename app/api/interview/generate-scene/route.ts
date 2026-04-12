@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { createChatCompletion } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
 import { COMPANY_STYLE_MODIFIERS } from '@/types/interviewer';
@@ -44,6 +44,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Please sign in to continue' },
         { status: 401 }
+      );
+    }
+
+    // Scene generation makes an AI call — gate behind purchase so free users
+    // cannot consume AI credits without paying.
+    const subscription = await getSubscriptionStatus();
+    if (!subscription.hasPurchased) {
+      return NextResponse.json(
+        { error: 'Purchase required', message: 'Purchase interview credits to unlock scene generation.' },
+        { status: 403 }
       );
     }
 

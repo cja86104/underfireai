@@ -18,9 +18,8 @@ export default async function JobAnalysisPage(): Promise<React.JSX.Element> {
   }
 
   const subscription = await getSubscriptionStatus();
-  const isPro = subscription.tier === 'pro' || subscription.tier === 'premium';
 
-  if (!isPro) {
+  if (!subscription.hasPurchased) {
     return <JobAnalysisUpgradeGate />;
   }
 
@@ -44,13 +43,13 @@ function JobAnalysisUpgradeGate(): React.JSX.Element {
           <Lock className="h-8 w-8 text-orange-400" />
         </div>
 
-        <h2 className="text-2xl font-bold text-[#3D3229] dark:text-white mb-3">Pro Feature</h2>
+        <h2 className="text-2xl font-bold text-[#3D3229] dark:text-white mb-3">Purchase Required</h2>
         <p className="text-[#6B5744] dark:text-slate-300 text-base max-w-md mx-auto mb-2 leading-relaxed">
-          Job Description Analysis is available on Pro and Premium plans.
+          Job Description Analysis is included with every interview credit purchase.
           Paste any job posting to instantly see how your resume stacks up, identify skill gaps, and get a targeted practice plan.
         </p>
         <p className="text-[#8B7355] dark:text-slate-500 text-sm mb-8">
-          You are currently on the Free plan.
+          Purchase an interview pack to unlock this and all other premium features.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -59,7 +58,7 @@ function JobAnalysisUpgradeGate(): React.JSX.Element {
             className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-6 py-3 text-base font-semibold text-[#3D3229] dark:text-white hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
           >
             <Zap className="h-5 w-5" />
-            Upgrade to Pro — $19/mo
+            Get Interview Credits
           </Link>
           <Link
             href="/dashboard"

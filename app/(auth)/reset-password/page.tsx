@@ -21,8 +21,10 @@ export default function ResetPasswordPage(): React.JSX.Element {
   useEffect(() => {
     const checkSession = async (): Promise<void> => {
       const supabase = getClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // getUser() validates the token server-side — getSession() only reads
+      // from local storage and is not safe for security-sensitive checks.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         toast.error('Invalid or expired reset link. Please request a new one.');
         router.push('/login');
       }

@@ -4,7 +4,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
 import { generateAndSaveVulnerabilityScan } from '@/lib/resume/insights-service';
@@ -283,14 +283,9 @@ Return ONLY the JSON object, no markdown or explanation.`;
       );
     }
 
-    // Check if user is paid to trigger vulnerability scan
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
-      .single();
-
-    const isPaidUser = profile?.subscription_tier !== 'free';
+    // Check if user has purchased to trigger vulnerability scan
+    const subscription = await getSubscriptionStatus();
+    const isPaidUser = subscription.hasPurchased;
 
     // Trigger vulnerability scan asynchronously for paid users
     if (isPaidUser) {

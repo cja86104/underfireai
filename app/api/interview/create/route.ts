@@ -603,6 +603,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .update({ interviews_used: expectedUsed })
         .eq('id', user.id);
 
+      // Clean up any interviewers generated during this request so they don't
+      // accumulate as orphaned rows. Only delete ones we created here — never
+      // touch a pre-existing interviewer the user passed in.
+      const wasNewInterviewer = generate_new_interviewer || !interviewer_id;
+      if (wasNewInterviewer && finalInterviewerId) {
+        if (interview_type === 'panel' && panelInterviewers.length > 0) {
+          // Delete all panel interviewers we just generated
+          await supabase
+            .from('interviewers')
+            .delete()
+            .in('id', panelInterviewers.map(p => p.id));
+        } else {
+          await supabase
+            .from('interviewers')
+            .delete()
+            .eq('id', finalInterviewerId);
+        }
+      }
+
       return NextResponse.json(
         { error: 'Database error', message: 'Failed to create interview session' },
         { status: 500 }
@@ -627,11 +646,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         console.error('Error creating session_interviewers:', sessionInterviewersError);
 
         // Fatal — the chat route requires session_interviewers to exist for panel mode.
-        // Roll back the session and the interview credit so the user is not charged.
+        // Roll back the session, the generated interviewers, and the interview credit
+        // so the user is not charged and no orphaned rows remain.
         await supabase
           .from('interview_sessions')
           .delete()
           .eq('id', session.id);
+
+        // Remove all panel interviewers created during this request
+        await supabase
+          .from('interviewers')
+          .delete()
+          .in('id', panelInterviewers.map(p => p.id));
 
         await supabase
           .from('profiles')

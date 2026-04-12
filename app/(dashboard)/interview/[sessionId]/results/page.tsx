@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { InterviewResults } from '@/components/interview/interview-results';
 import { ResumeAlignmentPanel } from '@/components/resume';
 import type { InterviewMessage } from '@/types/database';
@@ -67,14 +67,11 @@ export default async function InterviewResultsPage({ params }: ResultsPageProps)
     console.error('Messages fetch error:', messagesError);
   }
 
-  // Fetch user profile to check subscription
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('subscription_tier')
-    .eq('id', user.id)
-    .single();
-
-  const isPaidUser = profile?.subscription_tier !== 'free';
+  // Check subscription status using the authoritative helper — avoids the
+  // race condition where subscription_tier may still be 'free' immediately
+  // after a Stripe webhook fires.
+  const subscription = await getSubscriptionStatus();
+  const isPaidUser = subscription.hasPurchased;
 
   const interviewer = session.interviewers;
   const scores = session.session_scores;

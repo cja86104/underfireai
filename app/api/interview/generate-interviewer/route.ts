@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { generateBackstory } from '@/lib/ai/backstory-generator';
 import {
   INTERVIEWER_ARCHETYPES,
@@ -50,6 +50,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Please sign in to continue' },
         { status: 401 }
+      );
+    }
+
+    // Interviewer generation makes an AI call — gate behind purchase so free
+    // users cannot consume AI credits without paying.
+    const subscription = await getSubscriptionStatus();
+    if (!subscription.hasPurchased) {
+      return NextResponse.json(
+        { error: 'Purchase required', message: 'Purchase interview credits to unlock interviewer generation.' },
+        { status: 403 }
       );
     }
 
