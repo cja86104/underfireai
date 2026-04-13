@@ -85,14 +85,6 @@ export async function getUserProfile(): Promise<Profile | null> {
 }
 
 /**
- * Check if user is authenticated
- */
-export async function isAuthenticated() {
-  const user = await getCurrentUser();
-  return !!user;
-}
-
-/**
  * Get user's interviewers
  */
 export async function getUserInterviewers() {
@@ -115,35 +107,6 @@ export async function getUserInterviewers() {
   }
   
   return (interviewers || []) as unknown as Interviewer[];
-}
-
-/**
- * Get a specific interviewer with personality
- */
-export async function getInterviewer(interviewerId: string) {
-  const user = await getCurrentUser();
-  
-  if (!user) {
-    return null;
-  }
-  
-  const supabase = await createClient();
-  const { data: interviewer, error } = await supabase
-    .from('interviewers')
-    .select(`
-      *,
-      interviewer_personality (*)
-    `)
-    .eq('id', interviewerId)
-    .eq('user_id', user.id)
-    .single();
-  
-  if (error) {
-    console.error('Error fetching interviewer:', error);
-    return null;
-  }
-  
-  return interviewer;
 }
 
 /**
@@ -174,26 +137,6 @@ export async function getUserSessions(limit = 20) {
   }
   
   return sessions || [];
-}
-
-/**
- * Get messages for an interview session
- */
-export async function getSessionMessages(sessionId: string, limit = 100) {
-  const supabase = await createClient();
-  const { data: messages, error } = await supabase
-    .from('interview_messages')
-    .select('*')
-    .eq('session_id', sessionId)
-    .order('created_at', { ascending: true })
-    .limit(limit);
-  
-  if (error) {
-    console.error('Error fetching messages:', error);
-    return [];
-  }
-  
-  return messages || [];
 }
 
 /**

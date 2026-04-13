@@ -41,30 +41,6 @@ export async function getCurrentUser(): Promise<Awaited<ReturnType<ReturnType<ty
 }
 
 /**
- * Get current session from browser
- */
-export async function getCurrentSession(): Promise<Awaited<ReturnType<ReturnType<typeof createClient>['auth']['getSession']>>['data']['session']> {
-  const supabase = getClient();
-  const { data: { session }, error } = await supabase.auth.getSession();
-  
-  if (error || !session) {
-    return null;
-  }
-  
-  return session;
-}
-
-/**
- * Subscribe to auth state changes
- */
-export function onAuthStateChange(
-  callback: (event: string, session: unknown) => void
-): ReturnType<ReturnType<typeof createClient>['auth']['onAuthStateChange']> {
-  const supabase = getClient();
-  return supabase.auth.onAuthStateChange(callback);
-}
-
-/**
  * Sign out helper
  */
 export async function signOut(): Promise<void> {
@@ -123,65 +99,12 @@ export async function signUpWithEmail(
 }
 
 /**
- * Sign in with OAuth provider
- */
-export async function signInWithOAuth(
-  provider: 'google' | 'github'
-): Promise<{ provider: string; url: string }> {
-  const supabase = getClient();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: `${window.location.origin}/callback`,
-    },
-  });
-  
-  if (error) {
-    throw error;
-  }
-  
-  return data;
-}
-
-/**
  * Reset password
  */
 export async function resetPassword(email: string): Promise<object> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}/reset-password`,
-  });
-  
-  if (error) {
-    throw error;
-  }
-  
-  return data;
-}
-
-/**
- * Update password
- */
-export async function updatePassword(newPassword: string): Promise<{ user: unknown }> {
-  const supabase = getClient();
-  const { data, error } = await supabase.auth.updateUser({
-    password: newPassword,
-  });
-  
-  if (error) {
-    throw error;
-  }
-  
-  return data;
-}
-
-/**
- * Update user metadata
- */
-export async function updateUserMetadata(metadata: Record<string, unknown>): Promise<{ user: unknown }> {
-  const supabase = getClient();
-  const { data, error } = await supabase.auth.updateUser({
-    data: metadata,
   });
   
   if (error) {

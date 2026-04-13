@@ -7,6 +7,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { z } from 'zod';
+import type { Database } from '@/types/database';
+
+type WebhookUpdate = Database['public']['Tables']['webhooks']['Update'];
 
 const updateWebhookSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -148,7 +151,7 @@ export async function PATCH(
     }
 
     // Build update object
-    const updateData: Record<string, unknown> = {
+    const updateData: WebhookUpdate = {
       updated_at: new Date().toISOString(),
     };
 

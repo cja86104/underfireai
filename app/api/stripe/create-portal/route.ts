@@ -17,6 +17,12 @@ function getStripe(): Stripe {
   return _stripe;
 }
 
+function getAppUrl(): string {
+  const url = process.env.NEXT_PUBLIC_APP_URL;
+  if (!url) throw new Error('NEXT_PUBLIC_APP_URL environment variable is not set');
+  return url;
+}
+
 export async function POST(): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
@@ -40,7 +46,7 @@ export async function POST(): Promise<NextResponse> {
     // Create billing portal session
     const session = await getStripe().billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?tab=billing`,
+      return_url: `${getAppUrl()}/settings?tab=billing`,
     });
 
     return NextResponse.json({ url: session.url });

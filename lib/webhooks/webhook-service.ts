@@ -288,20 +288,15 @@ async function updateDeliveryRecord(
 ): Promise<void> {
   const supabase = await createClient();
 
-  const updateData: Record<string, unknown> = {
-    attempts,
-    status: result.success ? 'success' : 'failed',
-    status_code: result.statusCode,
-    error_message: result.error,
-  };
-
-  if (result.success) {
-    updateData.delivered_at = new Date().toISOString();
-  }
-
   await supabase
     .from('webhook_deliveries')
-    .update(updateData)
+    .update({
+      attempts,
+      status: result.success ? 'success' : 'failed',
+      status_code: result.statusCode,
+      error_message: result.error,
+      ...(result.success ? { delivered_at: new Date().toISOString() } : {}),
+    })
     .eq('id', deliveryId);
 }
 

@@ -22,6 +22,12 @@ function getStripe(): Stripe {
  * Get the Stripe Price ID for a product
  * These should be configured in your Stripe Dashboard as one-time prices
  */
+function getAppUrl(): string {
+  const url = process.env.NEXT_PUBLIC_APP_URL;
+  if (!url) throw new Error('NEXT_PUBLIC_APP_URL environment variable is not set');
+  return url;
+}
+
 function getPriceId(product: InterviewProduct): string {
   const envMap: Record<InterviewProduct, string> = {
     starter_6: 'STRIPE_STARTER_PRICE_ID',
@@ -113,8 +119,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?purchase=success&product=${product}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?tab=billing&canceled=true`,
+      success_url: `${getAppUrl()}/dashboard?purchase=success&product=${product}`,
+      cancel_url: `${getAppUrl()}/settings?tab=billing&canceled=true`,
       metadata: {
         user_id: user.id,
         product,

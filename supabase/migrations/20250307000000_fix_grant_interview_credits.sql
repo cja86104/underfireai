@@ -18,22 +18,27 @@
 --     by Postgres — no read required.
 -- =============================================================================
 
--- Step 1: Add a UNIQUE constraint on stripe_checkout_session_id so that
--- legacy subscription checkouts (which have no payment_intent_id) are also
--- protected by the ON CONFLICT guard.
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint
-    WHERE conname = 'interview_purchases_checkout_session_unique'
-  ) THEN
-    ALTER TABLE interview_purchases
-      ADD CONSTRAINT interview_purchases_checkout_session_unique
-      UNIQUE (stripe_checkout_session_id);
-  END IF;
-END $$;
+-- Step 1: Clean up any duplicate checkout session rows created by the race
+-- condition this migration fixes. Keep the oldest row per session ID.
+DELETE FROM interview_purchases a
+  USING interview_purchases b
+WHERE a.stripe_checkout_session_id IS NOT NULL
+  AND a.stripe_checkout_session_id = b.stripe_checkout_session_id
+  AND a.created_at > b.created_at;
 
--- Step 2: Rewrite grant_interview_credits with the INSERT-first pattern.
+-- Step 2: Add a UNIQUE constraint on stripe_checkout_session_id so that
+-- legacy subscription checkouts (which have no payment_intent_id) are also
+-- protected by the ON CONFLICT guard. Use a partial unique index so that
+-- multiple NULL values are allowed.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_interview_purchases_checkout_session_unique
+  ON interview_purchases (stripe_checkout_session_id)
+  WHERE stripe_checkout_session_id IS NOT NULL;
+
+-- Step 3: DROP the existing function first — Postgres does not allow
+-- CREATE OR REPLACE to change a function's return type (void → boolean).
+DROP FUNCTION IF EXISTS grant_interview_credits(UUID, INTEGER, TEXT, INTEGER, TEXT, TEXT);
+
+-- Step 4: Recreate with the INSERT-first pattern.
 -- Returns TRUE  → credits were granted (new purchase).
 -- Returns FALSE → already processed (idempotent no-op).
 CREATE OR REPLACE FUNCTION grant_interview_credits(
