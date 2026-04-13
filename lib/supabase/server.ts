@@ -60,20 +60,6 @@ export async function getCurrentUser() {
 }
 
 /**
- * Get current session from server
- */
-export async function getCurrentSession() {
-  const supabase = await createClient();
-  const { data: { session }, error } = await supabase.auth.getSession();
-  
-  if (error || !session) {
-    return null;
-  }
-  
-  return session;
-}
-
-/**
  * Get user profile from database
  */
 export async function getUserProfile(): Promise<Profile | null> {

@@ -1095,6 +1095,17 @@ export interface Database {
     Views: Record<never, never>
     Functions: {
       get_waitlist_count: { Args: Record<PropertyKey, never>; Returns: number }
+      grant_interview_credits: {
+        Args: {
+          p_user_id: string
+          p_interviews: number
+          p_product_type: string
+          p_amount_cents: number
+          p_stripe_payment_intent_id?: string | null
+          p_stripe_checkout_session_id?: string | null
+        }
+        Returns: boolean
+      }
       reset_monthly_interviews: { Args: never; Returns: undefined }
     }
     Enums: {
