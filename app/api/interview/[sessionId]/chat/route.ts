@@ -133,6 +133,17 @@ export async function POST(
 
     const isStarting = message === '__START_INTERVIEW__';
 
+    // Reject oversized messages before any AI call or DB write.
+    // The sentinel value is 20 chars and is never affected by this check.
+    // 4 000 chars comfortably covers the longest realistic STAR answer while
+    // preventing cost-amplification from malformed or malicious requests.
+    if (!isStarting && message.length > 4000) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Message exceeds the 4,000 character limit' },
+        { status: 400 }
+      );
+    }
+
     // ── Panel mode: fetch panel members and use panel orchestration ───────────
     if (isPanelMode) {
       // Fetch panel members from session_interviewers

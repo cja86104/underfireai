@@ -36,6 +36,16 @@ export async function POST(
     const body = await request.json() as EndInterviewRequest;
     const { elapsed_seconds } = body;
 
+    // Validate elapsed_seconds: must be a finite non-negative number.
+    // A missing, negative, or non-numeric value is stored as null rather than
+    // writing garbage into duration_seconds.
+    const elapsedSeconds: number | null =
+      typeof elapsed_seconds === 'number' &&
+      isFinite(elapsed_seconds) &&
+      elapsed_seconds >= 0
+        ? Math.round(elapsed_seconds)
+        : null;
+
     const supabase = await createClient();
 
     // Verify session belongs to user
@@ -50,6 +60,17 @@ export async function POST(
       return NextResponse.json(
         { error: 'Not found', message: 'Interview session not found' },
         { status: 404 }
+      );
+    }
+
+    // Guard against double-end: a completed session must not be re-scored.
+    // Without this check a network retry or duplicate client call would attempt
+    // a second INSERT into session_scores (unique on session_id) and return a
+    // 500, while also firing a redundant AI completion at real cost.
+    if (session.status === 'completed') {
+      return NextResponse.json(
+        { error: 'Invalid state', message: 'This interview session has already ended' },
+        { status: 409 }
       );
     }
 
@@ -74,7 +95,7 @@ export async function POST(
       .update({
         status: 'completed',
         ended_at: new Date().toISOString(),
-        duration_seconds: elapsed_seconds,
+        duration_seconds: elapsedSeconds,
       })
       .eq('id', sessionId);
 

@@ -281,6 +281,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Validate difficulty: must be an integer in [1, 10].
+    // The personality system clamps its derived values, but the raw number is
+    // stored directly in the DB so we must enforce the range here.
+    if (
+      typeof difficulty !== 'number' ||
+      !Number.isInteger(difficulty) ||
+      difficulty < 1 ||
+      difficulty > 10
+    ) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Difficulty must be an integer between 1 and 10' },
+        { status: 400 }
+      );
+    }
+
     // Validate archetype_mix values
     const validArchetypes = Object.keys(INTERVIEWER_ARCHETYPES) as InterviewerArchetype[];
     for (const key of archetype_mix) {
@@ -459,14 +474,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // ── Sync existing interviewer voice config with session voice setting ───────
     // When reusing an existing interviewer, their stored tts_enabled may not
     // match the current session's use_voice_mode toggle. Update it.
+    // Ownership is verified here — the query includes user_id so a foreign
+    // interviewer_id silently returns null and we reject before spending a credit.
     if (interviewer_id && !generate_new_interviewer) {
-      const { data: existingInterviewer } = await supabase
+      const { data: existingInterviewer, error: ownershipError } = await supabase
         .from('interviewers')
-        .select('voice_config')
+        .select('voice_config, user_id')
         .eq('id', finalInterviewerId)
+        .eq('user_id', user.id)
         .single();
 
-      if (existingInterviewer?.voice_config) {
+      if (ownershipError || !existingInterviewer) {
+        return NextResponse.json(
+          { error: 'Not found', message: 'Interviewer not found' },
+          { status: 404 }
+        );
+      }
+
+      if (existingInterviewer.voice_config) {
         const currentConfig = existingInterviewer.voice_config as unknown as { voice_id: string; speed: number; pitch: number; tts_enabled?: boolean };
         if (currentConfig.tts_enabled !== body.use_voice_mode) {
           await supabase
@@ -597,11 +622,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (sessionError || !session) {
       console.error('Error creating session:', sessionError);
 
-      // Roll back the interview credit
-      await supabase
-        .from('profiles')
-        .update({ interviews_used: expectedUsed })
-        .eq('id', user.id);
+      // Roll back the interview credit using a relative decrement so a concurrent
+      // session creation that succeeded between our lock and this rollback is not
+      // affected. Setting an absolute value would silently erase that other credit.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).rpc('decrement_interviews_used', { p_user_id: user.id });
 
       // Clean up any interviewers generated during this request so they don't
       // accumulate as orphaned rows. Only delete ones we created here — never
@@ -659,10 +684,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           .delete()
           .in('id', panelInterviewers.map(p => p.id));
 
-        await supabase
-          .from('profiles')
-          .update({ interviews_used: expectedUsed })
-          .eq('id', user.id);
+        // Roll back the interview credit using a relative decrement (same reason
+        // as the session INSERT rollback above — avoids clobbering a concurrent credit).
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any).rpc('decrement_interviews_used', { p_user_id: user.id });
 
         return NextResponse.json(
           { error: 'Database error', message: 'Failed to create panel interview session' },

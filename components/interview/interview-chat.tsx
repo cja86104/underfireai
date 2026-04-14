@@ -756,6 +756,7 @@ export function InterviewChat({
           disabled={isLoading || isAtLimit}
           rows={2}
           autoFocus
+          maxLength={4000}
           className="flex-1 resize-none rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-40"
         />
         <button

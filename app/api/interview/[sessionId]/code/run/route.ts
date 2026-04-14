@@ -89,6 +89,22 @@ export async function POST(
       );
     }
 
+    // Validate code size. 50 000 chars is a very generous ceiling for any
+    // coding-challenge solution; without this a malicious client could push
+    // large payloads through Judge0 and inflate execution costs.
+    if (!code || typeof code !== 'string' || code.length === 0) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Code is required' },
+        { status: 400 }
+      );
+    }
+    if (code.length > 50000) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Code exceeds the 50,000 character limit' },
+        { status: 400 }
+      );
+    }
+
     // Fetch challenge with test cases
     const { data: challenge, error: challengeError } = await supabase
       .from('coding_challenges')

@@ -74,13 +74,37 @@ export async function POST(
     }
 
     const body = await request.json() as SubmitCodeRequest;
-    const { code, language, challengeId, hintsUsed, timeSpent } = body;
+    const { code, language, challengeId } = body;
+
+    // Validate and sanitise numeric client fields — these are used in DB inserts
+    // and AI prompts, so garbage values (NaN, negatives, non-numbers) must be
+    // rejected before reaching either destination.
+    const hintsUsed = typeof body.hintsUsed === 'number' && isFinite(body.hintsUsed) && body.hintsUsed >= 0
+      ? Math.floor(body.hintsUsed)
+      : 0;
+    const timeSpent = typeof body.timeSpent === 'number' && isFinite(body.timeSpent) && body.timeSpent >= 0
+      ? Math.round(body.timeSpent)
+      : 0;
 
     // Validate language
     const validLanguages = ['javascript', 'typescript', 'python', 'java', 'go', 'rust', 'cpp'];
     if (!validLanguages.includes(language)) {
       return NextResponse.json(
         { error: 'Invalid language', message: `Unsupported language: ${language}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate code — same 50 000 char ceiling as the run route.
+    if (!code || typeof code !== 'string' || code.length === 0) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Code is required' },
+        { status: 400 }
+      );
+    }
+    if (code.length > 50000) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Code exceeds the 50,000 character limit' },
         { status: 400 }
       );
     }

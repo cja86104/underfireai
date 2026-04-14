@@ -240,12 +240,14 @@ Return ONLY the JSON object, no markdown or explanation.`;
     const supabase = await createClient();
 
     // Upload original file to Supabase Storage (resumes bucket).
-    // Runs before DB insert so the URL is available immediately.
+    // Runs before DB insert so the path is available immediately.
     // Failure is non-blocking — the resume text is still saved.
-    let fileUrl: string | null = null;
+    // We store the storage PATH (not a public URL) so that signed download
+    // URLs can be generated on demand without exposing PII permanently.
+    let filePath: string | null = null;
     const storageResult = await uploadResume(supabase, user.id, file);
-    if (storageResult.success && storageResult.url) {
-      fileUrl = storageResult.url;
+    if (storageResult.success && storageResult.path) {
+      filePath = storageResult.path;
     } else {
       console.warn('[Resume Upload] Storage upload failed — continuing without file_url:', storageResult.error);
     }
@@ -270,7 +272,7 @@ Return ONLY the JSON object, no markdown or explanation.`;
         experience_years: experienceYears,
         target_role: targetRole ?? null,
         target_company_type: null,
-        file_url: fileUrl,
+        file_url: filePath,
       })
       .select('id')
       .single();
@@ -304,7 +306,7 @@ Return ONLY the JSON object, no markdown or explanation.`;
         has_education: (parsedData.education?.length || 0) > 0,
         has_experience: (parsedData.experience?.length || 0) > 0,
       },
-      file_stored: fileUrl !== null,
+      file_stored: filePath !== null,
       vulnerability_scan_triggered: isPaidUser,
       message: 'Resume uploaded and parsed successfully',
     });

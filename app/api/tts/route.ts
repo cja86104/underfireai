@@ -60,6 +60,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Validate voice against the approved list — mirrors the speed validation
+    // pattern. The resolveVoiceId helper falls through to returning any raw
+    // string as a Cartesia UUID, so we must gate here before it is called.
+    const validVoiceIds = Object.keys(CARTESIA_VOICES);
+    const selectedVoice = validVoiceIds.includes(voice) ? voice : 'katie';
+
     // Validate speed
     const validSpeeds: TTSSpeed[] = ['slow', 'normal', 'fast'];
     const selectedSpeed = validSpeeds.includes(speed) ? speed : 'normal';
@@ -67,7 +73,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate speech using Cartesia
     const result = await generateSpeech({
       text,
-      voiceId: voice,
+      voiceId: selectedVoice,
       speed: selectedSpeed,
     });
 

@@ -16,7 +16,18 @@ interface AuthFormProps {
 function AuthFormInner({ mode }: AuthFormProps): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') ?? '/dashboard';
+
+  // Sanitise the redirect param — only follow same-origin relative paths.
+  // Reject absolute URLs, protocol-relative URLs (//) and paths containing
+  // @ or \ which are used in open-redirect bypass techniques.
+  // This mirrors the identical guard in app/(auth)/callback/route.ts.
+  const rawRedirect = searchParams.get('redirect') ?? '/dashboard';
+  const redirectTo =
+    rawRedirect.startsWith('/') &&
+    !rawRedirect.startsWith('//') &&
+    !/[@\\]/.test(rawRedirect)
+      ? rawRedirect
+      : '/dashboard';
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
