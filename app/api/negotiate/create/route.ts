@@ -37,6 +37,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.json() as CreateNegotiationRequest;
 
     // ── Validation ──────────────────────────────────────────────────────────
+    // Upper bounds below exist because target_role, company_name, and
+    // additional_context are embedded into the recruiter system prompt; and
+    // because amounts stored in the DB seed the UI's anchor numbers — a
+    // payload with NaN / Infinity / Number.MAX_SAFE_INTEGER would break the
+    // formatter and poison downstream scoring prompts.
+    const MAX_AMOUNT = 10_000_000; // $100,000.00 in cents — comfortably above any real offer
+    const MAX_EXPERIENCE_YEARS = 60;
+    const MAX_ROLE_LENGTH = 200;
+    const MAX_COMPANY_LENGTH = 200;
+    const MAX_CONTEXT_LENGTH = 2000;
+
     if (!body.target_role || body.target_role.trim().length === 0) {
       return NextResponse.json(
         { error: 'Validation error', message: 'Target role is required' },
@@ -44,24 +55,64 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    if (typeof body.current_offer_amount !== 'number' || body.current_offer_amount <= 0) {
+    if (body.target_role.length > MAX_ROLE_LENGTH) {
       return NextResponse.json(
-        { error: 'Validation error', message: 'Current offer amount must be a positive number' },
+        { error: 'Validation error', message: `Target role must be ${MAX_ROLE_LENGTH} characters or fewer` },
         { status: 400 }
       );
     }
 
-    if (typeof body.target_amount !== 'number' || body.target_amount <= 0) {
+    if (body.company_name !== null && body.company_name !== undefined) {
+      if (typeof body.company_name !== 'string' || body.company_name.length > MAX_COMPANY_LENGTH) {
+        return NextResponse.json(
+          { error: 'Validation error', message: `Company name must be a string of ${MAX_COMPANY_LENGTH} characters or fewer` },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (body.additional_context !== null && body.additional_context !== undefined) {
+      if (typeof body.additional_context !== 'string' || body.additional_context.length > MAX_CONTEXT_LENGTH) {
+        return NextResponse.json(
+          { error: 'Validation error', message: `Additional context must be a string of ${MAX_CONTEXT_LENGTH} characters or fewer` },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (
+      typeof body.current_offer_amount !== 'number' ||
+      !Number.isFinite(body.current_offer_amount) ||
+      body.current_offer_amount <= 0 ||
+      body.current_offer_amount > MAX_AMOUNT
+    ) {
       return NextResponse.json(
-        { error: 'Validation error', message: 'Target amount must be a positive number' },
+        { error: 'Validation error', message: 'Current offer amount must be a positive number within normal salary range' },
+        { status: 400 }
+      );
+    }
+
+    if (
+      typeof body.target_amount !== 'number' ||
+      !Number.isFinite(body.target_amount) ||
+      body.target_amount <= 0 ||
+      body.target_amount > MAX_AMOUNT
+    ) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Target amount must be a positive number within normal salary range' },
         { status: 400 }
       );
     }
 
     if (body.experience_years !== null && body.experience_years !== undefined) {
-      if (typeof body.experience_years !== 'number' || body.experience_years < 0) {
+      if (
+        typeof body.experience_years !== 'number' ||
+        !Number.isFinite(body.experience_years) ||
+        body.experience_years < 0 ||
+        body.experience_years > MAX_EXPERIENCE_YEARS
+      ) {
         return NextResponse.json(
-          { error: 'Validation error', message: 'Experience years must be a non-negative number' },
+          { error: 'Validation error', message: `Experience years must be a number between 0 and ${MAX_EXPERIENCE_YEARS}` },
           { status: 400 }
         );
       }

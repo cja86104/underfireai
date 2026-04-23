@@ -216,8 +216,7 @@ Generate the panel's next turn. Remember to:
 
     return result;
   } catch (parseError) {
-    console.error('Failed to parse panel turn result:', parseError);
-    console.error('Raw content:', content);
+    console.error('Failed to parse panel turn result:', parseError instanceof Error ? parseError.message : 'unknown error');
 
     // Return fallback response
     const leadInterviewer = panel.find(p => p.isLead) ?? panel[0];

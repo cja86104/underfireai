@@ -16,6 +16,7 @@ import {
   extractAnyFunctionName,
   hasNativeJsonSupport,
 } from '@/lib/code-execution/language-wrappers';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import { codeEvaluationSchema, type CodeEvaluation, type TestResult, type ProgrammingLanguage } from '@/types/coding';
 import type { Json } from '@/types/database';
 
@@ -70,6 +71,17 @@ export async function POST(
       return NextResponse.json(
         { error: 'Not found', message: 'Session not found' },
         { status: 404 }
+      );
+    }
+
+    // Rate-limit per session. Submit fires one Judge0 call per test case PLUS
+    // one Mistral evaluation, so it is more expensive than /run — tighter
+    // ceiling (20 / 10min). Scope by sessionId.
+    const rl = await checkRateLimit('codeSubmit', sessionId);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit', message: 'Too many submissions. Please wait before submitting again.' },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 
@@ -205,7 +217,7 @@ export async function POST(
       totalCount,
       hintsUsed,
       timeSpent,
-      challenge.time_limit_seconds
+      challenge.time_limit_seconds,
     );
 
     // Override correctness based on actual test results

@@ -36,6 +36,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Explicit upper bound. Without this, the downstream `.slice(0, 50000)`
+    // silently discards text past 50k chars — user can't see their content
+    // was truncated. Reject instead so the client is aware, and so a 50 MB
+    // paste cannot occupy memory on the way to the truncation step.
+    const MAX_JD_LENGTH = 50_000;
+    if (body.rawText.length > MAX_JD_LENGTH) {
+      return NextResponse.json(
+        { error: 'Validation error', message: `Job description must be ${MAX_JD_LENGTH} characters or fewer` },
+        { status: 400 }
+      );
+    }
+
+    // source_url cap — the URL is embedded into the JD parser prompt via the
+    // sandboxed `Source URL:` line. Without a ceiling a malicious paste could
+    // balloon per-call token cost.
+    const MAX_SOURCE_URL_LENGTH = 2_000;
+    if (body.sourceUrl !== undefined && body.sourceUrl !== null) {
+      if (typeof body.sourceUrl !== 'string' || body.sourceUrl.length > MAX_SOURCE_URL_LENGTH) {
+        return NextResponse.json(
+          { error: 'Validation error', message: `Source URL must be a string of ${MAX_SOURCE_URL_LENGTH} characters or fewer` },
+          { status: 400 }
+        );
+      }
+    }
+
     const supabase = await createClient();
 
     // Check if user has purchased

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import {
   generateSpeech,
   CARTESIA_VOICES,
@@ -39,6 +40,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         { error: 'Purchase required', message: 'Voice mode is available after purchasing interview credits' },
         { status: 403 }
+      );
+    }
+
+    // Rate-limit per user. Cartesia bills per character; a loop of 10k-char
+    // requests burns real money fast. 60/min per user is generous for live
+    // playback even on a long deep-dive session.
+    const rl = await checkRateLimit('tts', user.id);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit', message: 'Too many voice requests. Please wait a moment.' },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 

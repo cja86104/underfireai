@@ -15,6 +15,7 @@ import {
   extractAnyFunctionName,
   hasNativeJsonSupport,
 } from '@/lib/code-execution/language-wrappers';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import type { TestResult, ProgrammingLanguage } from '@/types/coding';
 import type { Json } from '@/types/database';
 
@@ -74,6 +75,17 @@ export async function POST(
       return NextResponse.json(
         { error: 'Invalid state', message: 'Session is not active' },
         { status: 400 }
+      );
+    }
+
+    // Rate-limit per session: a looping client could burn pay-per-submission
+    // Judge0 credits inside a single interview. Scope by sessionId so parallel
+    // sessions (theoretical) get independent buckets.
+    const rl = await checkRateLimit('codeRun', sessionId);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit', message: 'Too many code runs. Please wait a moment and try again.' },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 

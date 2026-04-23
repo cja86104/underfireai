@@ -17,12 +17,113 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
+      code_submissions: {
+        Row: {
+          challenge_id: string | null
+          code: string
+          execution_time_ms: number | null
+          hints_used: number | null
+          id: string
+          language: string
+          session_id: string
+          status: string
+          submitted_at: string
+          test_results: Json | null
+        }
+        Insert: {
+          challenge_id?: string | null
+          code: string
+          execution_time_ms?: number | null
+          hints_used?: number | null
+          id?: string
+          language: string
+          session_id: string
+          status?: string
+          submitted_at?: string | null
+          test_results?: Json | null
+        }
+        Update: {
+          challenge_id?: string | null
+          code?: string
+          execution_time_ms?: number | null
+          hints_used?: number | null
+          id?: string
+          language?: string
+          session_id?: string
+          status?: string
+          submitted_at?: string | null
+          test_results?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_submissions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "coding_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "code_submissions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coding_challenges: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          difficulty: number
+          hints: string[] | null
+          id: string
+          languages: string[]
+          starter_code: Json | null
+          test_cases: Json
+          time_limit_seconds: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description: string
+          difficulty?: number
+          hints?: string[] | null
+          id?: string
+          languages?: string[]
+          starter_code?: Json | null
+          test_cases?: Json
+          time_limit_seconds?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          difficulty?: number
+          hints?: string[] | null
+          id?: string
+          languages?: string[]
+          starter_code?: Json | null
+          test_cases?: Json
+          time_limit_seconds?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       interview_messages: {
         Row: {
           analysis: Json | null
@@ -59,17 +160,64 @@ export interface Database {
         }
         Relationships: [
           {
+            foreignKeyName: "interview_messages_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "interviewers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "interview_messages_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "interview_sessions"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      interview_purchases: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          interviews_granted: number
+          product_type: string
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          interviews_granted: number
+          product_type: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          interviews_granted?: number
+          product_type?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "interview_messages_interviewer_id_fkey"
-            columns: ["interviewer_id"]
+            foreignKeyName: "interview_purchases_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "interviewers"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -95,7 +243,7 @@ export interface Database {
           status: Database["public"]["Enums"]["session_status"]
           target_company: string | null
           target_job_description_id: string | null
-          target_resume_weak_spots: boolean
+          target_resume_weak_spots: boolean | null
           target_role: string | null
           trait_overrides: Json | null
           user_id: string
@@ -121,7 +269,7 @@ export interface Database {
           status?: Database["public"]["Enums"]["session_status"]
           target_company?: string | null
           target_job_description_id?: string | null
-          target_resume_weak_spots?: boolean
+          target_resume_weak_spots?: boolean | null
           target_role?: string | null
           trait_overrides?: Json | null
           user_id: string
@@ -147,13 +295,20 @@ export interface Database {
           status?: Database["public"]["Enums"]["session_status"]
           target_company?: string | null
           target_job_description_id?: string | null
-          target_resume_weak_spots?: boolean
+          target_resume_weak_spots?: boolean | null
           target_role?: string | null
           trait_overrides?: Json | null
           user_id?: string
           voice_enabled?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "interview_sessions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "coding_challenges"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "interview_sessions_interviewer_id_fkey"
             columns: ["interviewer_id"]
@@ -162,154 +317,17 @@ export interface Database {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "interview_sessions_target_job_description_id_fkey"
+            columns: ["target_job_description_id"]
+            isOneToOne: false
+            referencedRelation: "job_descriptions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "interview_sessions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      session_interviewers: {
-        Row: {
-          id: string
-          session_id: string
-          interviewer_id: string
-          seat_order: number
-          role_label: string | null
-          is_lead: boolean
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          session_id: string
-          interviewer_id: string
-          seat_order?: number
-          role_label?: string | null
-          is_lead?: boolean
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          session_id?: string
-          interviewer_id?: string
-          seat_order?: number
-          role_label?: string | null
-          is_lead?: boolean
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "session_interviewers_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "interview_sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "session_interviewers_interviewer_id_fkey"
-            columns: ["interviewer_id"]
-            isOneToOne: false
-            referencedRelation: "interviewers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coding_challenges: {
-        Row: {
-          id: string
-          title: string
-          description: string
-          difficulty: number
-          category: string
-          languages: string[]
-          starter_code: Json
-          test_cases: Json
-          hints: string[]
-          time_limit_seconds: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          description: string
-          difficulty?: number
-          category?: string
-          languages?: string[]
-          starter_code?: Json
-          test_cases?: Json
-          hints?: string[]
-          time_limit_seconds?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          description?: string
-          difficulty?: number
-          category?: string
-          languages?: string[]
-          starter_code?: Json
-          test_cases?: Json
-          hints?: string[]
-          time_limit_seconds?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      code_submissions: {
-        Row: {
-          id: string
-          session_id: string
-          challenge_id: string | null
-          language: string
-          code: string
-          status: string
-          test_results: Json
-          execution_time_ms: number | null
-          hints_used: number
-          submitted_at: string
-        }
-        Insert: {
-          id?: string
-          session_id: string
-          challenge_id?: string | null
-          language: string
-          code: string
-          status?: string
-          test_results?: Json
-          execution_time_ms?: number | null
-          hints_used?: number
-          submitted_at?: string
-        }
-        Update: {
-          id?: string
-          session_id?: string
-          challenge_id?: string | null
-          language?: string
-          code?: string
-          status?: string
-          test_results?: Json
-          execution_time_ms?: number | null
-          hints_used?: number
-          submitted_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "code_submissions_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "interview_sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "code_submissions_challenge_id_fkey"
-            columns: ["challenge_id"]
-            isOneToOne: false
-            referencedRelation: "coding_challenges"
             referencedColumns: ["id"]
           },
         ]
@@ -426,6 +444,205 @@ export interface Database {
           },
         ]
       }
+      job_descriptions: {
+        Row: {
+          additional_skills: string[] | null
+          analyzed_at: string | null
+          company_name: string | null
+          created_at: string
+          education_requirements: Json | null
+          experience_requirements: Json | null
+          id: string
+          match_percentage: number | null
+          matched_skills: string[] | null
+          missing_preferred: string[] | null
+          missing_required: string[] | null
+          narrative_gaps: Json | null
+          preferred_skills: string[] | null
+          raw_text: string
+          required_skills: string[] | null
+          responsibilities: string[] | null
+          resume_id: string | null
+          role_title: string | null
+          source_url: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_skills?: string[] | null
+          analyzed_at?: string | null
+          company_name?: string | null
+          created_at?: string
+          education_requirements?: Json | null
+          experience_requirements?: Json | null
+          id?: string
+          match_percentage?: number | null
+          matched_skills?: string[] | null
+          missing_preferred?: string[] | null
+          missing_required?: string[] | null
+          narrative_gaps?: Json | null
+          preferred_skills?: string[] | null
+          raw_text: string
+          required_skills?: string[] | null
+          responsibilities?: string[] | null
+          resume_id?: string | null
+          role_title?: string | null
+          source_url?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_skills?: string[] | null
+          analyzed_at?: string | null
+          company_name?: string | null
+          created_at?: string
+          education_requirements?: Json | null
+          experience_requirements?: Json | null
+          id?: string
+          match_percentage?: number | null
+          matched_skills?: string[] | null
+          missing_preferred?: string[] | null
+          missing_required?: string[] | null
+          narrative_gaps?: Json | null
+          preferred_skills?: string[] | null
+          raw_text?: string
+          required_skills?: string[] | null
+          responsibilities?: string[] | null
+          resume_id?: string | null
+          role_title?: string | null
+          source_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_descriptions_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "user_resumes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_descriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      negotiation_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["negotiation_role"]
+          session_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["negotiation_role"]
+          session_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["negotiation_role"]
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negotiation_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "negotiation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      negotiation_sessions: {
+        Row: {
+          additional_context: string | null
+          ai_feedback: string | null
+          company_name: string | null
+          composure_score: number | null
+          confidence_score: number | null
+          created_at: string
+          current_offer_amount: number
+          duration_seconds: number | null
+          ended_at: string | null
+          experience_years: number | null
+          final_simulated_offer: number | null
+          framing_score: number | null
+          id: string
+          improvements: string[] | null
+          key_tactics_used: string[] | null
+          overall_score: number | null
+          started_at: string
+          status: Database["public"]["Enums"]["negotiation_status"]
+          strategy_score: number | null
+          target_amount: number
+          target_role: string
+          user_id: string
+        }
+        Insert: {
+          additional_context?: string | null
+          ai_feedback?: string | null
+          company_name?: string | null
+          composure_score?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          current_offer_amount: number
+          duration_seconds?: number | null
+          ended_at?: string | null
+          experience_years?: number | null
+          final_simulated_offer?: number | null
+          framing_score?: number | null
+          id?: string
+          improvements?: string[] | null
+          key_tactics_used?: string[] | null
+          overall_score?: number | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["negotiation_status"]
+          strategy_score?: number | null
+          target_amount: number
+          target_role: string
+          user_id: string
+        }
+        Update: {
+          additional_context?: string | null
+          ai_feedback?: string | null
+          company_name?: string | null
+          composure_score?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          current_offer_amount?: number
+          duration_seconds?: number | null
+          ended_at?: string | null
+          experience_years?: number | null
+          final_simulated_offer?: number | null
+          framing_score?: number | null
+          id?: string
+          improvements?: string[] | null
+          key_tactics_used?: string[] | null
+          overall_score?: number | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["negotiation_status"]
+          strategy_score?: number | null
+          target_amount?: number
+          target_role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negotiation_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -434,8 +651,8 @@ export interface Database {
           full_name: string | null
           id: string
           interviews_used: number
-          purchased_interviews: number
           onboarding_completed: boolean
+          purchased_interviews: number
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_period_end: string | null
@@ -450,8 +667,8 @@ export interface Database {
           full_name?: string | null
           id: string
           interviews_used?: number
-          purchased_interviews?: number
           onboarding_completed?: boolean
+          purchased_interviews?: number
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_period_end?: string | null
@@ -466,8 +683,8 @@ export interface Database {
           full_name?: string | null
           id?: string
           interviews_used?: number
-          purchased_interviews?: number
           onboarding_completed?: boolean
+          purchased_interviews?: number
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_period_end?: string | null
@@ -477,51 +694,116 @@ export interface Database {
         }
         Relationships: []
       }
-      interview_purchases: {
+      resume_insights: {
         Row: {
-          id: string
-          user_id: string
-          stripe_payment_intent_id: string | null
-          stripe_checkout_session_id: string | null
-          product_type: "starter_6" | "pro_11" | "refill_5"
-          interviews_granted: number
-          amount_cents: number
-          currency: string
-          status: "pending" | "completed" | "refunded"
+          alignment_score: number | null
+          confirmations: Json | null
           created_at: string
+          discrepancies: Json | null
+          id: string
+          insight_type: string
+          resume_id: string
+          resume_suggestions: Json | null
+          session_id: string | null
+          user_id: string
+          vulnerabilities: Json | null
+          vulnerability_score: number | null
         }
         Insert: {
-          id?: string
-          user_id: string
-          stripe_payment_intent_id?: string | null
-          stripe_checkout_session_id?: string | null
-          product_type: "starter_6" | "pro_11" | "refill_5"
-          interviews_granted: number
-          amount_cents: number
-          currency?: string
-          status?: "pending" | "completed" | "refunded"
+          alignment_score?: number | null
+          confirmations?: Json | null
           created_at?: string
+          discrepancies?: Json | null
+          id?: string
+          insight_type: string
+          resume_id: string
+          resume_suggestions?: Json | null
+          session_id?: string | null
+          user_id: string
+          vulnerabilities?: Json | null
+          vulnerability_score?: number | null
         }
         Update: {
-          id?: string
-          user_id?: string
-          stripe_payment_intent_id?: string | null
-          stripe_checkout_session_id?: string | null
-          product_type?: "starter_6" | "pro_11" | "refill_5"
-          interviews_granted?: number
-          amount_cents?: number
-          currency?: string
-          status?: "pending" | "completed" | "refunded"
+          alignment_score?: number | null
+          confirmations?: Json | null
           created_at?: string
+          discrepancies?: Json | null
+          id?: string
+          insight_type?: string
+          resume_id?: string
+          resume_suggestions?: Json | null
+          session_id?: string | null
+          user_id?: string
+          vulnerabilities?: Json | null
+          vulnerability_score?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "interview_purchases_user_id_fkey"
+            foreignKeyName: "resume_insights_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "user_resumes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_insights_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_insights_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          }
+          },
+        ]
+      }
+      session_interviewers: {
+        Row: {
+          created_at: string | null
+          id: string
+          interviewer_id: string
+          is_lead: boolean | null
+          role_label: string | null
+          seat_order: number
+          session_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          interviewer_id: string
+          is_lead?: boolean | null
+          role_label?: string | null
+          seat_order?: number
+          session_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          interviewer_id?: string
+          is_lead?: boolean | null
+          role_label?: string | null
+          seat_order?: number
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_interviewers_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "interviewers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_interviewers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
         ]
       }
       session_scores: {
@@ -537,14 +819,14 @@ export interface Database {
           key_moments: Json | null
           overall_score: number | null
           relevance_score: number | null
+          resume_alignment_generated: boolean | null
+          resume_insight_id: string | null
           session_id: string
           star_usage_score: number | null
           strengths: string[] | null
           technical_depth: number | null
           webhook_sent: boolean | null
           webhook_sent_at: string | null
-          resume_alignment_generated: boolean | null
-          resume_insight_id: string | null
         }
         Insert: {
           ai_feedback?: string | null
@@ -558,14 +840,14 @@ export interface Database {
           key_moments?: Json | null
           overall_score?: number | null
           relevance_score?: number | null
+          resume_alignment_generated?: boolean | null
+          resume_insight_id?: string | null
           session_id: string
           star_usage_score?: number | null
           strengths?: string[] | null
           technical_depth?: number | null
           webhook_sent?: boolean | null
           webhook_sent_at?: string | null
-          resume_alignment_generated?: boolean | null
-          resume_insight_id?: string | null
         }
         Update: {
           ai_feedback?: string | null
@@ -579,16 +861,23 @@ export interface Database {
           key_moments?: Json | null
           overall_score?: number | null
           relevance_score?: number | null
+          resume_alignment_generated?: boolean | null
+          resume_insight_id?: string | null
           session_id?: string
           star_usage_score?: number | null
           strengths?: string[] | null
           technical_depth?: number | null
           webhook_sent?: boolean | null
           webhook_sent_at?: string | null
-          resume_alignment_generated?: boolean | null
-          resume_insight_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "session_scores_resume_insight_id_fkey"
+            columns: ["resume_insight_id"]
+            isOneToOne: false
+            referencedRelation: "resume_insights"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "session_scores_session_id_fkey"
             columns: ["session_id"]
@@ -597,6 +886,33 @@ export interface Database {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trivia_games: {
+        Row: {
+          companion_id: string
+          created_at: string
+          expires_at: string
+          game_state: Json
+          id: string
+          user_id: string
+        }
+        Insert: {
+          companion_id: string
+          created_at?: string
+          expires_at?: string
+          game_state: Json
+          id: string
+          user_id: string
+        }
+        Update: {
+          companion_id?: string
+          created_at?: string
+          expires_at?: string
+          game_state?: Json
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_progress: {
         Row: {
@@ -641,115 +957,6 @@ export interface Database {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      webhooks: {
-        Row: {
-          id: string
-          user_id: string
-          name: string
-          url: string
-          secret: string | null
-          events: string[]
-          enabled: boolean
-          created_at: string
-          updated_at: string
-          last_triggered_at: string | null
-          last_status_code: number | null
-          failure_count: number
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          name?: string
-          url: string
-          secret?: string | null
-          events?: string[]
-          enabled?: boolean
-          created_at?: string
-          updated_at?: string
-          last_triggered_at?: string | null
-          last_status_code?: number | null
-          failure_count?: number
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          name?: string
-          url?: string
-          secret?: string | null
-          events?: string[]
-          enabled?: boolean
-          created_at?: string
-          updated_at?: string
-          last_triggered_at?: string | null
-          last_status_code?: number | null
-          failure_count?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "webhooks_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      webhook_deliveries: {
-        Row: {
-          id: string
-          webhook_id: string
-          event_type: string
-          payload: Json
-          status: string
-          attempts: number
-          max_attempts: number
-          status_code: number | null
-          response_body: string | null
-          error_message: string | null
-          created_at: string
-          next_retry_at: string | null
-          delivered_at: string | null
-        }
-        Insert: {
-          id?: string
-          webhook_id: string
-          event_type: string
-          payload: Json
-          status?: string
-          attempts?: number
-          max_attempts?: number
-          status_code?: number | null
-          response_body?: string | null
-          error_message?: string | null
-          created_at?: string
-          next_retry_at?: string | null
-          delivered_at?: string | null
-        }
-        Update: {
-          id?: string
-          webhook_id?: string
-          event_type?: string
-          payload?: Json
-          status?: string
-          attempts?: number
-          max_attempts?: number
-          status_code?: number | null
-          response_body?: string | null
-          error_message?: string | null
-          created_at?: string
-          next_retry_at?: string | null
-          delivered_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "webhook_deliveries_webhook_id_fkey"
-            columns: ["webhook_id"]
-            isOneToOne: false
-            referencedRelation: "webhooks"
             referencedColumns: ["id"]
           },
         ]
@@ -801,312 +1008,165 @@ export interface Database {
           },
         ]
       }
-      resume_insights: {
-        Row: {
-          id: string
-          user_id: string
-          resume_id: string
-          session_id: string | null
-          insight_type: string
-          alignment_score: number | null
-          discrepancies: Json
-          confirmations: Json
-          vulnerabilities: Json
-          vulnerability_score: number | null
-          resume_suggestions: Json
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          resume_id: string
-          session_id?: string | null
-          insight_type: string
-          alignment_score?: number | null
-          discrepancies?: Json
-          confirmations?: Json
-          vulnerabilities?: Json
-          vulnerability_score?: number | null
-          resume_suggestions?: Json
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          resume_id?: string
-          session_id?: string | null
-          insight_type?: string
-          alignment_score?: number | null
-          discrepancies?: Json
-          confirmations?: Json
-          vulnerabilities?: Json
-          vulnerability_score?: number | null
-          resume_suggestions?: Json
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "resume_insights_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "resume_insights_resume_id_fkey"
-            columns: ["resume_id"]
-            isOneToOne: false
-            referencedRelation: "user_resumes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "resume_insights_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "interview_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      job_descriptions: {
-        Row: {
-          id: string
-          user_id: string
-          raw_text: string
-          source_url: string | null
-          company_name: string | null
-          role_title: string | null
-          required_skills: string[]
-          preferred_skills: string[]
-          experience_requirements: Json | null
-          education_requirements: Json | null
-          responsibilities: string[]
-          resume_id: string | null
-          match_percentage: number | null
-          matched_skills: string[]
-          missing_required: string[]
-          missing_preferred: string[]
-          additional_skills: string[]
-          narrative_gaps: Json
-          created_at: string
-          analyzed_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          raw_text: string
-          source_url?: string | null
-          company_name?: string | null
-          role_title?: string | null
-          required_skills?: string[]
-          preferred_skills?: string[]
-          experience_requirements?: Json | null
-          education_requirements?: Json | null
-          responsibilities?: string[]
-          resume_id?: string | null
-          match_percentage?: number | null
-          matched_skills?: string[]
-          missing_required?: string[]
-          missing_preferred?: string[]
-          additional_skills?: string[]
-          narrative_gaps?: Json
-          created_at?: string
-          analyzed_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          raw_text?: string
-          source_url?: string | null
-          company_name?: string | null
-          role_title?: string | null
-          required_skills?: string[]
-          preferred_skills?: string[]
-          experience_requirements?: Json | null
-          education_requirements?: Json | null
-          responsibilities?: string[]
-          resume_id?: string | null
-          match_percentage?: number | null
-          matched_skills?: string[]
-          missing_required?: string[]
-          missing_preferred?: string[]
-          additional_skills?: string[]
-          narrative_gaps?: Json
-          created_at?: string
-          analyzed_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "job_descriptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_descriptions_resume_id_fkey"
-            columns: ["resume_id"]
-            isOneToOne: false
-            referencedRelation: "user_resumes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      negotiation_sessions: {
-        Row: {
-          id: string
-          user_id: string
-          target_role: string
-          company_name: string | null
-          current_offer_amount: number
-          target_amount: number
-          experience_years: number | null
-          additional_context: string | null
-          status: Database["public"]["Enums"]["negotiation_status"]
-          started_at: string
-          ended_at: string | null
-          duration_seconds: number | null
-          final_simulated_offer: number | null
-          overall_score: number | null
-          confidence_score: number | null
-          framing_score: number | null
-          strategy_score: number | null
-          composure_score: number | null
-          ai_feedback: string | null
-          key_tactics_used: string[]
-          improvements: string[]
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          target_role: string
-          company_name?: string | null
-          current_offer_amount: number
-          target_amount: number
-          experience_years?: number | null
-          additional_context?: string | null
-          status?: Database["public"]["Enums"]["negotiation_status"]
-          started_at?: string
-          ended_at?: string | null
-          duration_seconds?: number | null
-          final_simulated_offer?: number | null
-          overall_score?: number | null
-          confidence_score?: number | null
-          framing_score?: number | null
-          strategy_score?: number | null
-          composure_score?: number | null
-          ai_feedback?: string | null
-          key_tactics_used?: string[]
-          improvements?: string[]
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          target_role?: string
-          company_name?: string | null
-          current_offer_amount?: number
-          target_amount?: number
-          experience_years?: number | null
-          additional_context?: string | null
-          status?: Database["public"]["Enums"]["negotiation_status"]
-          started_at?: string
-          ended_at?: string | null
-          duration_seconds?: number | null
-          final_simulated_offer?: number | null
-          overall_score?: number | null
-          confidence_score?: number | null
-          framing_score?: number | null
-          strategy_score?: number | null
-          composure_score?: number | null
-          ai_feedback?: string | null
-          key_tactics_used?: string[]
-          improvements?: string[]
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "negotiation_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      negotiation_messages: {
-        Row: {
-          id: string
-          session_id: string
-          role: Database["public"]["Enums"]["negotiation_role"]
-          content: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          session_id: string
-          role: Database["public"]["Enums"]["negotiation_role"]
-          content: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          session_id?: string
-          role?: Database["public"]["Enums"]["negotiation_role"]
-          content?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "negotiation_messages_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "negotiation_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       waitlist: {
         Row: {
-          created_at: string
+          created_at: string | null
           email: string
           id: string
           referrer: string | null
-          source: string
+          source: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           email: string
           id?: string
           referrer?: string | null
-          source?: string
+          source?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           email?: string
           id?: string
           referrer?: string | null
-          source?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
+      webhook_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          max_attempts: number
+          next_retry_at: string | null
+          payload: Json
+          response_body: string | null
+          status: string
+          status_code: number | null
+          webhook_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload: Json
+          response_body?: string | null
+          status?: string
+          status_code?: number | null
+          webhook_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          response_body?: string | null
+          status?: string
+          status_code?: number | null
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhooks: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          events: string[]
+          failure_count: number
+          id: string
+          last_status_code: number | null
+          last_triggered_at: string | null
+          name: string
+          secret: string | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          events?: string[]
+          failure_count?: number
+          id?: string
+          last_status_code?: number | null
+          last_triggered_at?: string | null
+          name?: string
+          secret?: string | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          events?: string[]
+          failure_count?: number
+          id?: string
+          last_status_code?: number | null
+          last_triggered_at?: string | null
+          name?: string
+          secret?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
         }
         Relationships: []
       }
     }
-    Views: Record<never, never>
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
-      get_waitlist_count: { Args: Record<PropertyKey, never>; Returns: number }
+      cleanup_expired_trivia_games: { Args: never; Returns: undefined }
+      count_monthly_jd_analyses: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      decrement_interviews_used: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
+      get_active_resume: { Args: { p_user_id: string }; Returns: string }
+      get_interviews_remaining: { Args: { p_user_id: string }; Returns: number }
+      get_waitlist_count: { Args: never; Returns: number }
       grant_interview_credits: {
         Args: {
-          p_user_id: string
+          p_amount_cents: number
           p_interviews: number
           p_product_type: string
-          p_amount_cents: number
-          p_stripe_payment_intent_id?: string | null
-          p_stripe_checkout_session_id?: string | null
+          p_stripe_checkout_session_id?: string
+          p_stripe_payment_intent_id?: string
+          p_user_id: string
         }
         Returns: boolean
       }
       reset_monthly_interviews: { Args: never; Returns: undefined }
+      revoke_interview_credits: {
+        Args: { p_stripe_payment_intent_id: string }
+        Returns: boolean
+      }
+      use_interview_credit: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       company_style:
@@ -1131,7 +1191,9 @@ export interface Database {
       subscription_status: "active" | "canceled" | "past_due" | "trialing"
       subscription_tier: "free" | "pro" | "premium"
     }
-    CompositeTypes: Record<never, never>
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 

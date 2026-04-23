@@ -126,8 +126,6 @@ export default async function InterviewSessionPage({ params }: InterviewSessionP
         testCases: challenge.test_cases as unknown as TestCase[],
         hints: challenge.hints ?? [],
         timeLimitSeconds: challenge.time_limit_seconds,
-        createdAt: challenge.created_at,
-        updatedAt: challenge.updated_at,
       };
     }
   }

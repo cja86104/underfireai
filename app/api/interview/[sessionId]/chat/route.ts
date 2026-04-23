@@ -144,6 +144,24 @@ export async function POST(
       );
     }
 
+    // Sanity-bound response_time_seconds. The value is client-reported and
+    // feeds into analytics + the CHECK-less interview_messages column; a
+    // negative value or 9_999_999 would poison aggregates. 3600 (one hour)
+    // is a generous ceiling for any real answer.
+    if (responseTime !== undefined && responseTime !== null) {
+      if (
+        typeof responseTime !== 'number' ||
+        !Number.isFinite(responseTime) ||
+        responseTime < 0 ||
+        responseTime > 3600
+      ) {
+        return NextResponse.json(
+          { error: 'Validation error', message: 'responseTime must be a number between 0 and 3600 seconds' },
+          { status: 400 }
+        );
+      }
+    }
+
     // ── Panel mode: fetch panel members and use panel orchestration ───────────
     if (isPanelMode) {
       // Fetch panel members from session_interviewers

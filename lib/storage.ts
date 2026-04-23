@@ -21,6 +21,22 @@ const MAX_RESUME_SIZE = 5 * 1024 * 1024; // 5MB
 /** Default signed URL TTL: 1 hour */
 const SIGNED_URL_TTL_SECONDS = 3600;
 
+/**
+ * Authoritative extension per accepted MIME type. We derive the storage-path
+ * extension from the verified MIME rather than the client-supplied filename —
+ * browsers populate File.name with arbitrary strings and using
+ * `file.name.split('.').pop()` leaves the stored path exposed to weird tokens
+ * (URL-encoded bytes, traversal fragments, mis-cased or nested extensions).
+ * Supabase Storage does normalise paths, but sourcing ext from the MIME
+ * whitelist removes the entire filename-trust step.
+ */
+const EXT_BY_MIME: Record<string, string> = {
+  'application/pdf': 'pdf',
+  'text/plain': 'txt',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+};
+
 export interface UploadResult {
   success: boolean;
   /** Storage path within the resumes bucket (e.g. "{userId}/{ts}-resume.pdf").
@@ -63,7 +79,10 @@ export async function uploadResume(
   }
 
   const timestamp = Date.now();
-  const ext = file.name.split('.').pop() ?? 'pdf';
+  // Source the extension from the validated MIME, not from the client-supplied
+  // filename. Falls back to 'pdf' for any MIME slip-through (allowedTypes is
+  // already enforced above, so this branch is defence-in-depth).
+  const ext = EXT_BY_MIME[file.type] ?? 'pdf';
   const filePath = `${userId}/${timestamp}-resume.${ext}`;
 
   try {

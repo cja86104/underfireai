@@ -478,7 +478,7 @@ Analyze and return JSON:
       );
 
       const rawContent = completion.choices[0]?.message?.content ?? '{}';
-      console.log(`[Analysis] Raw response (attempt ${attempt}):`, rawContent.substring(0, 200));
+      console.log(`[Analysis] Response received (attempt ${attempt}, len=${rawContent.length})`);
       
       // Strip markdown code blocks if present (```json ... ``` or ``` ... ```)
       const content = rawContent

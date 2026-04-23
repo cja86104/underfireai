@@ -307,6 +307,49 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // Constraints cap: max 10 items, max 200 chars each. Constraints flow into
+    // the interviewer system prompt and the backstory generator — an unbounded
+    // array of long strings balloons token cost per turn and widens the
+    // prompt-injection surface (user-controlled text embedded in a system role).
+    // 10 leaves headroom above the current CONSTRAINT_OPTIONS list (6 items) so
+    // adding UI options doesn't retroactively reject in-flight requests; 200
+    // chars comfortably fits any preset value while still capping abuse.
+    if (!Array.isArray(archetype_mix) || archetype_mix.length > 2) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'archetype_mix must be an array of at most 2 archetypes' },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(constraints)) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'constraints must be an array of strings' },
+        { status: 400 }
+      );
+    }
+
+    if (constraints.length > 10) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Maximum 10 constraints allowed per session' },
+        { status: 400 }
+      );
+    }
+
+    for (const c of constraints) {
+      if (typeof c !== 'string') {
+        return NextResponse.json(
+          { error: 'Validation error', message: 'Each constraint must be a string' },
+          { status: 400 }
+        );
+      }
+      if (c.length > 200) {
+        return NextResponse.json(
+          { error: 'Validation error', message: 'Each constraint must be 200 characters or fewer' },
+          { status: 400 }
+        );
+      }
+    }
+
     const supabase = await createClient();
     let finalInterviewerId = interviewer_id;
     const panelInterviewers: { id: string; name: string; archetypeKey: InterviewerArchetype; roleLabel: string; isLead: boolean }[] = [];
@@ -625,8 +668,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // Roll back the interview credit using a relative decrement so a concurrent
       // session creation that succeeded between our lock and this rollback is not
       // affected. Setting an absolute value would silently erase that other credit.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).rpc('decrement_interviews_used', { p_user_id: user.id });
+      await supabase.rpc('decrement_interviews_used', { p_user_id: user.id });
 
       // Clean up any interviewers generated during this request so they don't
       // accumulate as orphaned rows. Only delete ones we created here — never
@@ -686,8 +728,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         // Roll back the interview credit using a relative decrement (same reason
         // as the session INSERT rollback above — avoids clobbering a concurrent credit).
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase as any).rpc('decrement_interviews_used', { p_user_id: user.id });
+        await supabase.rpc('decrement_interviews_used', { p_user_id: user.id });
 
         return NextResponse.json(
           { error: 'Database error', message: 'Failed to create panel interview session' },

@@ -45,7 +45,10 @@
       "Bash(for comp in \"StreakBadge\" \"StreakIndicator\" \"WeeklyProgress\" \"ScoreSparkline\" \"ScoreTrend\" \"BadgeShowcase\" \"BadgeDisplay\" \"BackgroundGenerator\" \"PersonalityConfig\" \"SkillsDisplay\")",
       "Bash(for comp in \"GSAPProvider\" \"AnimatedCard\" \"AnimatedText\" \"AnimatedStagger\" \"AnimatedCounter\" \"Parallax\" \"Reveal\" \"AnimatedBackground\" \"HeroGlow\" \"FireGlow\" \"ScrollIndicator\" \"SectionDivider\")",
       "Bash(echo:*)",
-      "Bash(Test-Path \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\\\\components\\\\interviewer\\\\InterviewerActions.tsx\")"
+      "Bash(Test-Path \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\\\\components\\\\interviewer\\\\InterviewerActions.tsx\")",
+      "Bash(sort -t: -k2 -rn)",
+      "Bash(npm run *)",
+      "Bash(tsc --version)"
     ]
   }
 }

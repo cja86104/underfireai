@@ -90,6 +90,47 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // role_focus, red_flags, green_flags, pet_peeves, favorite_topics are
+    // concatenated into the interviewer system prompt. Unbounded arrays or
+    // long strings balloon per-turn token cost and widen the prompt-injection
+    // surface. Caps chosen to fit real configurations with headroom.
+    if (typeof body.role_focus === 'string' && body.role_focus.length > 200) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'role_focus must be 200 characters or fewer' },
+        { status: 400 }
+      );
+    }
+
+    const flagFields: { key: keyof CreateCustomInterviewerRequest; label: string }[] = [
+      { key: 'red_flags',       label: 'red_flags' },
+      { key: 'green_flags',     label: 'green_flags' },
+      { key: 'pet_peeves',      label: 'pet_peeves' },
+      { key: 'favorite_topics', label: 'favorite_topics' },
+    ];
+    for (const { key, label } of flagFields) {
+      const arr = body[key] as unknown;
+      if (!Array.isArray(arr)) {
+        return NextResponse.json(
+          { error: 'Validation error', message: `${label} must be an array of strings` },
+          { status: 400 }
+        );
+      }
+      if (arr.length > 20) {
+        return NextResponse.json(
+          { error: 'Validation error', message: `${label} allows at most 20 entries` },
+          { status: 400 }
+        );
+      }
+      for (const item of arr) {
+        if (typeof item !== 'string' || item.length > 200) {
+          return NextResponse.json(
+            { error: 'Validation error', message: `Each ${label} entry must be a string of 200 characters or fewer` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     if (!VALID_INTERVIEW_TYPES.includes(body.interview_type)) {
       return NextResponse.json(
         { error: 'Validation error', message: 'Invalid interview type' },

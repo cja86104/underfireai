@@ -60,8 +60,6 @@ export interface CodingChallenge {
   testCases: TestCase[];
   hints: string[];
   timeLimitSeconds: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
 // ===========================================

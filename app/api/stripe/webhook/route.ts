@@ -4,6 +4,28 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database, InterviewProduct } from '@/types/database';
 import { INTERVIEW_PRODUCT_CONFIG } from '@/types/database';
 
+// =============================================================================
+// Supabase RPC nullable-arg convention (read this before "fixing" any `?? undefined`)
+// =============================================================================
+// Postgres functions declared with `<param> TEXT DEFAULT NULL` are surfaced in
+// the generated TypeScript types as `?: string` — i.e. `string | undefined` —
+// not `string | null`. That mirrors the wire contract: omitting the key tells
+// supabase-js to leave the param unbound, and Postgres substitutes the
+// declared DEFAULT (NULL).
+//
+// Consequence: where a Stripe object yields `string | null` (e.g.
+// `session.payment_intent` is null on a one-time card-saved session), the
+// idiomatic call is:
+//
+//     p_stripe_payment_intent_id: paymentIntentId ?? undefined
+//
+// Passing `null` directly fails the type check; coalescing to `undefined`
+// removes the key from the JSON body and Postgres applies DEFAULT NULL. This
+// is by design — do NOT "fix" it by changing the RPC signature, casting to
+// any, or piping nulls through. Every `?? undefined` in this file follows
+// this convention.
+// =============================================================================
+
 // Lazy initialization to avoid build-time errors
 let _stripe: Stripe | null = null;
 function getStripe(): Stripe {
@@ -65,6 +87,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         await handlePaymentIntentSucceeded(paymentIntent);
         break;
       }
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object;
+        await handlePaymentIntentFailed(paymentIntent);
+        break;
+      }
+      case 'charge.refunded': {
+        const charge = event.data.object;
+        await handleChargeRefunded(charge);
+        break;
+      }
+      case 'charge.dispute.created': {
+        const dispute = event.data.object;
+        await handleChargeDisputeCreated(dispute);
+        break;
+      }
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
@@ -96,14 +133,45 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 // ONE-TIME PAYMENT HANDLERS
 // =============================================================================
 
+// Source-of-truth guard: credit count always comes from INTERVIEW_PRODUCT_CONFIG,
+// never from the webhook metadata value. Metadata is set by create-checkout on our
+// own server and is effectively trusted today — but webhook payloads that pass
+// signature verification are still "input from an external source," and trusting
+// the integer inside them would make a single leaked signing secret (or a bug in
+// checkout session construction) immediately cash-exchangeable. Reading from the
+// product config makes the credit grant deterministic per product SKU and caps
+// any theoretical tampered payload at the advertised pack size.
+function resolveInterviewCount(
+  product: InterviewProduct,
+  metadataInterviews: string | undefined,
+  context: string,
+): number {
+  const authoritative = INTERVIEW_PRODUCT_CONFIG[product].interviews;
+
+  if (metadataInterviews !== undefined) {
+    const parsed = parseInt(metadataInterviews, 10);
+    if (Number.isFinite(parsed) && parsed !== authoritative) {
+      // Not fatal: we grant the authoritative count anyway. The warning is a
+      // tripwire so production logs surface any drift between the checkout
+      // route (which sets metadata) and the product config (source of truth).
+      console.warn(
+        `[stripe:${context}] metadata.interviews=${parsed} disagrees with ` +
+        `INTERVIEW_PRODUCT_CONFIG[${product}].interviews=${authoritative}. ` +
+        `Granting ${authoritative} (config is authoritative).`,
+      );
+    }
+  }
+
+  return authoritative;
+}
+
 async function handlePaymentCompleted(session: Stripe.Checkout.Session): Promise<void> {
   const userId    = session.metadata?.user_id;
   const product   = session.metadata?.product as InterviewProduct | undefined;
   const interviews = session.metadata?.interviews;
-  const amountCents = session.metadata?.amount_cents;
 
-  if (!userId || !product || !interviews) {
-    console.error('Missing metadata in checkout session:', { userId, product, interviews });
+  if (!userId || !product) {
+    console.error('Missing user_id or product in checkout session metadata:', { userId, product });
     return;
   }
 
@@ -112,8 +180,10 @@ async function handlePaymentCompleted(session: Stripe.Checkout.Session): Promise
     return;
   }
 
-  const interviewCount  = parseInt(interviews, 10);
-  const amount          = amountCents ? parseInt(amountCents, 10) : INTERVIEW_PRODUCT_CONFIG[product].priceCents;
+  const interviewCount = resolveInterviewCount(product, interviews, 'checkout.session.completed');
+  // Use the Stripe-reported charged amount (post-discount) for audit accuracy.
+  // Falls back to the advertised priceCents if amount_total is unexpectedly null.
+  const amount = session.amount_total ?? INTERVIEW_PRODUCT_CONFIG[product].priceCents;
   const paymentIntentId = session.payment_intent as string | null;
 
   // Fast-path idempotency — avoid an unnecessary RPC call for duplicate events.
@@ -158,7 +228,7 @@ async function handlePaymentCompleted(session: Stripe.Checkout.Session): Promise
       p_interviews:                 interviewCount,
       p_product_type:               product,
       p_amount_cents:               amount,
-      p_stripe_payment_intent_id:   paymentIntentId ?? null,
+      p_stripe_payment_intent_id:   paymentIntentId ?? undefined,
       p_stripe_checkout_session_id: session.id,
     });
 
@@ -181,16 +251,16 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
   if (!userId || !product) return; // Not an UnderFire payment intent
 
-  const interviews = paymentIntent.metadata?.interviews;
-  const amountCents = paymentIntent.metadata?.amount_cents;
-
-  if (!interviews) {
-    console.error('Missing interviews in payment intent metadata');
+  // Unknown product guard. Without this, the original code fell through to a
+  // silent zero-credit grant (INTERVIEW_PRODUCT_CONFIG[product]?.priceCents ?? 0)
+  // which would create a useless purchase row and no warning trail.
+  if (!INTERVIEW_PRODUCT_CONFIG[product]) {
+    console.error('Unknown product in payment intent metadata:', product);
     return;
   }
 
-  const interviewCount = parseInt(interviews, 10);
-  const amount         = amountCents ? parseInt(amountCents, 10) : (INTERVIEW_PRODUCT_CONFIG[product]?.priceCents ?? 0);
+  const interviewCount = resolveInterviewCount(product, paymentIntent.metadata?.interviews, 'payment_intent.succeeded');
+  const amount = paymentIntent.amount ?? INTERVIEW_PRODUCT_CONFIG[product].priceCents;
 
   // Fast-path idempotency check.
   const { data: existingPurchase } = await getSupabaseAdmin()
@@ -213,7 +283,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       p_product_type:               product,
       p_amount_cents:               amount,
       p_stripe_payment_intent_id:   paymentIntent.id,
-      p_stripe_checkout_session_id: null,
+      p_stripe_checkout_session_id: undefined,
     });
 
   if (rpcError) {
@@ -227,6 +297,85 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   }
 
   console.log(`Granted ${interviewCount} interviews to user ${userId} via payment intent ${paymentIntent.id}`);
+}
+
+async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+  // One-time payments that fail never granted credits (grant runs on succeeded
+  // only). This handler exists for observability — so failures surface in
+  // Vercel logs instead of being invisible — and to give support a signal when
+  // a user reports "I paid but got nothing."
+  const userId    = paymentIntent.metadata?.user_id ?? 'unknown';
+  const product   = paymentIntent.metadata?.product ?? 'unknown';
+  const lastError = paymentIntent.last_payment_error;
+  console.warn(
+    `Payment intent failed: id=${paymentIntent.id} user=${userId} product=${product} ` +
+    `code=${lastError?.code ?? 'unknown'} message=${lastError?.message ?? 'no message'}`,
+  );
+}
+
+// =============================================================================
+// REFUND + DISPUTE HANDLERS (one-time payments)
+// =============================================================================
+
+async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
+  const paymentIntentId = typeof charge.payment_intent === 'string'
+    ? charge.payment_intent
+    : charge.payment_intent?.id ?? null;
+
+  if (!paymentIntentId) {
+    console.warn(`charge.refunded received without payment_intent: charge=${charge.id}`);
+    return;
+  }
+
+  // Distinguish full from partial refunds. Stripe emits charge.refunded for both.
+  // For partial refunds we log and retain credits — there is no proportional
+  // policy defined (the product is discrete credit packs, not a metered
+  // subscription), so a partial refund does not cleanly map to a credit delta.
+  const fullRefund =
+    charge.refunded === true ||
+    (typeof charge.amount === 'number' &&
+     typeof charge.amount_refunded === 'number' &&
+     charge.amount_refunded >= charge.amount);
+
+  if (!fullRefund) {
+    console.warn(
+      `Partial refund retained credits: charge=${charge.id} ` +
+      `intent=${paymentIntentId} refunded=${charge.amount_refunded}/${charge.amount}. ` +
+      `Manual credit adjustment may be required.`,
+    );
+    return;
+  }
+
+  const { data: revoked, error } = await getSupabaseAdmin()
+    .rpc('revoke_interview_credits', { p_stripe_payment_intent_id: paymentIntentId });
+
+  if (error) {
+    console.error('revoke_interview_credits RPC error:', error);
+    throw error;
+  }
+
+  if (revoked) {
+    console.log(`Revoked interview credits for payment intent ${paymentIntentId} (charge ${charge.id})`);
+  } else {
+    // Either already refunded (idempotent replay) or a one-time payment that
+    // was never granted (out-of-band charge, or legacy subscription — legacy
+    // purchase rows have stripe_payment_intent_id = NULL and are intentionally
+    // excluded from this path).
+    console.log(`No completed purchase to revoke for payment intent ${paymentIntentId} (already refunded, unrecognized, or legacy sub)`);
+  }
+}
+
+async function handleChargeDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
+  // Log-only. A dispute-created event does not necessarily mean the charge is
+  // refunded — the merchant may win. If the dispute is lost, Stripe emits
+  // charge.refunded (with refunded=true) and handleChargeRefunded revokes
+  // credits through the normal path. Surfacing the dispute here gives support
+  // a signal to investigate before the outcome is final.
+  const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id ?? 'unknown';
+  console.warn(
+    `Stripe dispute created: id=${dispute.id} charge=${chargeId} ` +
+    `reason=${dispute.reason} status=${dispute.status} amount=${dispute.amount}`,
+  );
 }
 
 // =============================================================================
@@ -254,7 +403,7 @@ async function handleLegacySubscriptionCheckout(session: Stripe.Checkout.Session
       p_interviews:                 interviewsToGrant,
       p_product_type:               'pro_11',
       p_amount_cents:               3500,
-      p_stripe_payment_intent_id:   null,
+      p_stripe_payment_intent_id:   undefined,
       p_stripe_checkout_session_id: session.id,
     });
 

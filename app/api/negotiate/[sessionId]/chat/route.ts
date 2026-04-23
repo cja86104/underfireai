@@ -76,6 +76,19 @@ export async function POST(
       );
     }
 
+    // Upper bound on the candidate's negotiation turn. Unbounded input
+    // multiplies DeepSeek token cost per turn and widens the injection
+    // surface (message text flows into the recruiter prompt context). 2000
+    // chars easily covers any realistic negotiation message; interview chat
+    // uses 4000 for longer STAR answers — negotiation messages are naturally
+    // terser.
+    if (body.message.length > 2000) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Message exceeds the 2,000 character limit' },
+        { status: 400 }
+      );
+    }
+
     const supabase = await createClient();
 
     // ── Load session ────────────────────────────────────────────────────────
