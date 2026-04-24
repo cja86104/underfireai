@@ -987,17 +987,8 @@ export function InterviewChat({
                         disabled={isEnding}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isEnding ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Ending…
-                          </>
-                        ) : (
-                          <>
-                            <Square className="h-4 w-4" />
-                            End Interview
-                          </>
-                        )}
+                        <Square className="h-4 w-4" />
+                        End Interview
                       </button>
                     </>
                   )}
@@ -1215,6 +1206,23 @@ export function InterviewChat({
           <p className="mt-2 text-xs text-[#8B7355] dark:text-slate-500">
             Press Enter to send, Shift+Enter for new line
           </p>
+        </div>
+      )}
+
+      {isEnding && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm cursor-wait"
+          role="status"
+          aria-live="polite"
+          aria-label="Ending interview"
+        >
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900 px-10 py-8 shadow-2xl">
+            <Loader2 className="h-12 w-12 animate-spin text-fire-500" />
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-white">Ending interview</h2>
+              <p className="mt-1 text-sm text-slate-400">Generating your feedback…</p>
+            </div>
+          </div>
         </div>
       )}
     </div>

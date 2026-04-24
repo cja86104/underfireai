@@ -11,8 +11,13 @@ export const AI_MODELS = {
   // Primary interview model - cost optimized
   INTERVIEW: 'deepseek/deepseek-chat',
   
-  // Analysis model - Mistral Small (different provider to avoid DeepSeek rate limits)
-  ANALYSIS: 'mistralai/mistral-small-3.1-24b-instruct',
+  // Analysis model - Mistral Small 4 (March 2026 release).
+  // Replaces mistral-small-3.1-24b-instruct (March 2025), which began
+  // returning malformed/truncated JSON in production around April 24 2026
+  // — every analysis call was hitting the silent-50s fallback in
+  // analyzeResponse(). Same provider family, same pricing tier
+  // ($0.15/$0.60 per 1M tokens), drop-in compatible with existing prompts.
+  ANALYSIS: 'mistralai/mistral-small-2603',
   
   // Fallback for complex reasoning
   FALLBACK: 'anthropic/claude-3-haiku-20240307',
