@@ -5,6 +5,5 @@
 
 export {
   runPanelTurn,
-  generatePanelOpening,
   type RunPanelTurnInput,
 } from './panel';

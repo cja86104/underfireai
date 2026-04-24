@@ -3,6 +3,31 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
 /**
+ * Canonical origin for Supabase auth email callbacks (signup verification,
+ * password reset).
+ *
+ * WHY NOT JUST window.location.origin?
+ *   Under Vercel preview URLs, inside an embedded iframe, or on any
+ *   non-production deployment, `window.location.origin` resolves to the
+ *   environment the user happens to be browsing from. Supabase embeds that
+ *   value into the verification email, so a user who signs up via a preview
+ *   link ends up with an email pointing back at the preview domain — which
+ *   may be gone days later when they click it.
+ *
+ *   NEXT_PUBLIC_APP_URL is the server-configured production domain. Every
+ *   environment (dev / preview / prod) sets its own value; when set, it's
+ *   the authoritative answer. We fall back to window.location.origin only
+ *   when the env var is missing (true local dev without `.env.local`).
+ */
+function getAuthOrigin(): string {
+  const configured = process.env.NEXT_PUBLIC_APP_URL;
+  if (configured) return configured;
+  if (typeof window !== 'undefined') return window.location.origin;
+  // Should never happen — both client-side funcs below run in the browser.
+  throw new Error('No origin available: NEXT_PUBLIC_APP_URL is unset and window is unavailable');
+}
+
+/**
  * Create a Supabase client for use in the browser (Client Components)
  */
 export function createClient(): SupabaseClient<Database> {
@@ -87,7 +112,7 @@ export async function signUpWithEmail(
     password,
     options: {
       data: metadata,
-      emailRedirectTo: `${window.location.origin}/callback`,
+      emailRedirectTo: `${getAuthOrigin()}/callback`,
     },
   });
   
@@ -104,7 +129,7 @@ export async function signUpWithEmail(
 export async function resetPassword(email: string): Promise<object> {
   const supabase = getClient();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${getAuthOrigin()}/reset-password`,
   });
   
   if (error) {

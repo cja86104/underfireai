@@ -211,27 +211,12 @@ export const SCORING_WEIGHTS = {
   },
 } as const;
 
-// Rate limits by tier
-export const RATE_LIMITS = {
-  free: {
-    monthlyInterviews: 3,
-    voiceModeEnabled: false,
-    maxSessionMinutes: 30,
-  },
-  pro: {
-    monthlyInterviews: Infinity,
-    voiceModeEnabled: true,
-    maxSessionMinutes: 60,
-  },
-  premium: {
-    monthlyInterviews: Infinity,
-    voiceModeEnabled: true,
-    maxSessionMinutes: 90,
-  },
-} as const;
-
 // Export types
 export type AIModel = keyof typeof AI_MODELS;
 export type InterviewType = keyof typeof INTERVIEW_CONFIGS;
 export type CompanyStyle = keyof typeof COMPANY_STYLE_MODIFIERS;
-export type SubscriptionTier = keyof typeof RATE_LIMITS;
+// SubscriptionTier is now the authoritative type from @/types/database
+// (keyed off the Postgres enum), not a local keyof typeof RATE_LIMITS. The
+// previous RATE_LIMITS object encoded the pre-credit free/pro/premium
+// subscription model and was removed with the credit-pack migration — every
+// consumer now imports SubscriptionTier from @/types/database directly.

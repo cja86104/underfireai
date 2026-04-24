@@ -469,8 +469,13 @@ function SecurityTab({ email }: { email: string }): React.JSX.Element {
     setIsLoading(true);
     try {
       const supabase = getClient();
+      // Prefer the server-configured production origin so the reset link
+      // always points to the prod domain, not the preview URL the user may
+      // currently be browsing on. Matches the signup-verification path in
+      // lib/client.ts. See lib/client.ts → getAuthOrigin() for the rationale.
+      const origin = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${origin}/reset-password`,
       });
 
       if (error) throw error;

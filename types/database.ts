@@ -887,33 +887,6 @@ export type Database = {
           },
         ]
       }
-      trivia_games: {
-        Row: {
-          companion_id: string
-          created_at: string
-          expires_at: string
-          game_state: Json
-          id: string
-          user_id: string
-        }
-        Insert: {
-          companion_id: string
-          created_at?: string
-          expires_at?: string
-          game_state: Json
-          id: string
-          user_id: string
-        }
-        Update: {
-          companion_id?: string
-          created_at?: string
-          expires_at?: string
-          game_state?: Json
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_progress: {
         Row: {
           avg_score: number | null
@@ -1138,7 +1111,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_expired_trivia_games: { Args: never; Returns: undefined }
       count_monthly_jd_analyses: {
         Args: { p_user_id: string }
         Returns: number
@@ -1166,7 +1138,6 @@ export type Database = {
         Args: { p_stripe_payment_intent_id: string }
         Returns: boolean
       }
-      use_interview_credit: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       company_style:

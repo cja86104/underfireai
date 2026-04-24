@@ -200,8 +200,14 @@ export async function generateSpeech(
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Cartesia TTS Error:', response.status, errorText);
+      // Cartesia's error body can echo the submitted transcript back (especially
+      // on 400). The transcript is the interviewer's line of dialogue, which
+      // itself contains session context (candidate resume, role, etc). Logging
+      // the full body would drop that context into Vercel server logs — long
+      // retention, broad access. Log only the status code; the body is read
+      // and discarded so Cartesia's response stream is consumed and closed.
+      await response.text().catch(() => '');
+      console.error('Cartesia TTS Error: status =', response.status);
 
       if (response.status === 401) {
         throw new Error('Invalid Cartesia API key');
@@ -212,7 +218,10 @@ export async function generateSpeech(
       }
 
       if (response.status === 400) {
-        throw new Error(`Bad request: ${errorText}`);
+        // Do NOT surface the upstream error body to the caller — it may echo
+        // the transcript. The caller already knows the input failed validation
+        // at Cartesia; a generic message is enough for the UI/toast.
+        throw new Error('Bad request: TTS service rejected the input');
       }
 
       throw new Error(`TTS generation failed: ${response.status}`);

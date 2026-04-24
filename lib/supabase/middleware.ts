@@ -81,8 +81,21 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone();
-    const redirect = request.nextUrl.searchParams.get('redirect');
-    url.pathname = redirect ?? '/dashboard';
+    const rawRedirect = request.nextUrl.searchParams.get('redirect');
+    // Same open-redirect guard used by app/(auth)/callback/route.ts and
+    // components/auth/auth-form.tsx: require a same-origin relative path,
+    // reject protocol-relative URLs (//) and common bypass characters.
+    // Assigning a full URL to `url.pathname` is normalised by the URL API so
+    // cross-origin escape is unlikely in practice, but a whitelisted path
+    // prefix is the simple, uniform rule across every redirect site.
+    const safeRedirect =
+      rawRedirect !== null &&
+      rawRedirect.startsWith('/') &&
+      !rawRedirect.startsWith('//') &&
+      !/[@\\]/.test(rawRedirect)
+        ? rawRedirect
+        : '/dashboard';
+    url.pathname = safeRedirect;
     url.searchParams.delete('redirect');
     return NextResponse.redirect(url);
   }

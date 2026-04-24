@@ -1,0 +1,30 @@
+-- =============================================================================
+-- Drop the unused use_interview_credit RPC.
+--
+-- WHY
+--   use_interview_credit(UUID) was the original credit-consumption path:
+--     1. Read purchased_interviews / interviews_used.
+--     2. If remaining > 0, increment interviews_used.
+--     3. Return TRUE on success, FALSE on no-credit.
+--
+--   It was superseded by the optimistic-lock pattern implemented inline in
+--   /api/interview/create (see app/api/interview/create/route.ts lines that
+--   perform a conditional UPDATE of interviews_used with an equality guard on
+--   the pre-read value). The inline pattern avoids a race where two concurrent
+--   create requests both read the same pre-increment value and both decrement,
+--   netting a single credit charge for two interviews.
+--
+--   Grep confirms zero callers: no server route, no client, no other RPC
+--   references use_interview_credit. The function has been dead since the
+--   credit-pack migration (20250306).
+--
+-- SAFETY
+--   DROP FUNCTION is reversible by re-running the CREATE block from
+--   20250306000000_interview_credits.sql. No data is touched. The pg_cron
+--   job for reset_monthly_interviews is unrelated and continues to exist
+--   (reset_monthly_interviews is a deprecated no-op that the cron still
+--   invokes; dropping it would require also unscheduling the job, deferred
+--   to a later cleanup).
+-- =============================================================================
+
+DROP FUNCTION IF EXISTS public.use_interview_credit(UUID);

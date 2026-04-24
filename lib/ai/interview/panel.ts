@@ -241,24 +241,3 @@ Generate the panel's next turn. Remember to:
   }
 }
 
-// ===========================================
-// GENERATE PANEL OPENING
-// ===========================================
-export async function generatePanelOpening(input: {
-  panel: PanelInterviewer[];
-  targetRole?: string | null;
-  targetCompany?: string | null;
-  resumeContext?: string | null;
-}): Promise<PanelTurnResult> {
-  return runPanelTurn({
-    sessionId: '',
-    userAnswer: '',
-    panel: input.panel,
-    previousPanelState: null,
-    history: [],
-    targetRole: input.targetRole,
-    targetCompany: input.targetCompany,
-    resumeContext: input.resumeContext,
-    isFirstTurn: true,
-  });
-}
