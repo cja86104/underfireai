@@ -77,8 +77,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const session = event.data.object;
         if (session.mode === 'payment') {
           await handlePaymentCompleted(session);
-        } else if (session.mode === 'subscription') {
-          await handleLegacySubscriptionCheckout(session);
         }
         break;
       }
@@ -100,22 +98,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       case 'charge.dispute.created': {
         const dispute = event.data.object;
         await handleChargeDisputeCreated(dispute);
-        break;
-      }
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object;
-        await handleLegacySubscriptionUpdate(subscription);
-        break;
-      }
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object;
-        await handleLegacySubscriptionCanceled(subscription);
-        break;
-      }
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object;
-        await handleLegacyPaymentFailed(invoice);
         break;
       }
       default:
@@ -376,151 +358,4 @@ async function handleChargeDisputeCreated(dispute: Stripe.Dispute): Promise<void
     `Stripe dispute created: id=${dispute.id} charge=${chargeId} ` +
     `reason=${dispute.reason} status=${dispute.status} amount=${dispute.amount}`,
   );
-}
-
-// =============================================================================
-// LEGACY SUBSCRIPTION HANDLERS (for backwards compatibility)
-// =============================================================================
-
-async function handleLegacySubscriptionCheckout(session: Stripe.Checkout.Session): Promise<void> {
-  const userId = session.metadata?.user_id;
-  const tier   = session.metadata?.tier as 'pro' | 'premium';
-
-  if (!userId || !tier) {
-    console.error('Missing metadata in legacy subscription checkout session');
-    return;
-  }
-
-  const subscriptionId  = session.subscription as string;
-  const subscription    = await getStripe().subscriptions.retrieve(subscriptionId);
-  const interviewsToGrant = 11;
-
-  // Atomic credit grant — the UNIQUE constraint on stripe_checkout_session_id
-  // added in migration 20250307 covers legacy checkouts that have no payment_intent_id.
-  const { data: granted, error: rpcError } = await getSupabaseAdmin()
-    .rpc('grant_interview_credits', {
-      p_user_id:                    userId,
-      p_interviews:                 interviewsToGrant,
-      p_product_type:               'pro_11',
-      p_amount_cents:               3500,
-      p_stripe_payment_intent_id:   undefined,
-      p_stripe_checkout_session_id: session.id,
-    });
-
-  if (rpcError) {
-    console.error('grant_interview_credits RPC error (legacy):', rpcError);
-    throw rpcError;
-  }
-
-  // Update Stripe-specific subscription fields — these are idempotent writes
-  // that do not affect billing, so run them regardless of whether the grant
-  // was new or a duplicate event.
-  const { error: stripeFieldsError } = await getSupabaseAdmin()
-    .from('profiles')
-    .update({
-      stripe_customer_id:       session.customer as string,
-      stripe_subscription_id:   subscriptionId,
-      subscription_period_end:  new Date(subscription.current_period_end * 1000).toISOString(),
-    })
-    .eq('id', userId);
-
-  if (stripeFieldsError) {
-    // Non-fatal — credits were already granted (or already existed) above.
-    console.error('Error updating Stripe subscription fields (legacy):', stripeFieldsError);
-  }
-
-  if (granted) {
-    console.log(`Legacy subscription converted: granted ${interviewsToGrant} interviews to user ${userId}`);
-  } else {
-    console.log(`Legacy subscription checkout already processed (idempotent): ${session.id}`);
-  }
-}
-
-async function handleLegacySubscriptionUpdate(subscription: Stripe.Subscription): Promise<void> {
-  const customerId = subscription.customer as string;
-
-  const { data: profile, error: findError } = await getSupabaseAdmin()
-    .from('profiles')
-    .select('id, purchased_interviews')
-    .eq('stripe_customer_id', customerId)
-    .single();
-
-  if (findError || !profile) {
-    console.error('Could not find user for legacy subscription update');
-    return;
-  }
-
-  let status: 'active' | 'canceled' | 'past_due' | 'trialing' = 'active';
-  if (subscription.status === 'past_due') status = 'past_due';
-  else if (subscription.status === 'canceled') status = 'canceled';
-  else if (subscription.status === 'trialing') status = 'trialing';
-
-  const { error } = await getSupabaseAdmin()
-    .from('profiles')
-    .update({
-      subscription_tier:        'pro',
-      subscription_status:      status,
-      stripe_subscription_id:   subscription.id,
-      subscription_period_end:  new Date(subscription.current_period_end * 1000).toISOString(),
-    })
-    .eq('id', profile.id);
-
-  if (error) {
-    console.error('Error updating legacy subscription:', error);
-    throw error;
-  }
-}
-
-async function handleLegacySubscriptionCanceled(subscription: Stripe.Subscription): Promise<void> {
-  const customerId = subscription.customer as string;
-
-  const { data: profile, error: findError } = await getSupabaseAdmin()
-    .from('profiles')
-    .select('id')
-    .eq('stripe_customer_id', customerId)
-    .single();
-
-  if (findError || !profile) {
-    console.error('Could not find user for legacy subscription cancellation');
-    return;
-  }
-
-  const { error } = await getSupabaseAdmin()
-    .from('profiles')
-    .update({
-      subscription_status:      'canceled',
-      stripe_subscription_id:   null,
-      subscription_period_end:  null,
-    })
-    .eq('id', profile.id);
-
-  if (error) {
-    console.error('Error canceling legacy subscription:', error);
-    throw error;
-  }
-
-  console.log(`Legacy subscription canceled for user ${profile.id}, credits retained`);
-}
-
-async function handleLegacyPaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-  const customerId = invoice.customer as string;
-
-  const { data: profile, error: findError } = await getSupabaseAdmin()
-    .from('profiles')
-    .select('id')
-    .eq('stripe_customer_id', customerId)
-    .single();
-
-  if (findError || !profile) return;
-
-  const { error } = await getSupabaseAdmin()
-    .from('profiles')
-    .update({ subscription_status: 'past_due' })
-    .eq('id', profile.id);
-
-  if (error) {
-    console.error('Error updating after failed payment:', error);
-  }
-
-  console.warn(`Legacy payment failed for user ${profile.id}`);
 }

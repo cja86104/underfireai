@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import {
   createChatCompletion,
   generateInterviewSystemPrompt,
@@ -115,6 +116,17 @@ export async function POST(
         limit_reached: true,
         message: 'Session message limit reached',
       });
+    }
+
+    // Rate-limit per session. A runaway client can loop this endpoint and
+    // burn DeepSeek (single) or 3× DeepSeek (panel) tokens per turn. Scoped
+    // by sessionId so two legitimate parallel sessions don't share a bucket.
+    const rl = await checkRateLimit('chat', sessionId);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit', message: 'Too many chat requests. Please slow down a moment.' },
+        { status: 429, headers: rateLimitHeaders(rl) },
+      );
     }
 
     const body = await request.json() as ChatRequestBody;

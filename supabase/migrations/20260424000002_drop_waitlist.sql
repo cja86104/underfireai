@@ -1,0 +1,43 @@
+-- =============================================================================
+-- Drop the waitlist table and its supporting RPC.
+--
+-- WHY
+--   The waitlist was a pre-launch signup capture used by an external Hostinger
+--   landing page. UnderFireAI is now live, the landing page is no longer the
+--   acquisition surface, and the waitlist Edge Function (waitlist-signup) has
+--   been deleted in §6.1. The table contains only test rows from development.
+--   Dropping the table, the get_waitlist_count() RPC, and the related types
+--   removes the dead surface from the codebase.
+--
+-- ORDER
+--   The function is dropped first because no other object depends on it. The
+--   table is dropped second. Both use IF EXISTS so the migration is
+--   idempotent and safe to re-run.
+--
+-- DATA LOSS
+--   Intentional. All rows are test data. No backup is taken. If a backup is
+--   ever needed retroactively, recover from Supabase's automated PITR
+--   (point-in-time recovery) window.
+--
+-- ROLLBACK RECIPE
+--   To restore the original objects (without data):
+--     CREATE TABLE IF NOT EXISTS waitlist (
+--       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+--       email TEXT NOT NULL,
+--       source TEXT NOT NULL DEFAULT 'landing_page',
+--       referrer TEXT DEFAULT '',
+--       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+--     );
+--     CREATE UNIQUE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(email);
+--     CREATE INDEX IF NOT EXISTS idx_waitlist_created ON waitlist(created_at DESC);
+--     ALTER TABLE waitlist ENABLE ROW LEVEL SECURITY;
+--     CREATE OR REPLACE FUNCTION get_waitlist_count()
+--     RETURNS INTEGER AS $$
+--     BEGIN
+--       RETURN (SELECT COUNT(*)::INTEGER FROM waitlist);
+--     END;
+--     $$ LANGUAGE plpgsql SECURITY DEFINER;
+-- =============================================================================
+
+DROP FUNCTION IF EXISTS public.get_waitlist_count();
+DROP TABLE IF EXISTS public.waitlist;

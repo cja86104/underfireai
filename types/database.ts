@@ -981,30 +981,6 @@ export type Database = {
           },
         ]
       }
-      waitlist: {
-        Row: {
-          created_at: string | null
-          email: string
-          id: string
-          referrer: string | null
-          source: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          id?: string
-          referrer?: string | null
-          source?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          id?: string
-          referrer?: string | null
-          source?: string | null
-        }
-        Relationships: []
-      }
       webhook_deliveries: {
         Row: {
           attempts: number
@@ -1121,7 +1097,6 @@ export type Database = {
       }
       get_active_resume: { Args: { p_user_id: string }; Returns: string }
       get_interviews_remaining: { Args: { p_user_id: string }; Returns: number }
-      get_waitlist_count: { Args: never; Returns: number }
       grant_interview_credits: {
         Args: {
           p_amount_cents: number
@@ -1133,7 +1108,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      reset_monthly_interviews: { Args: never; Returns: undefined }
       revoke_interview_credits: {
         Args: { p_stripe_payment_intent_id: string }
         Returns: boolean

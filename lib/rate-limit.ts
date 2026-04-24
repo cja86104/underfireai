@@ -56,6 +56,29 @@ export const RATE_LIMIT_POLICIES = {
   /** Resume upload — each upload spawns a background vulnerability scan
    *  (Mistral call) for paid users. 5/hour per user. */
   resumeUpload: { requests: 5,  window: '3600 s' },
+
+  /** Interview chat — DeepSeek call per turn (3× for panel). Scoped per
+   *  session because the attack is loop-one-session. 20/min per session
+   *  is a generous human pace (~3 seconds between turns). */
+  chat:         { requests: 20, window: '60 s' },
+
+  /** Coaching note generator — Mistral call per invocation. Scoped per
+   *  user: one answer at a time across all concurrent sessions. */
+  coaching:     { requests: 10, window: '60 s' },
+
+  /** Per-message analysis — Mistral call. Scoped per user; same rationale
+   *  as coaching. */
+  analyze:      { requests: 10, window: '60 s' },
+
+  /** Job description parser — DeepSeek call per paste. Paste workflow is
+   *  infrequent in normal use; 10/hour per user is plenty and caps a
+   *  loop-pasted JD abuse path. */
+  jdParse:      { requests: 10, window: '3600 s' },
+
+  /** Webhook test delivery — hits a user-supplied URL. Limits both our
+   *  outbound load and the ability to use UnderFire as a DDoS reflector
+   *  against an arbitrary target. 5/min per user. */
+  webhookTest:  { requests: 5,  window: '60 s' },
 } as const;
 
 export type RateLimitKey = keyof typeof RATE_LIMIT_POLICIES;
