@@ -909,3 +909,20 @@ body {
     @apply px-6 py-3;
   }
 }
+
+/* ========================================
+   MARKDOWN RENDERING RESET
+   ========================================
+   Scope: global. Applies to any markdown renderer output in the app.
+   Purpose: when markdown-to-jsx (or any renderer) emits <pre><code>...</code></pre>
+   for fenced code blocks, the nested <code> would otherwise pick up the
+   inline-code "pill" styling (padding, rounded corners, background) on top
+   of the <pre> container styling. This reset strips those on nested code
+   only, so inline `code` keeps its pill and fenced blocks render cleanly
+   inside their <pre>. */
+pre > code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}

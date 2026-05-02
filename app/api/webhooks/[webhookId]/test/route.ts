@@ -6,6 +6,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/supabase/server';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import { sendTestWebhook } from '@/lib/webhooks';
 
 interface RouteParams {
@@ -27,6 +28,18 @@ export async function POST(
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Please sign in to continue' },
         { status: 401 }
+      );
+    }
+
+    // Rate-limit per user. Test delivery fires a signed POST to a
+    // user-supplied URL; unbounded use turns UnderFire into a DDoS
+    // reflector. 5/min per user is enough for legitimate configuration
+    // testing without offering abuse-grade throughput.
+    const rl = await checkRateLimit('webhookTest', user.id);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit', message: 'Too many test deliveries. Please wait a moment before trying again.' },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import { createChatCompletion } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
 
@@ -42,6 +43,16 @@ export async function POST(
       return NextResponse.json(
         { error: 'Not found', message: 'Interview session not found' },
         { status: 404 }
+      );
+    }
+
+    // Rate-limit per user. Coaching invokes the Mistral analysis model per
+    // call; a looped invocation with the same answer text burns tokens.
+    const rl = await checkRateLimit('coaching', user.id);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit', message: 'Too many coaching requests. Please wait a moment.' },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 

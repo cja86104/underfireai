@@ -12,6 +12,7 @@ import {
   ChevronUp,
   Loader2,
 } from 'lucide-react';
+import Markdown from 'markdown-to-jsx';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
 import { CodeEditor } from './code-editor';
@@ -235,13 +236,22 @@ export function CodingChallengeUI({
           </button>
 
           {showDescription && (
-            <div className="p-4 prose prose-invert prose-sm max-w-none">
-              <div
-                className="text-slate-300 whitespace-pre-wrap"
-                dangerouslySetInnerHTML={{
-                  __html: challenge.description.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>'),
+            <div className="p-4 text-slate-300">
+              <Markdown
+                options={{
+                  disableParsingRawHTML: true,
+                  overrides: {
+                    p:      { props: { className: 'mb-3 last:mb-0' } },
+                    strong: { props: { className: 'font-semibold text-white' } },
+                    code:   { props: { className: 'px-1.5 py-0.5 rounded bg-slate-800 text-fire-300 text-[0.9em] font-mono' } },
+                    pre:    { props: { className: 'bg-slate-950 border border-slate-800 rounded-md p-3 overflow-x-auto my-3' } },
+                    ol:     { props: { className: 'list-decimal list-inside space-y-1 my-3' } },
+                    ul:     { props: { className: 'list-disc list-inside space-y-1 my-3' } },
+                  },
                 }}
-              />
+              >
+                {challenge.description}
+              </Markdown>
             </div>
           )}
         </div>

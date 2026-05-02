@@ -239,6 +239,12 @@ export function InterviewChat({
   // Track if TTS has started for the final message (to avoid ending before TTS even begins)
   const ttsStartedForEndRef = useRef(false);
 
+  // isEnding: true while the /end request is in flight. Prevents double-click
+  // during the ~2s AI feedback generation, and during the 1.5s pre-redirect
+  // success window. Distinct from pendingEnd (which waits for TTS) and isLoading
+  // (which is for message-send).
+  const [isEnding, setIsEnding] = useState(false);
+
   // showHud is resolved in a single effect so the mobile check and WebGL check
   // are never evaluated in separate render cycles. Two separate effects caused a
   // race where hudReady briefly became true before isMobile was set, making the
@@ -552,12 +558,24 @@ export function InterviewChat({
   };
 
   const endInterview = async (): Promise<void> => {
+    setIsEnding(true);
     try {
       const response = await fetch(`/api/interview/${sessionId}/end`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ elapsed_seconds: elapsedTime }),
       });
+
+      // 409 = "this session is already in a completed state". Happens when a
+      // duplicate request races (e.g., user double-clicked, or returned to a
+      // session that was ended in another tab). The session is genuinely
+      // ended — surface that as success and route to results, not as error.
+      if (response.status === 409) {
+        setSessionStatus('completed');
+        router.push(`/interview/${sessionId}/results`);
+        router.refresh();
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Failed to end interview');
@@ -574,6 +592,7 @@ export function InterviewChat({
     } catch (error) {
       toast.error('Failed to end interview');
       console.error('End interview error:', error);
+      setIsEnding(false);
     }
   };
 
@@ -965,7 +984,8 @@ export function InterviewChat({
                           void endInterview();
                           setShowActions(false);
                         }}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700"
+                        disabled={isEnding}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-[#3D3229]/8 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Square className="h-4 w-4" />
                         End Interview
@@ -1186,6 +1206,23 @@ export function InterviewChat({
           <p className="mt-2 text-xs text-[#8B7355] dark:text-slate-500">
             Press Enter to send, Shift+Enter for new line
           </p>
+        </div>
+      )}
+
+      {isEnding && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm cursor-wait"
+          role="status"
+          aria-live="polite"
+          aria-label="Ending interview"
+        >
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900 px-10 py-8 shadow-2xl">
+            <Loader2 className="h-12 w-12 animate-spin text-fire-500" />
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-white">Ending interview</h2>
+              <p className="mt-1 text-sm text-slate-400">Generating your feedback…</p>
+            </div>
+          </div>
         </div>
       )}
     </div>

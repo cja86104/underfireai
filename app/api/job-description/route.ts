@@ -8,6 +8,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import { parseJobDescription } from '@/lib/job-description/parser';
 import type { Json } from '@/types/database';
 
@@ -70,6 +71,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         { error: 'Purchase required', message: 'Job description analysis is available after purchasing interview credits' },
         { status: 403 }
+      );
+    }
+
+    // Rate-limit per user. Each parse is a DeepSeek call on up to 50k
+    // characters of pasted text. 10/hour is plenty for any realistic JD
+    // analysis workflow and caps a loop-paste abuse path.
+    const rl = await checkRateLimit('jdParse', user.id);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit', message: 'Job description limit reached. Try again in up to an hour.' },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 

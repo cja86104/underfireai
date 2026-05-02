@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import { analyzeResponse } from '@/lib/ai/chat-client';
 import type { Json } from '@/types/database';
 
@@ -39,6 +40,16 @@ export async function POST(
       return NextResponse.json(
         { error: 'Not found', message: 'Interview session not found' },
         { status: 404 }
+      );
+    }
+
+    // Rate-limit per user. Each call is a Mistral analysis; a loop over the
+    // same answer burns tokens without producing new signal.
+    const rl = await checkRateLimit('analyze', user.id);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit', message: 'Too many analysis requests. Please wait a moment.' },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 

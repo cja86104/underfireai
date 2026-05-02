@@ -83,7 +83,7 @@ export function VoiceMode({
   const [interimTranscript, setInterimTranscript] = useState('');
   const [finalTranscript, setFinalTranscript] = useState('');
   const [isMuted, setIsMuted] = useState(false);
-  
+
   // REAL frequency data: array of 20 values (0-1), each representing a frequency band
   const [frequencyBars, setFrequencyBars] = useState<number[]>(() =>
     Array<number>(BAR_COUNT).fill(0)
@@ -95,19 +95,26 @@ export function VoiceMode({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const isSpeakingRef = useRef(false);
+  // Re-entry guard: prevents the start-during-onstart race where a fast
+  // double-click both pass the React state guard before onstart fires.
+  // Refs update synchronously, so the second invocation bails immediately.
+  const startingRef = useRef(false);
   // Stable ref for onAudioFrame: loop never restarts on parent re-render.
   const onAudioFrameRef = useRef<((data: AudioLevelData) => void) | undefined>(onAudioFrame);
   useEffect(() => { onAudioFrameRef.current = onAudioFrame; }, [onAudioFrame]);
 
   // Check browser support - derived constant, not state
-  const isSupported = typeof window !== 'undefined' && 
-    (typeof window.SpeechRecognition !== 'undefined' || 
+  const isSupported = typeof window !== 'undefined' &&
+    (typeof window.SpeechRecognition !== 'undefined' ||
      typeof window.webkitSpeechRecognition !== 'undefined');
 
-  // Initialize speech recognition
-  useEffect(() => {
-    if (!isSupported) return;
-
+  // ───────────────────────────────────────────────────────────────────────────
+  // Recognition factory
+  // Builds a fully-wired SpeechRecognition instance. Used on mount and again
+  // on the recovery path inside ensureRecognitionStarted when the engine
+  // refuses to release a wedged state.
+  // ───────────────────────────────────────────────────────────────────────────
+  const buildRecognition = useCallback((): SpeechRecognition => {
     const SpeechRecognitionAPI =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -140,10 +147,24 @@ export function VoiceMode({
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      // 'no-speech' is the engine telling us the user hasn't spoken yet.
+      // Chrome will fire onend right after; that handler syncs React state.
+      // Returning early here preserves the original "keep listening" intent.
+      if (event.error === 'no-speech') {
+        return;
+      }
+
+      // For all other errors we force-stop the engine so React state and
+      // engine state stay in sync. Without this, a wedged engine throws
+      // InvalidStateError on the next start() call — the bug this fix targets.
+      try {
+        recognition.abort();
+      } catch {
+        // Engine already idle or in a state where abort is a no-op.
+      }
+
       if (event.error === 'not-allowed') {
         toast.error('Microphone access denied. Please allow microphone access.');
-      } else if (event.error === 'no-speech') {
-        // Silently handle no-speech - user just hasn't spoken yet
       } else if (event.error !== 'aborted') {
         toast.error('Speech recognition error. Please try again.');
       }
@@ -151,104 +172,117 @@ export function VoiceMode({
     };
 
     recognition.onend = () => {
-      // Only reset to idle if we're currently listening
-      // This prevents race conditions with manual stop
-      setRecordingState((current) => 
+      // Only reset to idle if we're currently listening.
+      // This prevents race conditions with manual stop and with the
+      // recovery path's deliberate abort+rebuild sequence.
+      setRecordingState((current) =>
         current === 'listening' ? 'idle' : current
       );
     };
 
-    recognitionRef.current = recognition;
+    return recognition;
+  }, []);
 
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-      }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        void audioContextRef.current.close();
-      }
-    };
-  }, [isSupported]);
-
-  // REAL audio level visualization using frequency bins from Web Audio API
-  const startAudioLevelMonitoring = useCallback(async (): Promise<void> => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream;
-
-      const audioContext = new AudioContext();
-      audioContextRef.current = audioContext;
-
-      const analyser = audioContext.createAnalyser();
-      analyserRef.current = analyser;
-      
-      // FFT size determines frequency resolution
-      // 256 gives us 128 frequency bins (frequencyBinCount = fftSize / 2)
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.8; // Smooth out rapid changes
-
-      const source = audioContext.createMediaStreamSource(stream);
-      source.connect(analyser);
-
-      // Frequency data buffer - reused each frame for performance
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-      const updateLevels = (): void => {
-        if (!analyserRef.current) return;
-        
-        // Get REAL frequency data from the FFT
-        analyserRef.current.getByteFrequencyData(dataArray);
-        
-        // Map 128 frequency bins to 20 bars
-        // Each bar represents a range of frequencies
-        // Lower indices = lower frequencies, higher indices = higher frequencies
-        const binsPerBar = Math.floor(dataArray.length / BAR_COUNT);
-        
-        const newBars = Array.from({ length: BAR_COUNT }, (_, barIndex) => {
-          const startBin = barIndex * binsPerBar;
-          const endBin = startBin + binsPerBar;
-          
-          // Average the frequency bins for this bar
-          let sum = 0;
-          for (let i = startBin; i < endBin && i < dataArray.length; i++) {
-            sum += dataArray[i];
-          }
-          const average = sum / binsPerBar;
-          
-          // Normalize to 0-1 range
-          return average / 255;
-        });
-        
-        setFrequencyBars(newBars);
-
-        // If the 3D HUD is listening, fire the audio frame callback.
-        // Compute rms and peak from the normalized bar values and dispatch
-        // to the AudioLevelContext ref — zero React re-renders.
-        if (onAudioFrameRef.current) {
-          const rms = Math.sqrt(newBars.reduce((sum, v) => sum + v * v, 0) / newBars.length);
-          const peak = Math.max(...newBars);
-          onAudioFrameRef.current({
-            rms: Math.min(1, rms),
-            peak: Math.min(1, peak),
-            frequencies: newBars,
-            isActive: true,
-          });
-        }
-
-        animationFrameRef.current = requestAnimationFrame(updateLevels);
-      };
-
-      updateLevels();
-    } catch (err) {
-      console.error('Failed to start audio monitoring:', err);
-      toast.error('Could not access microphone for audio visualization');
+  // ───────────────────────────────────────────────────────────────────────────
+  // Defensive start: catches InvalidStateError and recovers by recreating
+  // the recognition instance. Chrome can leave the same instance in a wedged
+  // state where start() throws indefinitely; recreating is more reliable
+  // than waiting on settle timing.
+  // ───────────────────────────────────────────────────────────────────────────
+  const ensureRecognitionStarted = useCallback((): void => {
+    let rec = recognitionRef.current;
+    if (!rec) {
+      rec = buildRecognition();
+      recognitionRef.current = rec;
     }
+
+    try {
+      rec.start();
+      return;
+    } catch (err) {
+      if (!(err instanceof DOMException) || err.name !== 'InvalidStateError') {
+        throw err;
+      }
+      // Engine wedged. Fall through to recovery.
+    }
+
+    // Force-stop the wedged instance, then recreate from scratch.
+    try {
+      rec.abort();
+    } catch {
+      // ignore — already stopped
+    }
+    rec = buildRecognition();
+    recognitionRef.current = rec;
+    rec.start();
+  }, [buildRecognition]);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Audio analyser setup using a caller-supplied MediaStream.
+  // Acquiring the stream is the caller's responsibility so permission errors
+  // surface in a single place before recognition starts.
+  // ───────────────────────────────────────────────────────────────────────────
+  const setupAnalyser = useCallback((stream: MediaStream): void => {
+    const audioContext = new AudioContext();
+    audioContextRef.current = audioContext;
+
+    const analyser = audioContext.createAnalyser();
+    analyserRef.current = analyser;
+
+    // FFT size determines frequency resolution.
+    // 256 gives us 128 frequency bins (frequencyBinCount = fftSize / 2)
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.8;
+
+    const source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+
+    // Frequency data buffer - reused each frame for performance
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    const updateLevels = (): void => {
+      if (!analyserRef.current) return;
+
+      analyserRef.current.getByteFrequencyData(dataArray);
+
+      // Map 128 frequency bins to 20 bars.
+      // Each bar represents a range of frequencies.
+      // Lower indices = lower frequencies, higher indices = higher frequencies.
+      const binsPerBar = Math.floor(dataArray.length / BAR_COUNT);
+
+      const newBars = Array.from({ length: BAR_COUNT }, (_, barIndex) => {
+        const startBin = barIndex * binsPerBar;
+        const endBin = startBin + binsPerBar;
+
+        let sum = 0;
+        for (let i = startBin; i < endBin && i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / binsPerBar;
+
+        return average / 255;
+      });
+
+      setFrequencyBars(newBars);
+
+      // If the 3D HUD is listening, fire the audio frame callback.
+      // Compute rms and peak from the normalized bar values and dispatch
+      // to the AudioLevelContext ref — zero React re-renders.
+      if (onAudioFrameRef.current) {
+        const rms = Math.sqrt(newBars.reduce((sum, v) => sum + v * v, 0) / newBars.length);
+        const peak = Math.max(...newBars);
+        onAudioFrameRef.current({
+          rms: Math.min(1, rms),
+          peak: Math.min(1, peak),
+          frequencies: newBars,
+          isActive: true,
+        });
+      }
+
+      animationFrameRef.current = requestAnimationFrame(updateLevels);
+    };
+
+    updateLevels();
   }, []);
 
   const stopAudioLevelMonitoring = useCallback(() => {
@@ -265,28 +299,105 @@ export function VoiceMode({
       audioContextRef.current = null;
     }
     analyserRef.current = null;
-    setFrequencyBars(Array(BAR_COUNT).fill(0));
+    setFrequencyBars(Array<number>(BAR_COUNT).fill(0));
   }, []);
 
-  const startRecording = useCallback(async () => {
-    if (!recognitionRef.current) return;
+  // ───────────────────────────────────────────────────────────────────────────
+  // Initialize speech recognition on mount.
+  // ───────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isSupported) return;
 
-    setFinalTranscript('');
-    setInterimTranscript('');
+    recognitionRef.current = buildRecognition();
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // ignore
+        }
+        recognitionRef.current = null;
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+      }
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        void audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+    };
+  }, [isSupported, buildRecognition]);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Start recording: acquire stream first, wire analyser, then start engine.
+  // The startingRef lock prevents the rapid-double-click race that produces
+  // InvalidStateError before the engine's onstart event fires.
+  // ───────────────────────────────────────────────────────────────────────────
+  const startRecording = useCallback(async (): Promise<void> => {
+    if (startingRef.current) return;
+    startingRef.current = true;
 
     try {
-      recognitionRef.current.start();
-      await startAudioLevelMonitoring();
-    } catch (err) {
-      console.error('Failed to start recording:', err);
-      toast.error('Failed to start recording');
+      setFinalTranscript('');
+      setInterimTranscript('');
+
+      // 1. Acquire mic stream first. Permission errors surface here as a
+      //    single clean message before the recognition engine is touched.
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) {
+        console.error('Microphone access denied or unavailable:', err);
+        const isPermissionError =
+          err instanceof DOMException &&
+          (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError');
+        toast.error(
+          isPermissionError
+            ? 'Microphone access denied. Please allow microphone access.'
+            : 'Could not access microphone. Please check your device.'
+        );
+        return;
+      }
+
+      mediaStreamRef.current = stream;
+
+      // 2. Wire the analyser to our owned stream.
+      try {
+        setupAnalyser(stream);
+      } catch (err) {
+        console.error('Failed to set up audio analyser:', err);
+        stopAudioLevelMonitoring();
+        toast.error('Failed to set up audio visualization');
+        return;
+      }
+
+      // 3. Start the recognition engine with InvalidStateError recovery.
+      try {
+        ensureRecognitionStarted();
+      } catch (err) {
+        console.error('Failed to start recording:', err);
+        toast.error('Failed to start recording. Please reload the page.');
+        stopAudioLevelMonitoring();
+      }
+    } finally {
+      startingRef.current = false;
     }
-  }, [startAudioLevelMonitoring]);
+  }, [ensureRecognitionStarted, setupAnalyser, stopAudioLevelMonitoring]);
 
   const stopRecording = useCallback(() => {
     if (!recognitionRef.current) return;
 
-    recognitionRef.current.stop();
+    try {
+      recognitionRef.current.stop();
+    } catch {
+      // Engine may already be idle if onend raced us; safe to swallow.
+    }
     stopAudioLevelMonitoring();
     setRecordingState('processing');
 
@@ -304,7 +415,11 @@ export function VoiceMode({
   const cancelRecording = useCallback(() => {
     if (!recognitionRef.current) return;
 
-    recognitionRef.current.abort();
+    try {
+      recognitionRef.current.abort();
+    } catch {
+      // ignore
+    }
     stopAudioLevelMonitoring();
     setFinalTranscript('');
     setInterimTranscript('');
@@ -314,7 +429,7 @@ export function VoiceMode({
   // Track which message was already spoken to prevent re-reads
   const lastSpokenMessageRef = useRef<string | null>(null);
 
-  // Auto-play interviewer messages via TTS
+  // Auto-play interviewer messages via TTS.
   // This component only renders when voiceEnabled is true (gated by parent),
   // so we don't re-check tts_enabled here — just mute state and activity.
   useEffect(() => {
@@ -449,7 +564,7 @@ export function VoiceMode({
         {recordingState === 'idle' ? (
           <button
             type="button"
-            onClick={startRecording}
+            onClick={() => { void startRecording(); }}
             disabled={isLoading || !isActive}
             className={cn(
               'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all',
