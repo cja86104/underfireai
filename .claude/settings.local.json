@@ -48,7 +48,11 @@
       "Bash(Test-Path \"C:\\\\Users\\\\cja86\\\\Desktop\\\\underfireai\\\\components\\\\interviewer\\\\InterviewerActions.tsx\")",
       "Bash(sort -t: -k2 -rn)",
       "Bash(npm run *)",
-      "Bash(tsc --version)"
+      "Bash(tsc --version)",
+      "Bash(supabase functions *)",
+      "Bash(npx *)",
+      "Bash(awk '{print \"lockLines=\"$1}')",
+      "Bash(npm uninstall *)"
     ]
   }
 }

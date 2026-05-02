@@ -1133,7 +1133,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      reset_monthly_interviews: { Args: never; Returns: undefined }
       revoke_interview_credits: {
         Args: { p_stripe_payment_intent_id: string }
         Returns: boolean
