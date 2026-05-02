@@ -126,7 +126,7 @@ export function buildResumeTargetingPrompt(
     return '';
   }
 
-  let prompt = `\n## RESUME COACHING MODE (Premium Feature)\n`;
+  let prompt = `\n## RESUME COACHING MODE\n`;
   prompt += `This candidate has opted into resume-targeted practice. Your goal is to probe their weak points constructively.\n\n`;
 
   if (vulnerabilities.length > 0) {

@@ -6,7 +6,7 @@ import {
   Users,
   MessageSquare,
   Sparkles,
-  Crown,
+  Lock,
   Wand2,
 } from 'lucide-react';
 import { getCurrentUser, getUserInterviewers, getSubscriptionStatus } from '@/lib/supabase/server';
@@ -121,15 +121,12 @@ export default async function InterviewersPage(): Promise<React.JSX.Element> {
           >
             <div className="flex items-start gap-4">
               <div className="rounded-xl bg-[#3D3229]/10 dark:bg-slate-700 p-3">
-                <Crown className="h-6 w-6 text-[#6B5744] dark:text-slate-400" />
+                <Lock className="h-6 w-6 text-[#6B5744] dark:text-slate-400" />
               </div>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-lg font-bold text-[#3D3229] dark:text-white">Create Custom Interviewer</h3>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#8B5A2B]/10 text-[#8B5A2B]">PRO</span>
-                </div>
+                <h3 className="text-lg font-bold text-[#3D3229] dark:text-white mb-1">Create Custom Interviewer</h3>
                 <p className="text-sm text-[#6B5744] dark:text-slate-400">
-                  Unlock custom interviewer creation
+                  Included with any interview pack
                 </p>
               </div>
             </div>

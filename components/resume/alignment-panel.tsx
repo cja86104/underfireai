@@ -157,12 +157,12 @@ export function ResumeAlignmentPanel({
           <div className="inline-flex items-center justify-center rounded-full bg-[#FAF8F5] dark:bg-slate-800 p-5 mb-5 border border-[#3D3229]/10 dark:border-slate-700">
             <Lock className="h-12 w-12 text-[#3D3229] dark:text-slate-400" />
           </div>
-          <h3 className="text-2xl font-bold text-[#3D3229] dark:text-white mb-3">Upgrade to Pro</h3>
+          <h3 className="text-2xl font-bold text-[#3D3229] dark:text-white mb-3">Purchase Required</h3>
           <p className="text-lg text-[#3D3229] dark:text-slate-200 mb-6 max-w-md mx-auto">
             See how your interview performance aligns with your resume claims. Identify gaps and get specific suggestions to improve.
           </p>
           <a href="/settings?tab=billing" className="inline-flex items-center gap-3 rounded-xl bg-orange-500 px-6 py-3 text-lg font-semibold text-white hover:bg-orange-600 transition-colors">
-            Upgrade Now
+            Get Interview Credits
           </a>
         </div>
       </div>

@@ -126,7 +126,7 @@ export function ResumeHealthScore({
           href="/settings?tab=billing"
           className="text-lg text-orange-500 hover:text-orange-400 transition-colors font-semibold"
         >
-          Upgrade to unlock
+          Unlock with any pack
         </Link>
       </div>
     );

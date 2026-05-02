@@ -363,7 +363,7 @@ export async function POST(
       hasResume = !!resumeContext && resumeContext.length > 0;
     }
 
-    // Get resume targeting context if set (Premium feature)
+    // Get resume targeting context if set
     const resumeTargetingContext = sessionData?.resume_targeting_context as {
       promptContext?: string;
     } | null;

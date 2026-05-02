@@ -49,7 +49,7 @@ function JobAnalysisUpgradeGate(): React.JSX.Element {
           Paste any job posting to instantly see how your resume stacks up, identify skill gaps, and get a targeted practice plan.
         </p>
         <p className="text-[#8B7355] dark:text-slate-500 text-sm mb-8">
-          Purchase an interview pack to unlock this and all other premium features.
+          Purchase an interview pack to unlock this and all other features.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -69,7 +69,7 @@ function JobAnalysisUpgradeGate(): React.JSX.Element {
         </div>
 
         <div className="mt-10 pt-8 border-t border-[#3D3229]/10 dark:border-slate-800">
-          <p className="text-base font-bold text-[#3D3229] dark:text-white mb-6 text-center tracking-wide uppercase">What you get with Pro</p>
+          <p className="text-base font-bold text-[#3D3229] dark:text-white mb-6 text-center tracking-wide uppercase">What you get with every pack</p>
           <div className="grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto text-left">
             {[
               {

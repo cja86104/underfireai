@@ -9,7 +9,6 @@ import {
   Shield,
   Loader2,
   Check,
-  Crown,
   Globe,
   Sparkles,
   Zap,
@@ -277,7 +276,7 @@ function BillingTab({ subscription }: { subscription: SettingsTabsProps['subscri
           </div>
           {subscription.hasPurchased && (
             <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-              <Crown className="h-5 w-5" />
+              <Check className="h-5 w-5" />
               <span className="text-sm font-medium">All features unlocked</span>
             </div>
           )}
