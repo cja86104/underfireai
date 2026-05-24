@@ -274,26 +274,33 @@ export function computeSessionMetrics(turns: HudTurnAnalysis[]): HudSessionMetri
     };
   }
 
+  // Clamp each turn value to [0, 100] before accumulating. A turn produced
+  // from a pre-fix analysis shape (camelCase PanelTurnAnalysis) could carry
+  // undefined fields that downstream Math.round would promote to NaN.
+  // Number(undefined) === NaN, so we use (v ?? 0) || 0 which also converts NaN.
+  const safeVal = (v: number | undefined): number =>
+    Number.isFinite(v as number) ? (v as number) : 0;
+
   const sum = turns.reduce(
     (acc, t) => ({
-      clarity: acc.clarity + t.clarity.value,
-      structure: acc.structure + t.structure.value,
-      impact: acc.impact + t.impact.value,
-      confidence: acc.confidence + t.confidence.value,
-      technicalDepth: acc.technicalDepth + (t.technicalDepth?.value ?? 0),
-      overall: acc.overall + t.overallScore,
+      clarity:      acc.clarity      + safeVal(t.clarity.value),
+      structure:    acc.structure    + safeVal(t.structure.value),
+      impact:       acc.impact       + safeVal(t.impact.value),
+      confidence:   acc.confidence   + safeVal(t.confidence.value),
+      technicalDepth: acc.technicalDepth + safeVal(t.technicalDepth?.value),
+      overall:      acc.overall      + safeVal(t.overallScore),
     }),
     { clarity: 0, structure: 0, impact: 0, confidence: 0, technicalDepth: 0, overall: 0 },
   );
 
   const n = turns.length;
   const averages: HudSessionAverages = {
-    clarity: Math.round(sum.clarity / n),
-    structure: Math.round(sum.structure / n),
-    impact: Math.round(sum.impact / n),
-    confidence: Math.round(sum.confidence / n),
+    clarity:       Math.round(sum.clarity       / n),
+    structure:     Math.round(sum.structure     / n),
+    impact:        Math.round(sum.impact        / n),
+    confidence:    Math.round(sum.confidence    / n),
     technicalDepth: Math.round(sum.technicalDepth / n),
-    overall: Math.round(sum.overall / n),
+    overall:       Math.round(sum.overall       / n),
   };
 
   // moodScore: -1 at avg 0, 0 at avg 50, +1 at avg 100

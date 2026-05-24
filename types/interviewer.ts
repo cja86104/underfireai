@@ -338,13 +338,16 @@ export interface MoodState {
 }
 
 // ============================================
-// VOICE OPTIONS (Cartesia Sonic 3)
+// VOICE OPTIONS (OpenAI TTS — tts-1)
+// Key names match voice_config.voice_id values stored in the database.
+// No migration required — only the provider behind them changed.
 // ============================================
-export type CartesiaVoice = 'katie' | 'kiefer' | 'tessa' | 'kyle' | 'leo' | 'maya';
+export type OpenAIVoiceKey = 'katie' | 'kiefer' | 'tessa' | 'kyle' | 'leo' | 'maya';
 
 export interface VoiceOption {
-  id: CartesiaVoice;
-  cartesiaId: string;
+  id: OpenAIVoiceKey;
+  /** OpenAI voice ID string sent to the API. */
+  openAIId: string;
   name: string;
   description: string;
   gender: 'neutral' | 'masculine' | 'feminine';
@@ -352,11 +355,10 @@ export interface VoiceOption {
   suggestedFor: InterviewerArchetype[];
 }
 
-// Voice IDs are sourced from lib/tts/cartesia-tts.ts (authoritative)
 export const VOICE_OPTIONS: VoiceOption[] = [
   {
     id: 'katie',
-    cartesiaId: 'f786b574-daa5-4673-aa0c-cbe3e8534c02',
+    openAIId: 'alloy',
     name: 'Katie',
     description: 'Professional and clear',
     gender: 'feminine',
@@ -365,7 +367,7 @@ export const VOICE_OPTIONS: VoiceOption[] = [
   },
   {
     id: 'kiefer',
-    cartesiaId: '228fca29-3a0a-435c-8728-5cb483251068',
+    openAIId: 'onyx',
     name: 'Kiefer',
     description: 'Confident and direct',
     gender: 'masculine',
@@ -374,7 +376,7 @@ export const VOICE_OPTIONS: VoiceOption[] = [
   },
   {
     id: 'tessa',
-    cartesiaId: '6ccbfb76-1fc6-48f7-b71d-91ac6298247b',
+    openAIId: 'nova',
     name: 'Tessa',
     description: 'Warm and engaging',
     gender: 'feminine',
@@ -383,7 +385,7 @@ export const VOICE_OPTIONS: VoiceOption[] = [
   },
   {
     id: 'kyle',
-    cartesiaId: 'c961b81c-a935-4c17-bfb3-ba2239de8c2f',
+    openAIId: 'echo',
     name: 'Kyle',
     description: 'Dynamic and energetic',
     gender: 'masculine',
@@ -392,7 +394,7 @@ export const VOICE_OPTIONS: VoiceOption[] = [
   },
   {
     id: 'leo',
-    cartesiaId: '0834f3df-e650-4766-a20c-5a93a43aa6e3',
+    openAIId: 'fable',
     name: 'Leo',
     description: 'Deep and authoritative',
     gender: 'masculine',
@@ -401,7 +403,7 @@ export const VOICE_OPTIONS: VoiceOption[] = [
   },
   {
     id: 'maya',
-    cartesiaId: 'cbaf8084-f009-4838-a096-07ee2e6612b1',
+    openAIId: 'shimmer',
     name: 'Maya',
     description: 'Friendly and approachable',
     gender: 'feminine',

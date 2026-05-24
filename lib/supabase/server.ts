@@ -1,5 +1,6 @@
 // Return types are intentionally inferred to match Supabase client types exactly
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { Database, Profile, Interviewer, UserResume, UserProgress } from '@/types/database';
 
@@ -7,6 +8,32 @@ interface CookieToSet {
   name: string;
   value: string;
   options?: CookieOptions;
+}
+
+/**
+ * Singleton service-role client for server-side writes that must bypass RLS.
+ * Use ONLY in Route Handlers for AI-generated content (interviewer messages,
+ * session state updates). Never expose to the client or use for user-owned reads.
+ */
+let _adminClient: ReturnType<typeof createSupabaseClient<Database>> | null = null;
+
+export function createAdminClient(): ReturnType<typeof createSupabaseClient<Database>> {
+  if (_adminClient) return _adminClient;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set for admin operations',
+    );
+  }
+
+  _adminClient = createSupabaseClient<Database>(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  return _adminClient;
 }
 
 /**

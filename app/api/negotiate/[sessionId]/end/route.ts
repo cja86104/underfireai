@@ -3,6 +3,7 @@ import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS } from '@/lib/ai/config';
 import type { NegotiationSessionUpdate } from '@/types/database';
+import { SIMULATION_DISCLAIMER } from '@/lib/negotiation/disclaimer';
 
 interface EndNegotiationRequest {
   elapsed_seconds: number;
@@ -241,6 +242,7 @@ Return ONLY valid JSON in this exact shape:
       improvements: feedback.improvements,
       ai_feedback: feedback.ai_feedback,
       message: 'Negotiation session completed and scored',
+      disclaimer: SIMULATION_DISCLAIMER,
     });
   } catch (error) {
     console.error('Error ending negotiation session:', error);

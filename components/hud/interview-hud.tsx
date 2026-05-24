@@ -61,10 +61,14 @@ function StatPill({
   label: string;
   value: string | number;
 }): React.JSX.Element {
+  // Guard against NaN: typeof NaN === 'number' but NaN !== NaN.
+  // React renders NaN as the string "NaN" which triggers a console error;
+  // replace it with the dash sentinel so the UI stays clean.
+  const display = typeof value === 'number' && Number.isNaN(value) ? '–' : value;
   return (
     <div className="flex flex-col items-center gap-0.5 rounded-md bg-white/[0.03] border border-white/[0.06] px-3 py-2">
       <span className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</span>
-      <span className="text-sm font-bold tabular-nums text-slate-200">{value}</span>
+      <span className="text-sm font-bold tabular-nums text-slate-200">{display}</span>
     </div>
   );
 }

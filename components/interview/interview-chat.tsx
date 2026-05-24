@@ -114,8 +114,11 @@ interface AudioWiredVoiceModeProps {
   isActive: boolean;
   isLoading: boolean;
   onTranscript: (text: string) => void;
-  onSpeakText: (text: string) => Promise<void>;
-  lastInterviewerMessage: string | null;
+  // ID-based TTS handoff. The server looks the message up and synthesises
+  // its persisted content — passing raw text would re-introduce the
+  // arbitrary-text vulnerability that the /api/tts route now refuses.
+  onSpeakInterviewerMessage: (messageId: string) => Promise<void>;
+  ttsQueue: string[];
   hudEnabled: boolean;
 }
 
@@ -124,8 +127,8 @@ function AudioWiredVoiceMode({
   isActive,
   isLoading,
   onTranscript,
-  onSpeakText,
-  lastInterviewerMessage,
+  onSpeakInterviewerMessage,
+  ttsQueue,
   hudEnabled,
 }: AudioWiredVoiceModeProps): React.JSX.Element {
   const { updateAudioLevel, resetAudioLevel } = useAudioLevelWriter();
@@ -145,8 +148,8 @@ function AudioWiredVoiceMode({
       isActive={isActive}
       isLoading={isLoading}
       onTranscript={onTranscript}
-      onSpeakText={onSpeakText}
-      lastInterviewerMessage={lastInterviewerMessage}
+      onSpeakInterviewerMessage={onSpeakInterviewerMessage}
+      ttsQueue={ttsQueue}
       onAudioFrame={handleAudioFrame}
     />
   );
@@ -186,7 +189,14 @@ export function InterviewChat({
   const [showActions, setShowActions] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(initialVoiceEnabled);
-  const [lastInterviewerMessage, setLastInterviewerMessage] = useState<string | null>(null);
+  // Track the DB id of the most-recent interviewer message so the voice-mode
+  // child can hand that id (not the raw text) to /api/tts. The server uses
+  // it to load the persisted content and verify session/role ownership —
+  // see app/api/tts/route.ts.
+  // TTS queue: ordered list of DB message IDs to speak sequentially.
+  // Panel turns push multiple IDs at once; single-interviewer pushes one.
+  // VoiceMode drains the queue in order, waiting for each to finish.
+  const [ttsQueue, setTtsQueue] = useState<string[]>([]);
 
   // Calculate user message count for session limit enforcement
   const userMessageCount = useMemo(() => {
@@ -284,20 +294,27 @@ export function InterviewChat({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Start interview if no messages (only on initial mount)
+  // Start interview if no messages (only on initial mount).
+  //
+  // Guard uses `initialMessages` prop, NOT `messages` state.
+  // `initialMessages` is set once at mount from the server-side DB fetch
+  // and is never mutated — it reflects what the DB actually contained when
+  // the page loaded. Using `messages` state here was fragile: setMessages([])
+  // or any concurrent-render edge case could reset it to 0 and trigger a
+  // false restart even when the session already has a conversation history.
   useEffect(() => {
-    if (messages.length === 0 && sessionStatus === 'in_progress') {
+    if (initialMessages.length === 0 && sessionStatus === 'in_progress') {
       void startInterview();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Track response time and last interviewer message
+  // Track response time. Separate from TTS queue — we still need the
+  // response start time regardless of whether voice is enabled.
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === 'interviewer' && !isLoading) {
       responseStartTimeRef.current = Date.now();
-      setLastInterviewerMessage(lastMessage.content);
     }
   }, [messages, isLoading]);
 
@@ -307,18 +324,18 @@ export function InterviewChat({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSpeakText = useCallback(async (text: string): Promise<void> => {
+  // Hand the persisted message id to /api/tts. The server fetches the
+  // message content, verifies that the parent session belongs to this user,
+  // confirms the message role is `interviewer`, and derives the voice +
+  // speed from the interviewer's stored voice_config. Voice and speed are
+  // intentionally NOT sent from the client — that closed the audit's
+  // "arbitrary text burns TTS credit" finding.
+  const handleSpeakInterviewerMessage = useCallback(async (messageId: string): Promise<void> => {
     try {
-      const voiceId = interviewer.voiceConfig?.voice_id ?? 'katie';
-      const numericSpeed = interviewer.voiceConfig?.speed ?? 1.0;
-      // Map numeric speed to string for TTS API
-      const speed: 'slow' | 'normal' | 'fast' =
-        numericSpeed <= 0.85 ? 'slow' : numericSpeed >= 1.15 ? 'fast' : 'normal';
-
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: voiceId, speed }),
+        body: JSON.stringify({ message_id: messageId }),
       });
 
       if (!response.ok) {
@@ -332,23 +349,41 @@ export function InterviewChat({
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
 
-      setIsSpeaking(true);
-      await audio.play();
+      // Await full playback completion — not just play() start.
+      // audio.play() resolves when playback BEGINS, not when it ENDS.
+      // The TTS queue drain awaits this function, so resolving on start
+      // would fire the next speaker immediately over the first one.
+      // Wrapping in a Promise that resolves on 'ended' fixes the overlap.
+      await new Promise<void>((resolve) => {
+        audio.addEventListener('ended', () => {
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          resolve();
+        });
+        audio.addEventListener('error', () => {
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          resolve(); // resolve, not reject — let queue continue to next turn
+        });
 
-      // Clean up object URL after playback and reset speaking flag
-      audio.addEventListener('ended', () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-      });
-      audio.addEventListener('error', () => {
-        setIsSpeaking(false);
+        setIsSpeaking(true);
+        audio.play().catch((playError: unknown) => {
+          if (playError instanceof DOMException && playError.name === 'NotAllowedError') {
+            console.warn('[TTS] Autoplay blocked by browser — user gesture required.');
+          } else {
+            console.error('[TTS] play() error:', playError);
+          }
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          resolve(); // silent skip — queue moves to next turn
+        });
       });
     } catch (error) {
       console.error('TTS playback error:', error);
       const msg = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Voice playback failed: ${msg}`);
     }
-  }, [interviewer.voiceConfig]);
+  }, []);
 
   const handleVoiceTranscript = useCallback((transcript: string): void => {
     setInputValue(transcript);
@@ -399,6 +434,12 @@ export function InterviewChat({
           _tone: turn.tone,
         } as InterviewMessage & { _speakerName?: string; _tone?: string }));
         setMessages(panelMessages);
+        // Enqueue all panel opening IDs for sequential TTS playback.
+        // Each ID is a persisted DB row; VoiceMode speaks them in order.
+        if (voiceEnabled) {
+          const ids = (data.panel_message_ids ?? []).filter(Boolean);
+          if (ids.length > 0) setTtsQueue(ids);
+        }
       } else {
         const firstMessage: InterviewMessage = {
           id: data.message_id ?? `msg-${Date.now()}`,
@@ -411,6 +452,10 @@ export function InterviewChat({
           created_at: new Date().toISOString(),
         };
         setMessages([firstMessage]);
+        // Single interviewer opening — enqueue the one message ID.
+        if (voiceEnabled && data.message_id) {
+          setTtsQueue([data.message_id]);
+        }
       }
     } catch (error) {
       toast.error('Failed to start interview. Please try again.');
@@ -512,13 +557,31 @@ export function InterviewChat({
         ];
       });
 
+      // ── TTS queue: enqueue this turn's speaker IDs in order ───────────
+      // Panel: push all panel_message_ids so VoiceMode speaks each speaker
+      // in sequence. Single: push the one interviewer_message_id.
+      // Replacing the queue (not appending) cancels any stale prior run.
+      if (voiceEnabled) {
+        if (data.panel_turns && data.panel_turns.length > 0) {
+          const ids = (data.panel_message_ids ?? []).filter(Boolean);
+          if (ids.length > 0) setTtsQueue(ids);
+        } else if (data.interviewer_message_id) {
+          setTtsQueue([data.interviewer_message_id]);
+        }
+      }
+
       // ── HUD: dispatch turn analysis ────────────────────────────────────
-      if (hudEnabled && data.analysis && data.user_message_id) {
+      // Use user_message_id when available (persisted DB row). Fall back to the
+      // temp client-side ID so the HUD still updates even if the DB write failed.
+      // This decouples metric display from persistence — a silent save failure
+      // previously caused all gauges to stay dark for the rest of the session.
+      const hudTurnId = data.user_message_id ?? tempUserMessage.id;
+      if (hudEnabled && data.analysis) {
         const previousTurns = useHudSessionStore.getState().turns;
         const previous = previousTurns.length > 0 ? previousTurns[previousTurns.length - 1] : undefined;
         const hudTurn = responseAnalysisToHudTurn(
           data.analysis,
-          data.user_message_id,
+          hudTurnId,
           userMessageCount,
           responseTime ?? 0,
           previous,
@@ -736,8 +799,8 @@ export function InterviewChat({
         isActive={sessionStatus === 'in_progress' && !isLoading}
         isLoading={isLoading}
         onTranscript={handleVoiceTranscript}
-        onSpeakText={handleSpeakText}
-        lastInterviewerMessage={lastInterviewerMessage}
+        onSpeakInterviewerMessage={handleSpeakInterviewerMessage}
+        ttsQueue={ttsQueue}
         hudEnabled={hudEnabled}
       />
     ) : initialVoiceEnabled ? (
@@ -1152,8 +1215,8 @@ export function InterviewChat({
             isActive={sessionStatus === 'in_progress' && !isLoading}
             isLoading={isLoading}
             onTranscript={handleVoiceTranscript}
-            onSpeakText={handleSpeakText}
-            lastInterviewerMessage={lastInterviewerMessage}
+            onSpeakInterviewerMessage={handleSpeakInterviewerMessage}
+            ttsQueue={ttsQueue}
             hudEnabled={hudEnabled}
           />
         </div>

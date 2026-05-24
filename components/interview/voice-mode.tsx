@@ -23,8 +23,20 @@ interface VoiceModeProps {
   isActive: boolean;
   isLoading: boolean;
   onTranscript: (transcript: string) => void;
-  onSpeakText: (text: string) => Promise<void>;
-  lastInterviewerMessage: string | null;
+  /**
+   * Called with the persisted DB id of an interviewer message when it should
+   * be synthesised. The id-based contract (not text) lets /api/tts load the
+   * message server-side, verify session ownership + interviewer role, and
+   * use the stored content — closing the "arbitrary text burns TTS
+   * credit" finding from the audit.
+   */
+  onSpeakInterviewerMessage: (messageId: string) => Promise<void>;
+  /**
+   * Ordered list of DB message IDs to speak sequentially.
+   * Replacing the array cancels any in-progress playback run and starts fresh.
+   * Panel turns push multiple IDs at once; single-interviewer pushes one.
+   */
+  ttsQueue: string[];
   /**
    * Optional: called every animation frame while the microphone is active.
    * Receives the current FFT snapshot (rms, peak, 20 frequency bands).
@@ -74,8 +86,8 @@ export function VoiceMode({
   isActive,
   isLoading,
   onTranscript,
-  onSpeakText,
-  lastInterviewerMessage,
+  onSpeakInterviewerMessage,
+  ttsQueue,
   onAudioFrame,
 }: VoiceModeProps): React.JSX.Element {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
@@ -426,39 +438,43 @@ export function VoiceMode({
     setRecordingState('idle');
   }, [stopAudioLevelMonitoring]);
 
-  // Track which message was already spoken to prevent re-reads
-  const lastSpokenMessageRef = useRef<string | null>(null);
+  // runId: incremented each time a new ttsQueue arrives.
+  // The draining loop checks its captured runId against the ref on every
+  // iteration — if they diverge, a newer queue replaced this one and the
+  // loop exits without speaking the remaining items.
+  const ttsRunIdRef = useRef(0);
 
-  // Auto-play interviewer messages via TTS.
-  // This component only renders when voiceEnabled is true (gated by parent),
-  // so we don't re-check tts_enabled here — just mute state and activity.
+  // Sequential TTS queue drain.
+  // Speaks each ID in order, waiting for the previous clip to finish before
+  // starting the next. Replacing ttsQueue (via setTtsQueue in the parent)
+  // cancels the current run via the runId guard.
   useEffect(() => {
-    if (!lastInterviewerMessage || isMuted || !isActive) {
-      return;
-    }
+    if (!ttsQueue.length || isMuted || !isActive) return;
 
-    // Skip if we already spoke this exact message
-    if (lastSpokenMessageRef.current === lastInterviewerMessage) {
-      return;
-    }
+    const runId = ++ttsRunIdRef.current;
 
-    // Guard against duplicate calls while speaking
-    if (isSpeakingRef.current) return;
-    isSpeakingRef.current = true;
-    lastSpokenMessageRef.current = lastInterviewerMessage;
+    const drainQueue = async (): Promise<void> => {
+      for (const messageId of ttsQueue) {
+        // Bail if a newer queue has arrived or component conditions changed.
+        if (runId !== ttsRunIdRef.current || isMuted || !isActive) break;
 
-    const speak = async (): Promise<void> => {
-      setPlaybackState('loading');
-      try {
-        await onSpeakText(lastInterviewerMessage);
-      } finally {
+        setPlaybackState('loading');
+        try {
+          await onSpeakInterviewerMessage(messageId);
+        } catch {
+          // Individual turn failure — log handled upstream, continue to next.
+        }
+      }
+      // Only clear state if this run wasn't superseded.
+      if (runId === ttsRunIdRef.current) {
         setPlaybackState('idle');
         isSpeakingRef.current = false;
       }
     };
 
-    void speak();
-  }, [lastInterviewerMessage, isMuted, isActive, onSpeakText]);
+    isSpeakingRef.current = true;
+    void drainQueue();
+  }, [ttsQueue, isMuted, isActive, onSpeakInterviewerMessage]);
 
   // Suppress unused sessionId warning - reserved for future session-specific features
   void sessionId;

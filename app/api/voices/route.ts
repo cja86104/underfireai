@@ -10,7 +10,7 @@ import { VOICE_OPTIONS, INTERVIEWER_ARCHETYPES } from '@/types/interviewer';
 export function GET(): NextResponse {
   const voices = VOICE_OPTIONS.map((voice) => ({
     id: voice.id,
-    cartesiaId: voice.cartesiaId,
+    openAIId: voice.openAIId,
     name: voice.name,
     description: voice.description,
     gender: voice.gender,
@@ -21,7 +21,6 @@ export function GET(): NextResponse {
     ),
   }));
 
-  // Group voices by tone
   const byTone = voices.reduce<Record<string, string[]>>((acc, voice) => {
     const tone = voice.tone;
     if (!acc[tone]) acc[tone] = [];
@@ -29,7 +28,6 @@ export function GET(): NextResponse {
     return acc;
   }, {});
 
-  // Group voices by gender
   const byGender = voices.reduce<Record<string, string[]>>((acc, voice) => {
     const gender = voice.gender;
     if (!acc[gender]) acc[gender] = [];
@@ -38,8 +36,8 @@ export function GET(): NextResponse {
   }, {});
 
   return NextResponse.json({
-    provider: 'cartesia',
-    model: 'sonic-3',
+    provider: 'openai',
+    model: 'tts-1',
     voices,
     defaultVoice: 'katie',
     groupings: {
@@ -48,11 +46,11 @@ export function GET(): NextResponse {
     },
     totalVoices: voices.length,
     features: {
-      streaming: true,
+      streaming: false,
       lowLatency: true,
-      timeToFirstAudio: '40-90ms',
-      maxCharacters: 10000,
-      supportedSpeeds: ['slow', 'normal', 'fast'],
+      timeToFirstAudio: '500-800ms',
+      maxCharacters: 4096,
+      supportedSpeeds: { min: 0.25, max: 4.0, default: 1.0 },
     },
   });
 }

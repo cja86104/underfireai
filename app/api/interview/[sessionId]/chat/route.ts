@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, createAdminClient, getCurrentUser } from '@/lib/supabase/server';
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import {
   createChatCompletion,
@@ -9,7 +9,11 @@ import {
 } from '@/lib/ai/chat-client';
 import { detectMoodTriggers, calculateMoodUpdate } from '@/lib/ai/mood-engine';
 import { runPanelTurn } from '@/lib/ai/interview';
-import { sanitizeInterviewerResponse, containsStageDirections } from '@/lib/ai/response-sanitizer';
+import {
+  sanitizeInterviewerResponse,
+  containsStageDirections,
+  containsMetaCommentary,
+} from '@/lib/ai/response-sanitizer';
 import type {
   InterviewMessage,
   PersonalityBase,
@@ -17,6 +21,7 @@ import type {
   VoiceConfig,
   CommunicationStyle,
   QuestionPatterns,
+  ResponseAnalysis,
   Json,
 } from '@/types/database';
 import type { PanelInterviewer, PanelState } from '@/types/panel';
@@ -247,32 +252,51 @@ export async function POST(
         isFirstTurn: isStarting,
       });
 
+      // Use the service-role client for all server-side writes in the panel path.
+      // The user-auth (anon key + cookie) client is used only for reads so that
+      // RLS policies correctly scope the session ownership check. Writes go
+      // through adminSupabase so they are never blocked by RLS edge cases
+      // (particularly the trigger-driven interviewers.total_sessions UPDATE
+      // introduced in the 20260424000001 migration, which runs in the
+      // inserting user's security context and can cause silent insert failures
+      // if the RLS UPDATE policy evaluation raises inside the trigger).
+      const adminSupabase = createAdminClient();
+
       // Save user message (if not starting)
       let userMessageId: string | null = null;
       const warnings: string[] = [];
 
+      // Normalise PanelTurnAnalysis (camelCase from LLM) to ResponseAnalysis
+      // (snake_case expected by the HUD mapper and the interview_messages JSONB schema).
+      const panelAnalysisForDb: ResponseAnalysis | null = panelResult.analysis
+        ? {
+            clarity_score:    panelResult.analysis.clarityScore    ?? 50,
+            confidence_score: panelResult.analysis.confidenceScore ?? 50,
+            relevance_score:  panelResult.analysis.relevanceScore  ?? 50,
+            depth_score:      panelResult.analysis.depthScore      ?? 50,
+            star_score:       panelResult.analysis.starScore       ?? 50,
+            word_count:       message.split(/\s+/).length,
+            filler_words:     [],
+            key_points:       [],
+            coaching_note:    panelResult.analysis.notes ?? null,
+          }
+        : null;
+
       if (!isStarting) {
-        const { data: userMsg, error: userMsgError } = await supabase
+        const { data: userMsg, error: userMsgError } = await adminSupabase
           .from('interview_messages')
           .insert({
             session_id: sessionId,
             role: 'candidate',
             content: message,
             response_time_seconds: responseTime,
-            analysis: panelResult.analysis ? {
-              clarity_score: panelResult.analysis.clarityScore,
-              confidence_score: panelResult.analysis.confidenceScore,
-              relevance_score: panelResult.analysis.relevanceScore,
-              depth_score: panelResult.analysis.depthScore,
-              star_score: panelResult.analysis.starScore,
-              notes: panelResult.analysis.notes,
-            } : null,
+            analysis: panelAnalysisForDb as unknown as Json,
           })
           .select('id')
           .single();
 
         if (userMsgError) {
-          console.error('Error saving user message:', userMsgError);
+          console.error('[Chat Panel] Error saving user message:', userMsgError);
           warnings.push('Failed to save your message to the session history.');
         } else {
           userMessageId = userMsg.id;
@@ -282,11 +306,18 @@ export async function POST(
       // Save each panel member's response as separate message
       const panelMessageIds: string[] = [];
       for (const turn of panelResult.turns) {
+        // Surface meta-commentary leaks ("As an AI…") in logs BEFORE
+        // sanitization erases them — once the sentence is stripped the
+        // raw evidence is gone, but the rate of leaks is the signal we
+        // need to monitor system-prompt drift.
+        if (containsMetaCommentary(turn.text)) {
+          console.warn(`[Chat Panel] AI self-identification leak in ${turn.speakerName}'s response — sanitizing.`);
+        }
         const cleanText = sanitizeInterviewerResponse(turn.text);
         if (cleanText !== turn.text) {
-          console.warn(`[Chat Panel] Stage directions stripped from ${turn.speakerName}'s response.`);
+          console.warn(`[Chat Panel] Stage directions or meta-commentary stripped from ${turn.speakerName}'s response.`);
         }
-        const { data: panelMsg, error: panelMsgError } = await supabase
+        const { data: panelMsg, error: panelMsgError } = await adminSupabase
           .from('interview_messages')
           .insert({
             session_id: sessionId,
@@ -298,21 +329,21 @@ export async function POST(
           .single();
 
         if (panelMsgError) {
-          console.error('Error saving panel message:', panelMsgError);
+          console.error('[Chat Panel] Error saving panel message:', panelMsgError);
           warnings.push(`Failed to save response from ${turn.speakerName}.`);
         } else if (panelMsg) {
           panelMessageIds.push(panelMsg.id);
         }
       }
 
-      // Update session panel_state
-      const { error: updateError } = await supabase
+      // Update session panel_state via admin client (same reason as message writes above).
+      const { error: updateError } = await adminSupabase
         .from('interview_sessions')
         .update({ panel_state: panelResult.panelState as unknown as Json })
         .eq('id', sessionId);
 
       if (updateError) {
-        console.error('Error updating panel_state:', updateError);
+        console.error('[Chat Panel] Error updating panel_state:', updateError);
       }
 
       // Check for session end
@@ -332,7 +363,11 @@ export async function POST(
           text: sanitizeInterviewerResponse(turn.text),
         })),
         panel_state: panelResult.panelState,
-        analysis: panelResult.analysis,
+        // Return the normalised snake_case ResponseAnalysis so the HUD mapper
+        // (responseAnalysisToHudTurn) receives the shape it expects. The raw
+        // PanelTurnAnalysis uses camelCase which caused all HUD metric scores
+        // to read as undefined (→ 0) before this fix.
+        analysis: panelAnalysisForDb,
         user_message_id: userMessageId,
         panel_message_ids: panelMessageIds,
         should_end: shouldEnd,
@@ -420,10 +455,16 @@ export async function POST(
       throw new Error('No response from AI');
     }
 
-    // Strip stage directions, internal thoughts, and markdown from the response.
-    // The system prompt forbids this output but models occasionally slip.
+    // Strip stage directions, internal thoughts, markdown, and AI self-
+    // identification from the response. The system prompt forbids this
+    // output but models occasionally slip — log each category separately
+    // so the rate of each kind of drift is independently visible in
+    // production logs.
     if (containsStageDirections(rawResponse)) {
       console.warn('[Chat] Stage directions detected in AI response — sanitizing.');
+    }
+    if (containsMetaCommentary(rawResponse)) {
+      console.warn('[Chat] AI self-identification leak detected in response — sanitizing.');
     }
     const aiResponse = sanitizeInterviewerResponse(rawResponse);
 

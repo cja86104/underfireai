@@ -223,11 +223,11 @@ function QuestionCard({ pair, index }: { pair: QAPair; index: number }) {
                 <MiniScoreBar label="Relevance" value={analysis.relevance_score} />
                 <MiniScoreBar label="Depth" value={analysis.depth_score} />
               </div>
-              {analysis.key_points.length > 0 && (
+              {(analysis.key_points ?? []).length > 0 && (
                 <div className="mt-5">
                   <p className="text-lg font-bold text-[#3D3229] dark:text-white mb-3">What you covered well</p>
                   <ul className="space-y-2">
-                    {analysis.key_points.map((point, i) => (
+                    {(analysis.key_points ?? []).map((point, i) => (
                       <li key={i} className="flex items-start gap-3">
                         <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                         <span className="text-lg text-[#3D3229] dark:text-slate-200">{point}</span>
@@ -240,7 +240,7 @@ function QuestionCard({ pair, index }: { pair: QAPair; index: number }) {
                 <div className="mt-5">
                   <p className="text-lg font-bold text-amber-700 dark:text-amber-400 mb-3">Filler words in this answer</p>
                   <div className="flex flex-wrap gap-3">
-                    {analysis.filler_words.map((word, i) => (
+                    {(analysis.filler_words ?? []).map((word, i) => (
                       <span key={i} className="text-base bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-700 px-4 py-2 rounded-full font-medium">&ldquo;{word}&rdquo;</span>
                     ))}
                   </div>
