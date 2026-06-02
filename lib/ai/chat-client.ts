@@ -478,8 +478,7 @@ Analyze and return JSON:
       );
 
       const rawContent = completion.choices[0]?.message?.content ?? '{}';
-      console.log(`[Analysis] Response received (attempt ${attempt}, len=${rawContent.length})`);
-      
+
       // Strip markdown code blocks if present (```json ... ``` or ``` ... ```)
       const content = rawContent
         .replace(/^```(?:json)?\s*\n?/i, '')
@@ -498,10 +497,9 @@ Analyze and return JSON:
         key_points: (parsed.key_points as string[]) ?? [],
         coaching_note: typeof parsed.coaching_note === 'string' ? parsed.coaching_note.trim() || null : null,
       };
-      
-      console.log(`[Analysis] Parsed scores:`, { star: result.star_score, clarity: result.clarity_score, confidence: result.confidence_score });
+
       return result;
-      
+
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`[Analysis] Error (attempt ${attempt}/${maxRetries}):`, errorMsg);

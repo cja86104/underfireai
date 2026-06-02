@@ -291,7 +291,8 @@ Return ONLY valid JSON, no markdown or additional text.`;
       scores.overall_score > 0 ? scores.overall_score : null
     );
 
-    // Send webhook notification (async, non-blocking)
+    // Send webhook notification. Awaits every configured endpoint so the
+    // webhook_sent flag we write below reflects actual delivery state.
     const webhookResult = await sendSessionCompletedWebhook({
       session_id: sessionId,
       user_id: user.id,
@@ -318,8 +319,10 @@ Return ONLY valid JSON, no markdown or additional text.`;
       },
     });
 
-    // Update session_scores with webhook status
-    if (webhookResult.sent) {
+    // Update session_scores with webhook status. Only record success when at
+    // least one configured endpoint actually delivered — previously this was
+    // set to true on dispatch, so persistent delivery failures were invisible.
+    if (webhookResult.successCount > 0) {
       await supabase
         .from('session_scores')
         .update({

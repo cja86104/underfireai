@@ -301,12 +301,19 @@ async function updateDeliveryRecord(
 }
 
 /**
- * Send webhook notification for session completion
- * This is async and non-blocking - errors are logged but don't affect the main flow
+ * Send webhook notification for session completion.
+ *
+ * Awaits every per-webhook delivery (each with its own retry budget inside
+ * deliverWebhook) so the returned `sent` flag reflects whether at least one
+ * delivery actually succeeded, not just that a request was dispatched.
+ *
+ * Callers that record `webhook_sent` on the session_scores row should gate on
+ * `successCount > 0` — a `false` here means every configured endpoint failed
+ * or no endpoints were configured.
  */
 export async function sendSessionCompletedWebhook(
   sessionData: SessionCompletedPayload['data']
-): Promise<{ sent: boolean; webhookCount: number }> {
+): Promise<{ sent: boolean; webhookCount: number; successCount: number; totalCount: number }> {
   const payload: SessionCompletedPayload = {
     event: 'session.completed',
     timestamp: new Date().toISOString(),
@@ -321,10 +328,10 @@ export async function sendSessionCompletedWebhook(
     );
 
     if (webhooks.length === 0) {
-      return { sent: false, webhookCount: 0 };
+      return { sent: false, webhookCount: 0, successCount: 0, totalCount: 0 };
     }
 
-    // Send to all configured webhooks (in parallel, non-blocking)
+    // Send to all configured webhooks in parallel
     const deliveryPromises = webhooks.map(async (webhook) => {
       const deliveryId = await createDeliveryRecord(
         webhook.id,
@@ -342,14 +349,25 @@ export async function sendSessionCompletedWebhook(
       return result;
     });
 
-    // Don't await all - fire and forget for non-blocking behavior
-    // But we do want to return quickly
-    Promise.allSettled(deliveryPromises).catch(console.error);
+    // Await all deliveries so the return value reflects real outcomes. This
+    // adds at most one webhook timeout window (10s × maxRetries with backoff)
+    // to the end-of-session scoring response — acceptable because the caller
+    // is the score route, not a hot critical path.
+    const results = await Promise.allSettled(deliveryPromises);
 
-    return { sent: true, webhookCount: webhooks.length };
+    const successCount = results.reduce((count, r) => {
+      return r.status === 'fulfilled' && r.value.success === true ? count + 1 : count;
+    }, 0);
+
+    return {
+      sent: successCount > 0,
+      webhookCount: webhooks.length,
+      successCount,
+      totalCount: webhooks.length,
+    };
   } catch (error) {
     console.error('Error sending session completed webhook:', error);
-    return { sent: false, webhookCount: 0 };
+    return { sent: false, webhookCount: 0, successCount: 0, totalCount: 0 };
   }
 }
 

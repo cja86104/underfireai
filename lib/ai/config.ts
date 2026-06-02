@@ -1,10 +1,20 @@
 /**
  * UnderFireAI - AI Configuration
- * 
+ *
  * Uses OpenRouter for cost-effective AI routing.
  * Primary model: DeepSeek for interviews (cost optimized)
  * Fallback: Claude for complex analysis
  */
+
+// Fail loudly at module load if NEXT_PUBLIC_APP_URL is missing rather than
+// silently sending a hardcoded production domain in OpenRouter's HTTP-Referer
+// header. This env var is required app-wide (also used by Stripe redirects,
+// sitemap/robots base URL, and auth callback resolution) — there is no
+// sensible per-environment fallback.
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+if (!APP_URL) {
+  throw new Error('Missing required environment variable: NEXT_PUBLIC_APP_URL');
+}
 
 // Model identifiers for OpenRouter
 export const AI_MODELS = {
@@ -30,7 +40,7 @@ export const AI_MODELS = {
 export const OPENROUTER_CONFIG = {
   baseUrl: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
-    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'https://underfireai.com',
+    'HTTP-Referer': APP_URL,
     'X-Title': 'UnderFireAI',
   },
 } as const;

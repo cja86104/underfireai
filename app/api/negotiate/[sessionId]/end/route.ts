@@ -37,6 +37,17 @@ export async function POST(
     }
 
     const body = await request.json() as EndNegotiationRequest;
+    const { elapsed_seconds } = body;
+
+    // Validate elapsed_seconds: must be a finite non-negative number.
+    // A missing, negative, or non-numeric value is stored as null rather than
+    // writing garbage into duration_seconds.
+    const elapsedSeconds: number | null =
+      typeof elapsed_seconds === 'number' &&
+      isFinite(elapsed_seconds) &&
+      elapsed_seconds >= 0
+        ? Math.round(elapsed_seconds)
+        : null;
 
     const supabase = await createClient();
 
@@ -83,7 +94,7 @@ export async function POST(
       .update({
         status: 'completed',
         ended_at: new Date().toISOString(),
-        duration_seconds: body.elapsed_seconds ?? 0,
+        duration_seconds: elapsedSeconds,
       })
       .eq('id', sessionId);
 

@@ -70,7 +70,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps):
           tier: subscription.tier,
           status: subscription.status,
           periodEnd: subscription.periodEnd ?? null,
-          interviewsRemaining: subscription.availableInterviews,
           purchasedInterviews: subscription.purchasedInterviews,
           usedInterviews: subscription.usedInterviews,
           availableInterviews: subscription.availableInterviews,

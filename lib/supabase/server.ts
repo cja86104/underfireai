@@ -225,8 +225,6 @@ export interface SubscriptionStatusResponse {
   tier: 'free' | 'pro' | 'premium';
   status: 'active' | 'canceled' | 'past_due' | 'trialing';
   periodEnd?: string | null;
-  /** @deprecated Use interviewsRemaining instead */
-  interviewsRemaining?: number;
   /** Total interviews purchased (lifetime) */
   purchasedInterviews: number;
   /** Total interviews used (lifetime) */
@@ -251,7 +249,6 @@ export async function getSubscriptionStatus(): Promise<SubscriptionStatusRespons
       purchasedInterviews: 0,
       usedInterviews: 0,
       availableInterviews: 0,
-      interviewsRemaining: 0,
       canStartInterview: false,
       hasPurchased: false,
     };
@@ -269,7 +266,6 @@ export async function getSubscriptionStatus(): Promise<SubscriptionStatusRespons
     purchasedInterviews: purchased,
     usedInterviews: used,
     availableInterviews: available,
-    interviewsRemaining: available, // backwards compat
     canStartInterview: available > 0,
     hasPurchased,
   };

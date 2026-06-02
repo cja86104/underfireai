@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { createChatCompletion } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
 import type { ParsedResumeData, Json } from '@/types/database';
@@ -30,6 +30,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Please sign in to continue' },
         { status: 401 }
+      );
+    }
+
+    // Check if user has purchased
+    const subscription = await getSubscriptionStatus();
+
+    if (!subscription.hasPurchased) {
+      return NextResponse.json(
+        {
+          error: 'Purchase required',
+          message: 'Resume extraction is available after purchasing interview credits',
+        },
+        { status: 403 }
       );
     }
 

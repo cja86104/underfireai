@@ -33,8 +33,6 @@ interface SettingsTabsProps {
     tier: 'free' | 'pro' | 'premium';
     status: string;
     periodEnd: string | null;
-    /** @deprecated Use availableInterviews instead */
-    interviewsRemaining?: number;
     purchasedInterviews: number;
     usedInterviews: number;
     availableInterviews: number;

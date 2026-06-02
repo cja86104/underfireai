@@ -72,10 +72,13 @@ export async function POST(
 
     const supabase = await createClient();
 
-    // Verify session belongs to user and get limits
+    // Verify session belongs to user and get limits. Selects every column read
+    // later in this handler (interview_type, max_user_messages, panel_state,
+    // resume_targeting_context) so a single ownership-checked fetch replaces
+    // the previous two-roundtrip pattern.
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')
-      .select('id, status, user_id')
+      .select('id, status, user_id, interview_type, max_user_messages, panel_state, resume_targeting_context')
       .eq('id', sessionId)
       .eq('user_id', user.id)
       .single();
@@ -94,14 +97,7 @@ export async function POST(
       );
     }
 
-    // Get full session data (includes session_length, max_user_messages, interview_type, panel_state)
-    const { data: sessionData } = await supabase
-      .from('interview_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .single();
-
-    const isPanelMode = sessionData?.interview_type === 'panel';
+    const isPanelMode = session.interview_type === 'panel';
 
     // Get current user message count
     const { count: userMessageCount } = await supabase
@@ -110,7 +106,7 @@ export async function POST(
       .eq('session_id', sessionId)
       .eq('role', 'candidate');
 
-    const maxMessages = sessionData?.max_user_messages ?? 20; // Default to standard
+    const maxMessages = session.max_user_messages ?? 20; // Default to standard
     const currentCount = userMessageCount ?? 0;
 
     // Check if session should be force-ended due to message limit
@@ -237,7 +233,7 @@ export async function POST(
       });
 
       // Get previous panel state
-      const previousPanelState = sessionData?.panel_state as PanelState | null;
+      const previousPanelState = session.panel_state as PanelState | null;
 
       // Run panel turn
       const panelResult = await runPanelTurn({
@@ -399,7 +395,7 @@ export async function POST(
     }
 
     // Get resume targeting context if set
-    const resumeTargetingContext = sessionData?.resume_targeting_context as {
+    const resumeTargetingContext = session.resume_targeting_context as {
       promptContext?: string;
     } | null;
 

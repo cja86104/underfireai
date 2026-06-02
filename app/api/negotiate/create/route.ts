@@ -42,7 +42,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // because amounts stored in the DB seed the UI's anchor numbers — a
     // payload with NaN / Infinity / Number.MAX_SAFE_INTEGER would break the
     // formatter and poison downstream scoring prompts.
-    const MAX_AMOUNT = 10_000_000; // $100,000.00 in cents — comfortably above any real offer
+    const MAX_AMOUNT = 1_000_000; // $1,000,000 in dollars — comfortably above any real annual offer
     const MAX_EXPERIENCE_YEARS = 60;
     const MAX_ROLE_LENGTH = 200;
     const MAX_COMPANY_LENGTH = 200;
