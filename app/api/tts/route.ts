@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import {
-  generateSpeech,
+  generateSpeechStream,
   OPENAI_VOICES,
   isOpenAITTSConfigured,
 } from '@/lib/tts/openai-tts';
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const voiceConfig = (interviewer.voice_config ?? null) as VoiceConfig | null;
     const selectedVoiceKey = resolveVoiceKey(voiceConfig?.voice_id, message.id);
     // voice_config.speed is stored as a numeric value (e.g. 1.0).
-    // OpenAI accepts 0.25–4.0; we pass it through and let generateSpeech clamp it.
+    // OpenAI accepts 0.25–4.0; we pass it through and let generateSpeechStream clamp it.
     const selectedSpeed = typeof voiceConfig?.speed === 'number' ? voiceConfig.speed : 1.0;
 
     const content = message.content?.trim() ?? '';
@@ -175,9 +175,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // OpenAI hard limit is 4 096 characters. generateSpeech truncates, but
-    // we still refuse absurdly large messages (a server bug, not user error)
-    // so the caller is not silently served a partial audio clip.
+    // OpenAI hard limit is 4 096 characters. generateSpeechStream truncates,
+    // but we still refuse absurdly large messages (a server bug, not user
+    // error) so the caller is not silently served a partial audio clip.
     if (content.length > 10000) {
       return NextResponse.json(
         { error: 'Server error', message: 'Stored message exceeds the synthesis length limit' },
@@ -185,18 +185,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const result = await generateSpeech({
+    // Stream the OpenAI audio response straight to the client instead of
+    // buffering with arrayBuffer(). The browser's MediaSource pipeline (see
+    // components/interview/interview-chat.tsx → handleSpeakInterviewerMessage)
+    // begins playback as soon as the first chunk arrives, dropping
+    // time-to-first-audio from ~4-8 s (whole utterance) to ~1-2 s (first
+    // chunk). Sentence-level prosody is preserved because OpenAI still
+    // synthesises the entire utterance as one request — only the transport
+    // is chunked.
+    //
+    // Content-Length is intentionally omitted: a streamed body uses chunked
+    // transfer encoding and the total byte count is unknown until the
+    // OpenAI stream completes. X-Character-Count / X-Estimated-Duration
+    // carry the analytics metadata the client previously read from headers.
+    const result = await generateSpeechStream({
       text: content,
       voiceKey: selectedVoiceKey,
       speed: selectedSpeed,
     });
 
-    const uint8 = new Uint8Array(result.audioBuffer);
-    return new NextResponse(uint8, {
+    return new NextResponse(result.stream, {
       status: 200,
       headers: {
         'Content-Type': result.contentType,
-        'Content-Length': result.audioBuffer.byteLength.toString(),
         'Cache-Control': 'no-cache',
         'X-Character-Count': result.characterCount.toString(),
         'X-Estimated-Duration': result.estimatedDuration.toFixed(2),
@@ -251,9 +262,9 @@ export function GET(): NextResponse {
     speedOptions: { min: 0.25, max: 4.0, default: 1.0 },
     maxCharacters: 4096,
     features: {
-      streaming: false,
+      streaming: true,
       lowLatency: true,
-      timeToFirstAudio: '500-800ms',
+      timeToFirstAudio: 'first chunk ~500-1000ms (chunked transfer)',
     },
   });
 }

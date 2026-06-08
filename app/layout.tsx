@@ -173,7 +173,9 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <script
           type="application/ld+json"
-          // eslint-disable-next-line react/no-danger -- JSON-LD structured data is a documented Next.js pattern; payload is a static, server-controlled object literal with no user input. See https://nextjs.org/docs/app/guides/json-ld
+          // JSON-LD structured data — documented Next.js pattern. Payload is a
+          // static, server-controlled object literal with no user input.
+          // See https://nextjs.org/docs/app/guides/json-ld
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         <Providers>{children}</Providers>

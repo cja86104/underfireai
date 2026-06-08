@@ -46,9 +46,9 @@ export function GET(): NextResponse {
     },
     totalVoices: voices.length,
     features: {
-      streaming: false,
+      streaming: true,
       lowLatency: true,
-      timeToFirstAudio: '500-800ms',
+      timeToFirstAudio: 'first chunk ~500-1000ms (chunked transfer)',
       maxCharacters: 4096,
       supportedSpeeds: { min: 0.25, max: 4.0, default: 1.0 },
     },
