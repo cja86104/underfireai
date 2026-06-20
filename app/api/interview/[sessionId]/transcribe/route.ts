@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit';
-import { transcribeAudio, isOpenAISTTConfigured, MAX_AUDIO_BYTES } from '@/lib/stt/openai-stt';
+import { transcribeAudio, isSttConfigured, MAX_AUDIO_BYTES } from '@/lib/stt/openrouter-stt';
 
 /**
  * Mobile voice-input transcription.
@@ -53,8 +53,8 @@ export async function POST(
       );
     }
 
-    if (!isOpenAISTTConfigured()) {
-      console.error('[STT] OPENAI_API_KEY not configured');
+    if (!isSttConfigured()) {
+      console.error('[STT] OPENROUTER_API_KEY not configured');
       return NextResponse.json(
         { error: 'Configuration error', message: 'Speech-to-text service not configured' },
         { status: 503 },
@@ -171,7 +171,7 @@ export async function POST(
     console.error('[STT] Error:', error);
 
     if (error instanceof Error) {
-      if (error.message.includes('Invalid OpenAI API key')) {
+      if (error.message.includes('Invalid OpenRouter API key')) {
         return NextResponse.json(
           { error: 'Configuration error', message: 'Speech-to-text authentication failed' },
           { status: 503 },

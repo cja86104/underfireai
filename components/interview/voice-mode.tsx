@@ -125,6 +125,10 @@ export function VoiceMode({
   const [interimTranscript, setInterimTranscript] = useState('');
   const [finalTranscript, setFinalTranscript] = useState('');
   const [isMuted, setIsMuted] = useState(false);
+  // TEMPORARY mobile voice diagnostic: holds the last transcribe failure so it
+  // can be read on-screen (toasts vanish too fast on a phone). Remove once the
+  // iOS mic/transcribe issue is resolved.
+  const [lastVoiceError, setLastVoiceError] = useState<string | null>(null);
 
   // REAL frequency data: array of 20 values (0-1), each representing a frequency band
   const [frequencyBars, setFrequencyBars] = useState<number[]>(() =>
@@ -525,8 +529,12 @@ export function VoiceMode({
     }
 
     const blob = new Blob(chunks, { type: recordedMime || 'audio/webm' });
+    const sizeKb = (blob.size / 1024).toFixed(1);
+    const sent = `sent ${sizeKb} KB ${blob.type || 'unknown'}`;
+
     if (blob.size === 0) {
       setRecordingState('idle');
+      setLastVoiceError(`Mic captured 0 KB (iOS returned silence). type=${blob.type || 'unknown'}`);
       toast.error('No audio was captured. Please try again or type your answer below.');
       return;
     }
@@ -541,20 +549,35 @@ export function VoiceMode({
         body: form,
       });
 
-      if (!response.ok) {
-        const errBody = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(errBody?.message ?? `Transcription failed (${response.status})`);
+      // Read the body once as text, then parse — avoids a double-read and lets
+      // the diagnostic show the raw server message on failure.
+      const bodyText = await response.text().catch(() => '');
+      let parsed: { transcript?: string; message?: string } | null = null;
+      try {
+        parsed = bodyText ? (JSON.parse(bodyText) as { transcript?: string; message?: string }) : null;
+      } catch {
+        parsed = null;
       }
 
-      const okBody = (await response.json().catch(() => null)) as { transcript?: string } | null;
-      const transcript = (okBody?.transcript ?? '').trim();
+      if (!response.ok) {
+        const detail = parsed?.message ?? (bodyText ? bodyText.slice(0, 140) : '(no body)');
+        setLastVoiceError(`transcribe HTTP ${response.status}: ${detail} | ${sent}`);
+        toast.error(parsed?.message ?? `Transcription failed (${response.status})`);
+        setRecordingState('idle');
+        return;
+      }
+
+      const transcript = (parsed?.transcript ?? '').trim();
       if (transcript) {
+        setLastVoiceError(null);
         onTranscriptRef.current(transcript);
       } else {
+        setLastVoiceError(`transcribe returned empty text | ${sent}`);
         toast.error('Could not catch that. Please try again or type your answer below.');
       }
     } catch (err) {
       console.error('[STT] transcription upload failed:', err);
+      setLastVoiceError(`${err instanceof Error ? err.message : 'network error'} | ${sent}`);
       toast.error(
         err instanceof Error
           ? err.message
@@ -612,6 +635,7 @@ export function VoiceMode({
         mediaStreamRef.current = stream;
         audioChunksRef.current = [];
         mobileCancelledRef.current = false;
+        setLastVoiceError(null);
 
         let recorder: MediaRecorder;
         try {
@@ -635,7 +659,9 @@ export function VoiceMode({
         };
 
         try {
-          recorder.start();
+          // Timeslice (ms): forces periodic ondataavailable. Without it, some
+          // iOS Safari builds hand back an empty blob at stop().
+          recorder.start(1000);
         } catch (err) {
           console.error('Failed to start recording (mobile):', err);
           stopMobileStream();
@@ -919,6 +945,17 @@ export function VoiceMode({
             {interimTranscript && (
               <span className="text-slate-500">{interimTranscript}</span>
             )}
+          </p>
+        </div>
+      )}
+
+      {/* TEMPORARY mobile voice diagnostic — remove once the iOS mic/transcribe
+          issue is resolved. Persisted on-screen because toasts vanish too fast
+          to read on a phone. */}
+      {isMobile && lastVoiceError && (
+        <div className="mb-3 p-2 rounded-md bg-red-500/10 border border-red-500/30">
+          <p className="text-[11px] text-red-300 break-words">
+            <span className="font-semibold">Voice debug:</span> {lastVoiceError}
           </p>
         </div>
       )}
