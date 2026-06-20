@@ -421,6 +421,21 @@ export function InterviewChat({
   // speed from the interviewer's stored voice_config. Voice and speed are
   // intentionally NOT sent from the client — that closed the audit's
   // "arbitrary text burns TTS credit" finding.
+  //
+  // Playback path selection:
+  //   - MediaSource available (Chrome, Edge, Firefox, Safari macOS, iOS 17+
+  //     via ManagedMediaSource): stream response.body into a SourceBuffer
+  //     so the first audio bytes start playing ~500 ms–1 s after the
+  //     request, instead of waiting 4-8 s for the entire mp3 to download.
+  //   - Fallback (iOS Safari < 17, any browser without MediaSource('audio/
+  //     mpeg') support): identical to pre-streaming behavior — buffer the
+  //     full response with blob(), play from an object URL. No regression
+  //     for that segment.
+  //
+  // Both paths resolve the returned Promise ONLY on the audio element's
+  // 'ended' event. This preserves the panel-mode sequential queue
+  // contract in voice-mode.tsx (drainQueue awaits this function, so
+  // resolving earlier would overlap consecutive panel speakers).
   const handleSpeakInterviewerMessage = useCallback(async (messageId: string): Promise<void> => {
     try {
       const response = await fetch('/api/tts', {
@@ -436,6 +451,160 @@ export function InterviewChat({
         throw new Error(errorMsg);
       }
 
+      // Resolve which constructor to use, if any. iOS 17+ Safari exposes
+      // ManagedMediaSource in place of MediaSource; both share the slice
+      // of the API we touch (addSourceBuffer, endOfStream, isTypeSupported).
+      const MediaSourceCtor: typeof MediaSource | undefined = (() => {
+        if (typeof window === 'undefined') return undefined;
+        if (typeof window.MediaSource !== 'undefined') return window.MediaSource;
+        const w = window as Window & { ManagedMediaSource?: typeof MediaSource };
+        return w.ManagedMediaSource;
+      })();
+
+      const canStream =
+        MediaSourceCtor !== undefined &&
+        typeof MediaSourceCtor.isTypeSupported === 'function' &&
+        MediaSourceCtor.isTypeSupported('audio/mpeg') &&
+        response.body !== null;
+
+      if (canStream && MediaSourceCtor !== undefined && response.body !== null) {
+        // ── STREAMING PATH ──────────────────────────────────────────────
+        const responseBody: ReadableStream<Uint8Array> = response.body;
+        const mediaSource = new MediaSourceCtor();
+        const audioUrl = URL.createObjectURL(mediaSource);
+        const audio = new Audio(audioUrl);
+        // Hint to ManagedMediaSource (iOS) that the element should keep
+        // buffering even if briefly backgrounded. Harmless on other
+        // browsers — the property is a standard HTMLMediaElement setter.
+        audio.preload = 'auto';
+
+        let urlRevoked = false;
+        const revokeOnce = (): void => {
+          if (urlRevoked) return;
+          urlRevoked = true;
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        await new Promise<void>((resolve) => {
+          const finish = (): void => {
+            setIsSpeaking(false);
+            revokeOnce();
+            resolve();
+          };
+
+          // 'ended' resolves the outer Promise — the panel queue depends
+          // on this firing only at true end of playback.
+          audio.addEventListener('ended', finish);
+          audio.addEventListener('error', () => {
+            console.warn('[TTS] audio element errored during streaming playback');
+            finish();
+          });
+
+          mediaSource.addEventListener('sourceopen', () => {
+            let sourceBuffer: SourceBuffer;
+            try {
+              sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+            } catch (sbErr) {
+              console.error('[TTS] addSourceBuffer failed:', sbErr);
+              finish();
+              return;
+            }
+
+            const reader = responseBody.getReader();
+            const pendingChunks: Uint8Array[] = [];
+            let streamDone = false;
+            let endOfStreamCalled = false;
+            let playStarted = false;
+
+            const tryEndOfStream = (): void => {
+              if (endOfStreamCalled) return;
+              if (!streamDone) return;
+              if (pendingChunks.length > 0) return;
+              if (sourceBuffer.updating) return;
+              endOfStreamCalled = true;
+              try {
+                mediaSource.endOfStream();
+              } catch (eosErr) {
+                // Spec: endOfStream on a closed source throws. Playback
+                // completion is governed by the 'ended' listener, so we
+                // can safely log and move on.
+                console.warn('[TTS] endOfStream warn:', eosErr);
+              }
+            };
+
+            const pump = (): void => {
+              if (sourceBuffer.updating) return;
+              if (pendingChunks.length === 0) {
+                tryEndOfStream();
+                return;
+              }
+              const chunk = pendingChunks.shift();
+              if (!chunk) return;
+              try {
+                // Uint8Array implements ArrayBufferView, which is a
+                // BufferSource. The cast keeps strict-mode TS 5.7+ happy
+                // where Uint8Array narrows to Uint8Array<ArrayBufferLike>
+                // and doesn't auto-widen to BufferSource at call sites.
+                sourceBuffer.appendBuffer(chunk as BufferSource);
+              } catch (appendErr) {
+                console.error('[TTS] appendBuffer failed:', appendErr);
+                finish();
+              }
+            };
+
+            sourceBuffer.addEventListener('updateend', () => {
+              if (!playStarted) {
+                playStarted = true;
+                setIsSpeaking(true);
+                audio.play().catch((playError: unknown) => {
+                  if (playError instanceof DOMException && playError.name === 'NotAllowedError') {
+                    console.warn('[TTS] Autoplay blocked by browser — user gesture required.');
+                  } else {
+                    console.error('[TTS] play() error:', playError);
+                  }
+                  finish();
+                });
+              }
+              pump();
+            });
+
+            // Reader loop — push chunks into the queue and let pump drain
+            // them in the updateend handler. Self-invoking async IIFE so
+            // we don't shadow the outer Promise's resolve.
+            (async (): Promise<void> => {
+              try {
+                for (;;) {
+                  const { value, done } = await reader.read();
+                  if (done) {
+                    streamDone = true;
+                    pump();
+                    return;
+                  }
+                  if (value && value.byteLength > 0) {
+                    pendingChunks.push(value);
+                    pump();
+                  }
+                }
+              } catch (readErr) {
+                console.error('[TTS] stream read error:', readErr);
+                streamDone = true;
+                try {
+                  mediaSource.endOfStream('network');
+                } catch {
+                  // ignore — source may already be closed
+                }
+                finish();
+              }
+            })();
+          });
+        });
+        return;
+      }
+
+      // ── FALLBACK PATH (iOS Safari < 17, any browser without
+      //    MediaSource('audio/mpeg') support) ───────────────────────────
+      // Byte-for-byte equivalent to the pre-streaming behavior so users
+      // on this path get exactly what they had before — no regression.
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
 
