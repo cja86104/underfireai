@@ -80,21 +80,11 @@ export function CodingInterviewPage({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Start interview with coding intro
-  useEffect(() => {
-    if (messages.length === 0 && sessionStatus === 'in_progress') {
-      startCodingInterview();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const startCodingInterview = (): void => {
+  // Wrapped in useCallback so the bootstrap effect's deps array can include
+  // it without triggering an infinite re-run loop. All captured values
+  // (sessionId, interviewer.name, challenge.title) are props that don't
+  // change after mount, so the callback identity is stable in practice.
+  const startCodingInterview = useCallback((): void => {
     setIsLoading(true);
     try {
       // Create intro message from interviewer
@@ -115,6 +105,32 @@ export function CodingInterviewPage({
     } finally {
       setIsLoading(false);
     }
+  }, [sessionId, interviewer.name, challenge.title]);
+
+  // Start interview with coding intro.
+  //
+  // Boot guard: fires exactly once across the component lifetime regardless
+  // of dep changes. Reads `initialMessages.length` / `initialStatus` (props,
+  // immutable) instead of `messages.length` / `sessionStatus` (state) so the
+  // intent is explicit — we want to know what the DB looked like when the
+  // page loaded, not the current state. At mount time `messages === initialMessages`
+  // and `sessionStatus === initialStatus`, so behaviour is identical to the
+  // previous `}, [])` pattern. Defending against future state mutations
+  // (a pause/resume cycle, or any pathological `setMessages([])`) that
+  // would otherwise re-trigger a duplicate intro.
+  const codingBootRef = useRef(false);
+  useEffect(() => {
+    if (codingBootRef.current) return;
+    codingBootRef.current = true;
+    if (initialMessages.length === 0 && initialStatus === 'in_progress') {
+      startCodingInterview();
+    }
+  }, [initialMessages, initialStatus, startCodingInterview]);
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const sendMessage = async (): Promise<void> => {

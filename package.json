@@ -11,7 +11,10 @@
     "db:generate": "npx supabase gen types typescript --project-id nodkmtwchiivlwjktzis > types/database.ts",
     "db:migrate": "npx supabase db push",
     "db:reset": "npx supabase db reset",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.0",
@@ -50,17 +53,24 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@playwright/test": "^1.50.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/node": "^22.10.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/webpack": "^4.41.40",
+    "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.0",
+    "jsdom": "^25.0.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.0",
+    "vitest": "^3.0.0"
   },
   "engines": {
     "node": ">=20.0.0"

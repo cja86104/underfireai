@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 interface PurchaseSuccessToastProps {
@@ -22,15 +22,19 @@ export function PurchaseSuccessToast({
   productLabel,
   interviewsGranted,
 }: PurchaseSuccessToastProps): null {
+  // Boot guard: ensures the toast fires at most once across the component's
+  // lifetime even if the parent re-renders with new prop identities.
+  const firedRef = useRef(false);
   useEffect(() => {
+    if (firedRef.current) return;
+    firedRef.current = true;
     const interviewWord = interviewsGranted === 1 ? 'interview' : 'interviews';
 
     toast.success(`${productLabel} activated!`, {
       description: `${interviewsGranted} ${interviewWord} added to your account. You're ready to practice.`,
       duration: 6000,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [interviewsGranted, productLabel]);
 
   // Intentionally unused — suppresses the "product is defined but never used" lint warning.
   void product;

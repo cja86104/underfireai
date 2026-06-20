@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Mic,
   MicOff,
+  Volume2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
@@ -212,20 +213,28 @@ export function InterviewChat({
   // Clear HUD session when the component unmounts (page navigation)
   useEffect(() => { return () => { clearSession(); }; }, [clearSession]);
 
-  // Rehydrate HUD state from stored analysis data on mount (for page refresh)
+  // Rehydrate HUD state from stored analysis data on mount (page-refresh path).
+  //
+  // Boot guard: this rebuild must happen exactly once per component lifetime.
+  // Re-running it would push duplicate turns into the HUD store. The guard
+  // is set BEFORE any work so even if React renders the effect twice in
+  // StrictMode dev, only the first run does anything.
+  const hudRehydratedRef = useRef(false);
   useEffect(() => {
+    if (hudRehydratedRef.current) return;
     if (!hudEnabled) return;
-    
+    hudRehydratedRef.current = true;
+
     // Find all candidate messages with analysis data and rebuild HUD turns
     let turnIndex = 0;
     let previousTurn: HudTurnAnalysis | undefined;
-    
+
     for (const msg of initialMessages) {
       if (msg.role === 'candidate' && msg.analysis) {
         turnIndex++;
         const analysis = msg.analysis as ResponseAnalysis;
         const responseTime = msg.response_time_seconds ?? 30;
-        
+
         const turn = responseAnalysisToHudTurn(
           analysis,
           msg.id,
@@ -233,13 +242,12 @@ export function InterviewChat({
           responseTime,
           previousTurn
         );
-        
+
         addTurn(turn);
         previousTurn = turn;
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+  }, [hudEnabled, initialMessages, addTurn]);
 
   // isSpeaking: true while TTS audio is actively playing → drives avatar animation
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -254,6 +262,69 @@ export function InterviewChat({
   // success window. Distinct from pendingEnd (which waits for TTS) and isLoading
   // (which is for message-send).
   const [isEnding, setIsEnding] = useState(false);
+
+  // ── Mobile TTS unlock (Section C of mobile-fixes work) ───────────────────
+  // iOS Safari and mobile Chrome block audio.play() that is not initiated
+  // inside a synchronous user-gesture handler. The interviewer's TTS arrives
+  // via an async fetch, so by the time we try to play() the blob URL the
+  // gesture context is gone and the call rejects with NotAllowedError —
+  // silently, in the previous implementation. Fix:
+  //   1. Render a single persistent <audio> element with playsInline that is
+  //      .play()'d once during a user gesture (the explicit "Enable voice"
+  //      banner or any opportunistic gesture that calls unlockAudio).
+  //   2. Reuse that element for every TTS clip — iOS keeps the element
+  //      unlocked for the rest of the session once it has been play()'d
+  //      inside a gesture.
+  //   3. Surface NotAllowedError to the user with a visible banner instead
+  //      of swallowing it.
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+  // Mobile detection (UA + viewport). Independent of the existing showHud
+  // mobile check because that one is HUD-specific and lives in its own
+  // effect with debounced resize handling — the unlock banner needs a
+  // separate read so we don't show the banner on desktop where Chrome's
+  // page-level autoplay rules already permit playback.
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIsMobileDevice(
+      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+      window.innerWidth < 768
+    );
+  }, []);
+
+  // Tiny 1-frame silent WAV used to prime the persistent <audio> element.
+  // Inline data URI so there is no network round-trip — must complete
+  // inside the user-gesture window for iOS to grant the unlock.
+  const SILENT_WAV =
+    'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAVFYAAFRWAAABAAgAZGF0YQAAAAA=';
+
+  // Prime audio playback. MUST be invoked from a synchronous click/touch
+  // handler — calling this from inside a setTimeout, microtask, or after
+  // an await will not satisfy iOS Safari's gesture requirement and the
+  // unlock will silently fail.
+  const unlockAudio = useCallback(async (): Promise<boolean> => {
+    const el = audioRef.current;
+    if (!el) return false;
+    if (audioUnlocked) return true;
+    try {
+      el.src = SILENT_WAV;
+      el.muted = true;
+      await el.play();
+      el.pause();
+      el.currentTime = 0;
+      el.muted = false;
+      setAudioUnlocked(true);
+      return true;
+    } catch (err) {
+      // Unlock attempt itself failed — likely no audio output device or a
+      // policy we cannot bypass. Leave audioUnlocked false so the banner
+      // stays visible; the user can try again.
+      console.warn('[TTS] Audio unlock failed:', err);
+      return false;
+    }
+  }, [audioUnlocked]);
 
   // showHud is resolved in a single effect so the mobile check and WebGL check
   // are never evaluated in separate render cycles. Two separate effects caused a
@@ -302,12 +373,32 @@ export function InterviewChat({
   // the page loaded. Using `messages` state here was fragile: setMessages([])
   // or any concurrent-render edge case could reset it to 0 and trigger a
   // false restart even when the session already has a conversation history.
+  //
+  // Boot guard pattern — replaces the previous `}, [])` + suppression:
+  //   • `startInterviewRef` keeps a fresh pointer to startInterview without
+  //     pulling it into the deps array. startInterview is an inline async
+  //     function that captures ~10 closure values (interviewer, panel cfg,
+  //     resumeContext, etc.) and is not wrapped in useCallback; including
+  //     it directly would re-fire the effect on every render — fatal here,
+  //     because that would POST `__START_INTERVIEW__` to the chat API
+  //     repeatedly and create duplicate opening messages.
+  //   • `interviewBootRef` is set BEFORE the conditional fire so subsequent
+  //     `sessionStatus` flips (pause → in_progress, etc.) cannot retrigger
+  //     startInterview even though sessionStatus is now a real dep. This
+  //     preserves the original `}, [])` behaviour exactly: fires at most
+  //     once across the component lifetime, on the first render's values.
+  const startInterviewRef = useRef<() => Promise<void>>(() => Promise.resolve());
   useEffect(() => {
+    startInterviewRef.current = startInterview;
+  });
+  const interviewBootRef = useRef(false);
+  useEffect(() => {
+    if (interviewBootRef.current) return;
+    interviewBootRef.current = true;
     if (initialMessages.length === 0 && sessionStatus === 'in_progress') {
-      void startInterview();
+      void startInterviewRef.current();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialMessages, sessionStatus]);
 
   // Track response time. Separate from TTS queue — we still need the
   // response start time regardless of whether voice is enabled.
@@ -347,35 +438,57 @@ export function InterviewChat({
 
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
+
+      // Reuse the persistent, gesture-unlocked <audio> element rendered at
+      // the bottom of this component. Fresh `new Audio()` instances per call
+      // get blocked by iOS Safari outside a user-gesture context — even
+      // though the parent page has been interacted with — because each new
+      // element is unlocked independently. Reusing one element that was
+      // previously play()'d during a gesture sidesteps that.
+      const audio = audioRef.current;
+      if (!audio) {
+        // Element not mounted yet — extremely unlikely (rendered at top of
+        // returned JSX) but a safety net so the queue keeps draining.
+        console.warn('[TTS] audioRef missing — skipping clip', messageId);
+        URL.revokeObjectURL(audioUrl);
+        return;
+      }
 
       // Await full playback completion — not just play() start.
       // audio.play() resolves when playback BEGINS, not when it ENDS.
       // The TTS queue drain awaits this function, so resolving on start
       // would fire the next speaker immediately over the first one.
-      // Wrapping in a Promise that resolves on 'ended' fixes the overlap.
       await new Promise<void>((resolve) => {
-        audio.addEventListener('ended', () => {
+        const cleanup = (): void => {
+          audio.removeEventListener('ended', onEnded);
+          audio.removeEventListener('error', onError);
           setIsSpeaking(false);
           URL.revokeObjectURL(audioUrl);
           resolve();
-        });
-        audio.addEventListener('error', () => {
-          setIsSpeaking(false);
-          URL.revokeObjectURL(audioUrl);
-          resolve(); // resolve, not reject — let queue continue to next turn
-        });
+        };
+        const onEnded = (): void => cleanup();
+        const onError = (): void => cleanup();
+        audio.addEventListener('ended', onEnded);
+        audio.addEventListener('error', onError);
 
+        audio.src = audioUrl;
         setIsSpeaking(true);
         audio.play().catch((playError: unknown) => {
           if (playError instanceof DOMException && playError.name === 'NotAllowedError') {
-            console.warn('[TTS] Autoplay blocked by browser — user gesture required.');
+            // Playback blocked — element was never unlocked inside a
+            // gesture (e.g. user arrived via a deep link and didn't tap
+            // anything before TTS arrived). Flip the unlock state so the
+            // banner re-appears and tell the user explicitly.
+            console.warn('[TTS] Autoplay blocked — user must tap Enable Voice.');
+            setAudioUnlocked(false);
+            toast.error(
+              'Tap "Enable voice" above to hear the interviewer. (iPhone: also make sure the silent switch is off.)',
+              { duration: 7000 }
+            );
           } else {
             console.error('[TTS] play() error:', playError);
           }
-          setIsSpeaking(false);
-          URL.revokeObjectURL(audioUrl);
-          resolve(); // silent skip — queue moves to next turn
+          cleanup();
         });
       });
     } catch (error) {
@@ -672,6 +785,11 @@ export function InterviewChat({
   };
 
   const resumeInterview = async (): Promise<void> => {
+    // Fire-and-forget audio unlock. MUST be called before the await below —
+    // once we await the fetch, iOS's user-gesture window has closed and a
+    // later .play() call will be rejected. unlockAudio internally calls
+    // audio.play() synchronously which counts as gesture-initiated.
+    void unlockAudio();
     try {
       await fetch(`/api/interview/${sessionId}/resume`, {
         method: 'POST',
@@ -683,40 +801,60 @@ export function InterviewChat({
     }
   };
 
-  // Handle delayed interview end - wait for TTS to finish before ending
+  // Stable ref to the latest endInterview closure.
+  //
+  // endInterview is an inline async function that captures `elapsedTime` —
+  // a state value updated every second by the timer effect. If we listed
+  // endInterview directly in the watching effect's deps, that effect would
+  // tear down and re-arm its 3-second TTS fallback timeout on every tick,
+  // and the fallback would never actually fire. The function-ref pattern
+  // lets the watcher call the latest version without participating in deps.
+  //
+  // The sync useEffect intentionally has no deps array so it runs after
+  // every render — cheapest possible way to keep the ref pointing at the
+  // freshest closure. (Triggers no re-renders itself; it only writes a ref.)
+  const endInterviewRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  useEffect(() => {
+    endInterviewRef.current = endInterview;
+  });
+
+  // Handle delayed interview end — wait for TTS to finish before ending.
+  // Deps `[pendingEnd, isSpeaking]` are now honest: every value this effect
+  // reads is either a listed state value, a ref (exempt), or a useState
+  // setter (exempt — React guarantees stable identity). The previous code
+  // suppressed react-hooks/exhaustive-deps; this rewrite removes the need.
   useEffect(() => {
     if (!pendingEnd) {
       ttsStartedForEndRef.current = false;
       return;
     }
-    
+
     // Track when TTS starts
     if (isSpeaking) {
       ttsStartedForEndRef.current = true;
       return;
     }
-    
+
     // Only end after TTS has started and then finished
     if (ttsStartedForEndRef.current && !isSpeaking) {
       const timeout = setTimeout(() => {
-        void endInterview();
+        void endInterviewRef.current();
         setPendingEnd(false);
         ttsStartedForEndRef.current = false;
       }, 500);
       return () => clearTimeout(timeout);
     }
-    
+
     // If TTS hasn't started yet, wait a bit then check again
     // (handles case where TTS takes time to load)
     const waitTimeout = setTimeout(() => {
       // If still no TTS after 3 seconds, just end anyway
       if (pendingEnd && !ttsStartedForEndRef.current) {
-        void endInterview();
+        void endInterviewRef.current();
         setPendingEnd(false);
       }
     }, 3000);
     return () => clearTimeout(waitTimeout);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingEnd, isSpeaking]);
 
   const handleKeyDown = (e: React.KeyboardEvent): void => {
@@ -853,6 +991,13 @@ export function InterviewChat({
 
     return (
       <AudioLevelProvider>
+        <audio
+          ref={audioRef}
+          playsInline
+          webkit-playsinline="true"
+          preload="auto"
+          style={{ display: 'none' }}
+        />
         <InterviewHUD
           messageHistory={hudMessageBubbles}
           voicePanel={hudVoicePanel}
@@ -874,6 +1019,37 @@ export function InterviewChat({
   return (
     <AudioLevelProvider>
     <div className="flex flex-col h-full rounded-xl border border-[#3D3229]/10 dark:border-slate-800 bg-white dark:bg-slate-900/50 overflow-hidden">
+      {/* Persistent <audio> element for TTS playback. Reused for every clip
+          so that one user-gesture .play() (via unlockAudio) keeps it
+          unlocked for the rest of the session on iOS Safari. playsInline
+          + webkit-playsinline are required for iOS to honour autoplay on
+          the same element. */}
+      {/* webkit-playsinline is an iOS-only legacy attribute that iOS
+          Safari still honours for the silent-switch / inline behaviour.
+          React types accept it as-is (kebab-case passes through). */}
+      <audio
+        ref={audioRef}
+        playsInline
+        webkit-playsinline="true"
+        preload="auto"
+        style={{ display: 'none' }}
+      />
+
+      {/* "Enable Voice" banner (mobile only). Shown until the user taps to
+          prime audio playback inside a gesture. After unlock the banner
+          disappears for the rest of the session. */}
+      {isMobileDevice && voiceEnabled && !audioUnlocked && sessionStatus === 'in_progress' && (
+        <button
+          type="button"
+          onClick={() => { void unlockAudio(); }}
+          className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white px-4 py-3 text-sm font-semibold transition-colors min-h-[48px]"
+          aria-label="Enable interviewer voice playback"
+        >
+          <Volume2 className="h-4 w-4" />
+          Tap to enable interviewer voice
+        </button>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-900">
         <div className="flex items-center gap-3">
@@ -966,7 +1142,14 @@ export function InterviewChat({
           {/* Voice Toggle */}
           {initialVoiceEnabled && (
             <button
-              onClick={() => setVoiceEnabled(!voiceEnabled)}
+              onClick={() => {
+                // Opportunistic unlock — toggling voice ON is a clean gesture
+                // moment to prime iOS audio. No-op if already unlocked.
+                if (!voiceEnabled) {
+                  void unlockAudio();
+                }
+                setVoiceEnabled(!voiceEnabled);
+              }}
               className={cn(
                 'rounded-lg p-2 transition-colors',
                 voiceEnabled
@@ -1192,18 +1375,38 @@ export function InterviewChat({
       {sessionStatus !== 'in_progress' && (
         <div
           className={cn(
-            'px-4 py-3 flex items-center justify-center gap-2 border-t',
+            'px-4 py-3 flex flex-col sm:flex-row items-center justify-center gap-3 border-t',
             sessionStatus === 'paused' && 'bg-blue-500/10 border-blue-500/30 text-blue-400',
             sessionStatus === 'completed' && 'bg-green-500/10 border-green-500/30 text-green-400',
             sessionStatus === 'abandoned' && 'bg-red-500/10 border-red-500/30 text-red-400'
           )}
         >
-          <AlertCircle className="h-4 w-4" />
-          <span className="text-sm font-medium">
-            {sessionStatus === 'paused' && 'Interview is paused. Click Resume to continue.'}
-            {sessionStatus === 'completed' && 'Interview completed. Generating feedback...'}
-            {sessionStatus === 'abandoned' && 'Interview was abandoned.'}
-          </span>
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              {sessionStatus === 'paused' && 'Interview is paused.'}
+              {sessionStatus === 'completed' && 'Interview completed. Generating feedback...'}
+              {sessionStatus === 'abandoned' && 'Interview was abandoned.'}
+            </span>
+          </div>
+          {sessionStatus === 'paused' && (
+            <button
+              type="button"
+              onClick={() => {
+                // Prime audio inside the gesture before the resume fetch.
+                // resumeInterview already calls unlockAudio() too, but doing
+                // it here as well guarantees the audio.play() lands in the
+                // same synchronous tick as the click on every browser.
+                void unlockAudio();
+                void resumeInterview();
+              }}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition-colors min-h-[44px] min-w-[120px] justify-center shadow-sm"
+              aria-label="Resume interview"
+            >
+              <Play className="h-4 w-4" />
+              Resume Interview
+            </button>
+          )}
         </div>
       )}
 

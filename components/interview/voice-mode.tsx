@@ -115,10 +115,45 @@ export function VoiceMode({
   const onAudioFrameRef = useRef<((data: AudioLevelData) => void) | undefined>(onAudioFrame);
   useEffect(() => { onAudioFrameRef.current = onAudioFrame; }, [onAudioFrame]);
 
+  // Transcript refs mirror state so the recognition event handlers
+  // (which close over the FIRST render's state values via the useCallback-
+  // memoised builder) can read the LATEST transcript when onend fires.
+  // Required for the mobile single-shot auto-submit path below.
+  const finalTranscriptRef = useRef('');
+  const interimTranscriptRef = useRef('');
+
+  // Stable ref to the parent's onTranscript handler. The mobile onend
+  // auto-submit path needs to invoke it from inside the recognition
+  // closure without rebuilding the recognition instance on every parent
+  // re-render.
+  const onTranscriptRef = useRef(onTranscript);
+  useEffect(() => { onTranscriptRef.current = onTranscript; }, [onTranscript]);
+
+  // True when recognition should auto-submit on the next onend event.
+  // Set by the mobile startRecording path; cleared by manual stop / cancel
+  // so we never double-submit.
+  const autoSubmitOnEndRef = useRef(false);
+
   // Check browser support - derived constant, not state
   const isSupported = typeof window !== 'undefined' &&
     (typeof window.SpeechRecognition !== 'undefined' ||
      typeof window.webkitSpeechRecognition !== 'undefined');
+
+  // Mobile detection. Drives three behaviours:
+  //   1. continuous=false (iOS Safari + mobile Chrome are unreliable in
+  //      continuous mode; single-shot is the documented contract).
+  //   2. Skip getUserMedia/AudioContext setup — holding the mic stream
+  //      open in a MediaStreamSource wedges the SpeechRecognition engine
+  //      on iOS, causing the 'audio-capture' error the user was seeing.
+  //   3. Hide the FFT bar visualiser, which has nothing to render without
+  //      an analyser anyway.
+  // Initialised in a useEffect so SSR/hydration doesn't see window.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const ua = navigator.userAgent;
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768);
+  }, []);
 
   // ───────────────────────────────────────────────────────────────────────────
   // Recognition factory
@@ -131,8 +166,12 @@ export function VoiceMode({
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     const recognition = new SpeechRecognitionAPI();
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    // Mobile browsers (iOS Safari especially) are unreliable in continuous
+    // mode — they fire 'audio-capture' or 'network' errors almost
+    // immediately. Single-shot mode is the documented contract on mobile;
+    // we rebuild and re-arm if the user keeps talking via the onend path.
+    recognition.continuous = !isMobile;
+    recognition.interimResults = !isMobile;
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
@@ -152,8 +191,10 @@ export function VoiceMode({
         }
       }
 
+      interimTranscriptRef.current = interim;
       setInterimTranscript(interim);
       if (final) {
+        finalTranscriptRef.current += final;
         setFinalTranscript((prev) => prev + final);
       }
     };
@@ -166,24 +207,70 @@ export function VoiceMode({
         return;
       }
 
+      // 'aborted' is fired when we deliberately .abort() (recovery path,
+      // unmount, cancelRecording). Silent — we caused it.
+      if (event.error === 'aborted') {
+        return;
+      }
+
       // For all other errors we force-stop the engine so React state and
       // engine state stay in sync. Without this, a wedged engine throws
-      // InvalidStateError on the next start() call — the bug this fix targets.
+      // InvalidStateError on the next start() call.
       try {
         recognition.abort();
       } catch {
         // Engine already idle or in a state where abort is a no-op.
       }
 
-      if (event.error === 'not-allowed') {
-        toast.error('Microphone access denied. Please allow microphone access.');
-      } else if (event.error !== 'aborted') {
-        toast.error('Speech recognition error. Please try again.');
+      // Disarm auto-submit so the error-path onend doesn't try to send
+      // a half-captured transcript.
+      autoSubmitOnEndRef.current = false;
+
+      // Map the SpeechRecognition error codes to actionable messages
+      // instead of the previous generic "try again" string. The audit
+      // logs for the mobile mic bug show 'audio-capture' (mic contention),
+      // 'network' (offline), and 'service-not-allowed' (HTTP/permissions)
+      // as the real culprits — each needs a different remediation.
+      let msg: string;
+      switch (event.error) {
+        case 'not-allowed':
+        case 'service-not-allowed':
+          msg = 'Microphone access denied. Please allow microphone access in your browser settings, then reload.';
+          break;
+        case 'audio-capture':
+          msg = 'Could not access the microphone. Close any other app using it (calls, Zoom, etc.) and try again.';
+          break;
+        case 'network':
+          msg = 'Speech recognition needs an internet connection. Please check your network and try again.';
+          break;
+        case 'language-not-supported':
+          msg = 'Speech recognition does not support the current language on this device.';
+          break;
+        default:
+          msg = `Speech recognition error (${event.error}). Please try again.`;
       }
+      toast.error(msg);
       setRecordingState('idle');
     };
 
     recognition.onend = () => {
+      // Mobile single-shot path: the engine auto-stopped after the
+      // utterance pause. Submit whatever final transcript we captured
+      // and reset. autoSubmitOnEndRef is set by the mobile startRecording
+      // path and cleared by manual stop/cancel/error so we never
+      // double-submit.
+      if (autoSubmitOnEndRef.current) {
+        autoSubmitOnEndRef.current = false;
+        const transcript = (finalTranscriptRef.current + interimTranscriptRef.current).trim();
+        finalTranscriptRef.current = '';
+        interimTranscriptRef.current = '';
+        setFinalTranscript('');
+        setInterimTranscript('');
+        if (transcript) {
+          onTranscriptRef.current(transcript);
+        }
+      }
+
       // Only reset to idle if we're currently listening.
       // This prevents race conditions with manual stop and with the
       // recovery path's deliberate abort+rebuild sequence.
@@ -193,7 +280,7 @@ export function VoiceMode({
     };
 
     return recognition;
-  }, []);
+  }, [isMobile]);
 
   // ───────────────────────────────────────────────────────────────────────────
   // Defensive start: catches InvalidStateError and recovers by recreating
@@ -358,7 +445,30 @@ export function VoiceMode({
     try {
       setFinalTranscript('');
       setInterimTranscript('');
+      finalTranscriptRef.current = '';
+      interimTranscriptRef.current = '';
 
+      // ─── Mobile path ─────────────────────────────────────────────
+      // Skip getUserMedia + AudioContext entirely. On iOS Safari and
+      // Android Chrome, holding the mic stream open in a MediaStreamSource
+      // while SpeechRecognition is also trying to consume the mic produces
+      // 'audio-capture' errors and silent recognition failures. The
+      // SpeechRecognition engine handles its own mic permission prompt;
+      // we let it own the stream and arm autoSubmitOnEnd so the engine's
+      // automatic single-shot stop triggers a submission.
+      if (isMobile) {
+        autoSubmitOnEndRef.current = true;
+        try {
+          ensureRecognitionStarted();
+        } catch (err) {
+          console.error('Failed to start recording (mobile):', err);
+          autoSubmitOnEndRef.current = false;
+          toast.error('Failed to start recording. Please reload the page and try again.');
+        }
+        return;
+      }
+
+      // ─── Desktop path ────────────────────────────────────────────
       // 1. Acquire mic stream first. Permission errors surface here as a
       //    single clean message before the recognition engine is touched.
       let stream: MediaStream;
@@ -400,10 +510,15 @@ export function VoiceMode({
     } finally {
       startingRef.current = false;
     }
-  }, [ensureRecognitionStarted, setupAnalyser, stopAudioLevelMonitoring]);
+  }, [isMobile, ensureRecognitionStarted, setupAnalyser, stopAudioLevelMonitoring]);
 
   const stopRecording = useCallback(() => {
     if (!recognitionRef.current) return;
+
+    // Disarm the mobile auto-submit path. We are submitting synchronously
+    // below, so onend must NOT also fire a submission. (Bug guard: without
+    // this, mobile single-shot would submit twice when the user tapped Done.)
+    autoSubmitOnEndRef.current = false;
 
     try {
       recognitionRef.current.stop();
@@ -413,19 +528,25 @@ export function VoiceMode({
     stopAudioLevelMonitoring();
     setRecordingState('processing');
 
-    // Submit the final transcript
-    const transcript = finalTranscript + interimTranscript;
-    if (transcript.trim()) {
-      onTranscript(transcript.trim());
+    // Submit the final transcript. Read from refs so we always get the
+    // latest values regardless of pending state batches.
+    const transcript = (finalTranscriptRef.current + interimTranscriptRef.current).trim();
+    if (transcript) {
+      onTranscript(transcript);
     }
 
+    finalTranscriptRef.current = '';
+    interimTranscriptRef.current = '';
     setFinalTranscript('');
     setInterimTranscript('');
     setRecordingState('idle');
-  }, [finalTranscript, interimTranscript, onTranscript, stopAudioLevelMonitoring]);
+  }, [onTranscript, stopAudioLevelMonitoring]);
 
   const cancelRecording = useCallback(() => {
     if (!recognitionRef.current) return;
+
+    // User explicitly cancelled — never auto-submit on the resulting onend.
+    autoSubmitOnEndRef.current = false;
 
     try {
       recognitionRef.current.abort();
@@ -433,6 +554,8 @@ export function VoiceMode({
       // ignore
     }
     stopAudioLevelMonitoring();
+    finalTranscriptRef.current = '';
+    interimTranscriptRef.current = '';
     setFinalTranscript('');
     setInterimTranscript('');
     setRecordingState('idle');
@@ -541,8 +664,11 @@ export function VoiceMode({
         </button>
       </div>
 
-      {/* REAL Audio Level Visualization - frequency bars from actual FFT data */}
-      {recordingState === 'listening' && (
+      {/* REAL Audio Level Visualization - frequency bars from actual FFT data.
+          Hidden on mobile because the analyser is intentionally not wired
+          there (see startRecording mobile branch — avoids mic contention
+          with SpeechRecognition on iOS Safari / Android Chrome). */}
+      {!isMobile && recordingState === 'listening' && (
         <div className="mb-3">
           <div className="flex items-center gap-0.5 h-6">
             {frequencyBars.map((level, i) => (
