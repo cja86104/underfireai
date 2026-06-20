@@ -81,6 +81,36 @@ declare global {
   }
 }
 
+// ── Mobile capture helpers (record-and-transcribe path) ─────────────────────
+// iOS Safari's webkitSpeechRecognition never opens the real microphone, so on
+// mobile we capture the answer with MediaRecorder and POST it to the
+// /transcribe endpoint (OpenAI Whisper). Desktop keeps using SpeechRecognition.
+
+/** Max single-answer recording length. Caps clip size so the upload stays well
+ *  under Vercel's serverless body limit and keeps Whisper fast. */
+const MAX_RECORD_MS = 60000;
+
+/** Pick a MediaRecorder mimeType the current browser supports (iOS Safari ->
+ *  audio/mp4, Chromium -> audio/webm). '' lets MediaRecorder choose its own. */
+function pickRecorderMimeType(): string {
+  if (typeof MediaRecorder === 'undefined') return '';
+  const candidates = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/mpeg'];
+  for (const type of candidates) {
+    if (MediaRecorder.isTypeSupported(type)) return type;
+  }
+  return '';
+}
+
+/** Map a recorded blob's mimeType to a filename extension Whisper recognises. */
+function extForMime(mime: string): string {
+  const base = (mime || '').split(';')[0].trim().toLowerCase();
+  if (base === 'audio/mp4' || base === 'audio/m4a' || base === 'audio/x-m4a') return 'mp4';
+  if (base === 'audio/mpeg') return 'mp3';
+  if (base === 'audio/wav' || base === 'audio/x-wav') return 'wav';
+  if (base === 'audio/ogg') return 'ogg';
+  return 'webm';
+}
+
 export function VoiceMode({
   sessionId,
   isActive,
@@ -133,6 +163,15 @@ export function VoiceMode({
   // Set by the mobile startRecording path; cleared by manual stop / cancel
   // so we never double-submit.
   const autoSubmitOnEndRef = useRef(false);
+
+  // ── Mobile record-and-transcribe refs (iOS Safari path) ───────────────────
+  // On mobile we record with MediaRecorder and upload to /transcribe. These
+  // hold the in-flight recorder, captured chunks, the auto-stop timer, and a
+  // cancel flag. Desktop never touches them.
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordTimeoutRef = useRef<number | null>(null);
+  const mobileCancelledRef = useRef(false);
 
   // Check browser support - derived constant, not state
   const isSupported = typeof window !== 'undefined' &&
@@ -235,7 +274,23 @@ export function VoiceMode({
       switch (event.error) {
         case 'not-allowed':
         case 'service-not-allowed':
-          msg = 'Microphone access denied. Please allow microphone access in your browser settings, then reload.';
+          // Mobile-only remediation. On iOS Safari, webkitSpeechRecognition
+          // runs on the same engine as system Dictation: when Dictation is
+          // off (or Low Power Mode is on) it throws not-allowed / service-
+          // not-allowed even though the browser's mic permission is granted,
+          // so the old "allow mic in browser settings" copy misdiagnosed it.
+          // getUserMedia priming is deliberately NOT used here: iOS speech
+          // recognition does not consume that permission, and awaiting it
+          // would move start() out of the user-gesture window. The desktop
+          // string below is intentionally left unchanged.
+          if (isMobile) {
+            const isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+            msg = isIOS
+              ? 'iPhone blocked voice input. Enable Dictation in Settings \u2192 General \u2192 Keyboard, turn off Low Power Mode, then reload \u2014 or just type your answer below.'
+              : 'Your phone blocked voice input. Allow microphone access for this site, then reload \u2014 or just type your answer below.';
+          } else {
+            msg = 'Microphone access denied. Please allow microphone access in your browser settings, then reload.';
+          }
           break;
         case 'audio-capture':
           msg = 'Could not access the microphone. Close any other app using it (calls, Zoom, etc.) and try again.';
@@ -410,6 +465,13 @@ export function VoiceMode({
     recognitionRef.current = buildRecognition();
 
     return () => {
+      // Abandon any in-flight mobile recording so its onstop handler does not
+      // upload/transcribe after unmount.
+      mobileCancelledRef.current = true;
+      if (recordTimeoutRef.current !== null) {
+        clearTimeout(recordTimeoutRef.current);
+        recordTimeoutRef.current = null;
+      }
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -433,6 +495,76 @@ export function VoiceMode({
     };
   }, [isSupported, buildRecognition]);
 
+  // Release the mobile mic stream + clear the auto-stop timer.
+  const stopMobileStream = useCallback((): void => {
+    if (recordTimeoutRef.current !== null) {
+      clearTimeout(recordTimeoutRef.current);
+      recordTimeoutRef.current = null;
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    mediaRecorderRef.current = null;
+  }, []);
+
+  // MediaRecorder.onstop handler: build the recorded blob, upload it to the
+  // transcribe endpoint, and feed the returned text into the normal submit
+  // flow (onTranscript). Cancelled recordings short-circuit without uploading.
+  const finalizeMobileRecording = useCallback(async (): Promise<void> => {
+    const recorder = mediaRecorderRef.current;
+    const recordedMime = recorder?.mimeType ?? '';
+    const chunks = audioChunksRef.current;
+    audioChunksRef.current = [];
+    stopMobileStream();
+
+    if (mobileCancelledRef.current) {
+      mobileCancelledRef.current = false;
+      setRecordingState('idle');
+      return;
+    }
+
+    const blob = new Blob(chunks, { type: recordedMime || 'audio/webm' });
+    if (blob.size === 0) {
+      setRecordingState('idle');
+      toast.error('No audio was captured. Please try again or type your answer below.');
+      return;
+    }
+
+    setRecordingState('processing');
+    try {
+      const form = new FormData();
+      form.append('audio', blob, `answer.${extForMime(blob.type)}`);
+
+      const response = await fetch(`/api/interview/${sessionId}/transcribe`, {
+        method: 'POST',
+        body: form,
+      });
+
+      if (!response.ok) {
+        const errBody = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(errBody?.message ?? `Transcription failed (${response.status})`);
+      }
+
+      const okBody = (await response.json().catch(() => null)) as { transcript?: string } | null;
+      const transcript = (okBody?.transcript ?? '').trim();
+      if (transcript) {
+        onTranscriptRef.current(transcript);
+      } else {
+        toast.error('Could not catch that. Please try again or type your answer below.');
+      }
+    } catch (err) {
+      console.error('[STT] transcription upload failed:', err);
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : 'Transcription failed. You can type your answer below.',
+      );
+    } finally {
+      setRecordingState('idle');
+    }
+  }, [sessionId, stopMobileStream]);
+
   // ───────────────────────────────────────────────────────────────────────────
   // Start recording: acquire stream first, wire analyser, then start engine.
   // The startingRef lock prevents the rapid-double-click race that produces
@@ -449,22 +581,80 @@ export function VoiceMode({
       interimTranscriptRef.current = '';
 
       // ─── Mobile path ─────────────────────────────────────────────
-      // Skip getUserMedia + AudioContext entirely. On iOS Safari and
-      // Android Chrome, holding the mic stream open in a MediaStreamSource
-      // while SpeechRecognition is also trying to consume the mic produces
-      // 'audio-capture' errors and silent recognition failures. The
-      // SpeechRecognition engine handles its own mic permission prompt;
-      // we let it own the stream and arm autoSubmitOnEnd so the engine's
-      // automatic single-shot stop triggers a submission.
+      // Record the answer with the real microphone. getUserMedia is what makes
+      // iOS Safari prompt for and open the mic (webkitSpeechRecognition never
+      // did); we transcribe server-side on stop (see finalizeMobileRecording).
       if (isMobile) {
-        autoSubmitOnEndRef.current = true;
+        if (
+          typeof MediaRecorder === 'undefined' ||
+          !navigator.mediaDevices ||
+          typeof navigator.mediaDevices.getUserMedia !== 'function'
+        ) {
+          toast.error('Voice recording is not supported on this browser. You can type your answer below.');
+          return;
+        }
+
+        let stream: MediaStream;
         try {
-          ensureRecognitionStarted();
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (err) {
+          const isPermission =
+            err instanceof DOMException &&
+            (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError');
+          toast.error(
+            isPermission
+              ? 'Microphone access was denied. Allow the microphone for this site, then try again, or type your answer below.'
+              : 'Could not start the microphone. You can type your answer below.',
+          );
+          return;
+        }
+
+        mediaStreamRef.current = stream;
+        audioChunksRef.current = [];
+        mobileCancelledRef.current = false;
+
+        let recorder: MediaRecorder;
+        try {
+          const preferred = pickRecorderMimeType();
+          recorder = preferred
+            ? new MediaRecorder(stream, { mimeType: preferred })
+            : new MediaRecorder(stream);
+        } catch (err) {
+          console.error('Failed to create MediaRecorder (mobile):', err);
+          stopMobileStream();
+          toast.error('Voice recording is not supported on this browser. You can type your answer below.');
+          return;
+        }
+        mediaRecorderRef.current = recorder;
+
+        recorder.ondataavailable = (e: BlobEvent) => {
+          if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        recorder.onstop = () => {
+          void finalizeMobileRecording();
+        };
+
+        try {
+          recorder.start();
         } catch (err) {
           console.error('Failed to start recording (mobile):', err);
-          autoSubmitOnEndRef.current = false;
-          toast.error('Failed to start recording. Please reload the page and try again.');
+          stopMobileStream();
+          toast.error('Could not start recording. Please try again or type your answer below.');
+          return;
         }
+        setRecordingState('listening');
+
+        // Safety cap: auto-stop (and submit) at MAX_RECORD_MS so a forgotten
+        // recording cannot exceed the upload size limit.
+        if (recordTimeoutRef.current !== null) {
+          clearTimeout(recordTimeoutRef.current);
+        }
+        recordTimeoutRef.current = window.setTimeout(() => {
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            toast('Reached the 60-second limit - sending your answer.');
+            mediaRecorderRef.current.stop();
+          }
+        }, MAX_RECORD_MS);
         return;
       }
 
@@ -510,9 +700,24 @@ export function VoiceMode({
     } finally {
       startingRef.current = false;
     }
-  }, [isMobile, ensureRecognitionStarted, setupAnalyser, stopAudioLevelMonitoring]);
+  }, [isMobile, ensureRecognitionStarted, setupAnalyser, stopAudioLevelMonitoring, finalizeMobileRecording, stopMobileStream]);
 
   const stopRecording = useCallback(() => {
+    // Mobile: stop the MediaRecorder; its onstop handler uploads + transcribes.
+    if (isMobile) {
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== 'inactive') {
+        try {
+          recorder.stop();
+        } catch {
+          setRecordingState('idle');
+        }
+      } else {
+        setRecordingState('idle');
+      }
+      return;
+    }
+
     if (!recognitionRef.current) return;
 
     // Disarm the mobile auto-submit path. We are submitting synchronously
@@ -540,9 +745,29 @@ export function VoiceMode({
     setFinalTranscript('');
     setInterimTranscript('');
     setRecordingState('idle');
-  }, [onTranscript, stopAudioLevelMonitoring]);
+  }, [onTranscript, stopAudioLevelMonitoring, isMobile]);
 
   const cancelRecording = useCallback(() => {
+    // Mobile: discard the recording. Mark cancelled so finalize skips upload.
+    if (isMobile) {
+      mobileCancelledRef.current = true;
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== 'inactive') {
+        try {
+          recorder.stop();
+        } catch {
+          stopMobileStream();
+          mobileCancelledRef.current = false;
+          setRecordingState('idle');
+        }
+      } else {
+        stopMobileStream();
+        mobileCancelledRef.current = false;
+        setRecordingState('idle');
+      }
+      return;
+    }
+
     if (!recognitionRef.current) return;
 
     // User explicitly cancelled — never auto-submit on the resulting onend.
@@ -559,7 +784,7 @@ export function VoiceMode({
     setFinalTranscript('');
     setInterimTranscript('');
     setRecordingState('idle');
-  }, [stopAudioLevelMonitoring]);
+  }, [stopAudioLevelMonitoring, isMobile, stopMobileStream]);
 
   // runId: incremented each time a new ttsQueue arrives.
   // The draining loop checks its captured runId against the ref on every
@@ -598,9 +823,6 @@ export function VoiceMode({
     isSpeakingRef.current = true;
     void drainQueue();
   }, [ttsQueue, isMuted, isActive, onSpeakInterviewerMessage]);
-
-  // Suppress unused sessionId warning - reserved for future session-specific features
-  void sessionId;
 
   if (!isSupported) {
     return (

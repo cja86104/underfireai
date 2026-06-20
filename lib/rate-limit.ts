@@ -47,6 +47,12 @@ export const RATE_LIMIT_POLICIES = {
   /** Cartesia TTS — paid user can loop and burn credit. 60/min per user. */
   tts:          { requests: 60, window: '60 s' },
 
+  /** Whisper speech-to-text — mobile mic input records audio and uploads
+   *  it here because iOS Safari's webkitSpeechRecognition never opens the
+   *  real mic. Pay-per-minute; scoped per session. 40 / 5 min covers normal
+   *  back-and-forth answers. */
+  stt:          { requests: 40, window: '300 s' },
+
   /** Judge0 code execution — pay-per-submission. 30/5min per session. */
   codeRun:      { requests: 30, window: '300 s' },
 
