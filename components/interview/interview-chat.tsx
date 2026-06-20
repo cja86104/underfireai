@@ -489,7 +489,17 @@ export function InterviewChat({
         return w.ManagedMediaSource;
       })();
 
+      // iOS Safari's (Managed)MediaSource streaming path hangs "loading" forever
+      // for a detached <audio> element, so on mobile we skip streaming and use
+      // the reliable blob fallback below (the persistent, gesture-unlocked
+      // audioRef). Slightly slower first-audio on mobile, but it actually plays.
+      const preferBlobAudio =
+        typeof navigator !== 'undefined' &&
+        (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+          (typeof window !== 'undefined' && window.innerWidth < 768));
+
       const canStream =
+        !preferBlobAudio &&
         MediaSourceCtor !== undefined &&
         typeof MediaSourceCtor.isTypeSupported === 'function' &&
         MediaSourceCtor.isTypeSupported('audio/mpeg') &&
@@ -679,7 +689,7 @@ export function InterviewChat({
             console.warn('[TTS] Autoplay blocked — user must tap Enable Voice.');
             setAudioUnlocked(false);
             toast.error(
-              'Tap "Enable voice" above to hear the interviewer. (iPhone: also make sure the silent switch is off.)',
+              'Audio is blocked by your phone. Tap the screen once and make sure the iPhone silent switch is off, then continue.',
               { duration: 7000 }
             );
           } else {
