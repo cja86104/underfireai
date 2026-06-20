@@ -14,7 +14,6 @@ import {
   AlertCircle,
   Mic,
   MicOff,
-  Volume2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
@@ -325,6 +324,35 @@ export function InterviewChat({
       return false;
     }
   }, [audioUnlocked]);
+
+  // ── Mobile: silent first-gesture audio unlock ───────────────────────────────
+  // Replaces the removed orange enable-voice banner. Mobile browsers (iOS
+  // Safari, Android Chrome) reject audio.play() unless it is initiated inside
+  // a user-gesture handler, so genuinely zero-interaction autoplay is not
+  // possible on those platforms. Instead of a dedicated enable button, we arm
+  // a one-shot listener that unlocks the persistent <audio> element on the
+  // very first pointer/touch/click/key the user makes anywhere on the page —
+  // an interaction that always happens before they answer — so interviewer
+  // voice is active from the start with no visible enable step. If a later TTS
+  // clip re-locks (audioUnlocked flips back to false at the play() catch
+  // site), this effect re-runs and re-arms the listener.
+  useEffect(() => {
+    if (!isMobileDevice || !voiceEnabled || audioUnlocked) return;
+    if (typeof document === 'undefined') return;
+
+    const gestureEvents: string[] = ['pointerdown', 'touchend', 'click', 'keydown'];
+    const handleFirstGesture: EventListener = () => {
+      gestureEvents.forEach((evt) => document.removeEventListener(evt, handleFirstGesture));
+      void unlockAudio();
+    };
+    gestureEvents.forEach((evt) =>
+      document.addEventListener(evt, handleFirstGesture, { passive: true }),
+    );
+
+    return () => {
+      gestureEvents.forEach((evt) => document.removeEventListener(evt, handleFirstGesture));
+    };
+  }, [isMobileDevice, voiceEnabled, audioUnlocked, unlockAudio]);
 
   // showHud is resolved in a single effect so the mobile check and WebGL check
   // are never evaluated in separate render cycles. Two separate effects caused a
@@ -1204,20 +1232,10 @@ export function InterviewChat({
         style={{ display: 'none' }}
       />
 
-      {/* "Enable Voice" banner (mobile only). Shown until the user taps to
-          prime audio playback inside a gesture. After unlock the banner
-          disappears for the rest of the session. */}
-      {isMobileDevice && voiceEnabled && !audioUnlocked && sessionStatus === 'in_progress' && (
-        <button
-          type="button"
-          onClick={() => { void unlockAudio(); }}
-          className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white px-4 py-3 text-sm font-semibold transition-colors min-h-[48px]"
-          aria-label="Enable interviewer voice playback"
-        >
-          <Volume2 className="h-4 w-4" />
-          Tap to enable interviewer voice
-        </button>
-      )}
+      {/* Mobile interviewer-voice plays from the start: audio is unlocked
+          silently on the user's first gesture (see the first-gesture unlock
+          effect above), so the old "Tap to enable interviewer voice" banner
+          has been removed. */}
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-900">
@@ -1624,7 +1642,7 @@ export function InterviewChat({
               disabled={isLoading || isAtLimit}
               rows={2}
               autoFocus
-              className="flex-1 resize-none rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-slate-900 dark:text-slate-100 placeholder:text-[#8B7355] dark:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+              className="flex-1 resize-none rounded-lg border border-[#3D3229]/15 dark:border-slate-700 bg-[#3D3229]/5 dark:bg-slate-800/50 px-4 py-3 text-[#3D3229] dark:text-slate-100 placeholder:text-[#8B7355] dark:placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
             />
             <button
               onClick={() => void sendMessage()}
