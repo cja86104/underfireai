@@ -278,6 +278,9 @@ export function InterviewChat({
   //      of swallowing it.
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+  // TEMPORARY mobile TTS diagnostic (toasts vanish too fast on a phone). Holds
+  // the last interviewer-audio playback outcome so a wedged player is visible.
+  const [ttsDebug, setTtsDebug] = useState<string | null>(null);
 
   // Mobile detection (UA + viewport). Independent of the existing showHud
   // mobile check because that one is HUD-specific and lives in its own
@@ -645,6 +648,7 @@ export function InterviewChat({
       // on this path get exactly what they had before — no regression.
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
+      const blobKb = (audioBlob.size / 1024).toFixed(1);
 
       // Reuse the persistent, gesture-unlocked <audio> element rendered at
       // the bottom of this component. Fresh `new Audio()` instances per call
@@ -666,36 +670,51 @@ export function InterviewChat({
       // The TTS queue drain awaits this function, so resolving on start
       // would fire the next speaker immediately over the first one.
       await new Promise<void>((resolve) => {
-        const cleanup = (): void => {
+        let settled = false;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        const finishPlayback = (reason: string): void => {
+          if (settled) return;
+          settled = true;
+          if (timeoutId !== null) clearTimeout(timeoutId);
           audio.removeEventListener('ended', onEnded);
           audio.removeEventListener('error', onError);
           setIsSpeaking(false);
           URL.revokeObjectURL(audioUrl);
+          // Surface the outcome on mobile so a wedged player is diagnosable.
+          // Cleared on a clean 'ended'.
+          setTtsDebug(
+            reason === 'ended'
+              ? null
+              : `TTS ${reason} | ${blobKb} KB | readyState=${audio.readyState} paused=${audio.paused} t=${audio.currentTime.toFixed(1)}s dur=${Number.isFinite(audio.duration) ? audio.duration.toFixed(1) : '?'}`,
+          );
           resolve();
         };
-        const onEnded = (): void => cleanup();
-        const onError = (): void => cleanup();
+        const onEnded = (): void => finishPlayback('ended');
+        const onError = (): void =>
+          finishPlayback(`element error (code ${audio.error?.code ?? '?'})`);
         audio.addEventListener('ended', onEnded);
         audio.addEventListener('error', onError);
 
         audio.src = audioUrl;
         setIsSpeaking(true);
+
+        // iOS can leave the element wedged after a mic recording (audio session
+        // still in record mode) or muted by the silent switch, so neither
+        // 'ended' nor 'error' fires. Time out so the TTS queue never hangs and
+        // the diagnostic captures the element state.
+        timeoutId = setTimeout(() => {
+          finishPlayback("timeout: no 'ended' in 15s (audio wedged or muted)");
+        }, 15000);
+
         audio.play().catch((playError: unknown) => {
           if (playError instanceof DOMException && playError.name === 'NotAllowedError') {
-            // Playback blocked — element was never unlocked inside a
-            // gesture (e.g. user arrived via a deep link and didn't tap
-            // anything before TTS arrived). Flip the unlock state so the
-            // banner re-appears and tell the user explicitly.
-            console.warn('[TTS] Autoplay blocked — user must tap Enable Voice.');
+            console.warn('[TTS] Autoplay blocked - gesture required.');
             setAudioUnlocked(false);
-            toast.error(
-              'Audio is blocked by your phone. Tap the screen once and make sure the iPhone silent switch is off, then continue.',
-              { duration: 7000 }
-            );
+            finishPlayback('autoplay blocked (NotAllowedError) - tap screen, silent switch off');
           } else {
             console.error('[TTS] play() error:', playError);
+            finishPlayback(`play() error: ${playError instanceof Error ? playError.message : 'unknown'}`);
           }
-          cleanup();
         });
       });
     } catch (error) {
@@ -1246,6 +1265,16 @@ export function InterviewChat({
           silently on the user's first gesture (see the first-gesture unlock
           effect above), so the old "Tap to enable interviewer voice" banner
           has been removed. */}
+
+      {/* TEMPORARY mobile TTS diagnostic — remove once interviewer voice plays
+          reliably on iPhone. */}
+      {isMobileDevice && ttsDebug && (
+        <div className="px-3 py-2 bg-amber-500/15 border-b border-amber-500/30">
+          <p className="text-[11px] text-amber-200 break-words">
+            <span className="font-semibold">TTS debug:</span> {ttsDebug}
+          </p>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#3D3229]/10 dark:border-slate-800 bg-[#FAF8F5] dark:bg-slate-900">
