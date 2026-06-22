@@ -324,6 +324,10 @@ export function InterviewChat({
       // policy we cannot bypass. Leave audioUnlocked false so the banner
       // stays visible; the user can try again.
       console.warn('[TTS] Audio unlock failed:', err);
+      // Ensure the element is never left muted when play() rejects (e.g.
+      // AbortError from a concurrent src change racing unlockAudio). A muted
+      // element will play TTS silently — inaudible to the user.
+      el.muted = false;
       return false;
     }
   }, [audioUnlocked]);
@@ -678,6 +682,12 @@ export function InterviewChat({
           if (timeoutId !== null) clearTimeout(timeoutId);
           audio.removeEventListener('ended', onEnded);
           audio.removeEventListener('error', onError);
+          // If the clip didn't end cleanly (timeout, error, autoplay block),
+          // the element may still be loading. Pause so the next TTS call
+          // can set a fresh src without a stale load racing it.
+          if (reason !== 'ended') {
+            try { audio.pause(); } catch { /* ignore */ }
+          }
           setIsSpeaking(false);
           URL.revokeObjectURL(audioUrl);
           // Surface the outcome on mobile so a wedged player is diagnosable.
@@ -696,6 +706,11 @@ export function InterviewChat({
         audio.addEventListener('error', onError);
 
         audio.src = audioUrl;
+        // Safety net: if unlockAudio's play() was AbortError'd by a
+        // concurrent src change, el.muted may still be true. Force
+        // unmuted + full volume before every play so TTS is audible.
+        audio.muted = false;
+        audio.volume = 1.0;
         setIsSpeaking(true);
 
         // iOS can leave the element wedged after a mic recording (audio session
