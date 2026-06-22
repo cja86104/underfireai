@@ -723,11 +723,28 @@ export function InterviewChat({
 
         // iOS can leave the element wedged after a mic recording (audio session
         // still in record mode) or muted by the silent switch, so neither
-        // 'ended' nor 'error' fires. Time out so the TTS queue never hangs and
-        // the diagnostic captures the element state.
-        timeoutId = setTimeout(() => {
-          finishPlayback("timeout: no 'ended' in 15s (audio wedged or muted)");
-        }, 15000);
+        // 'ended' nor 'error' fires. A flat 15s deadline cut off legitimate
+        // long clips (an interviewer question can easily take >15s to read
+        // aloud), so this watches audio.currentTime instead: only declare the
+        // clip wedged if playback position hasn't advanced for STALL_MS, no
+        // matter how long the clip has been running in total.
+        const STALL_MS = 8000;
+        let lastProgressAt = Date.now();
+        let lastCurrentTime = audio.currentTime;
+        const checkStall = (): void => {
+          if (settled) return;
+          const now = Date.now();
+          if (audio.currentTime > lastCurrentTime) {
+            lastCurrentTime = audio.currentTime;
+            lastProgressAt = now;
+          }
+          if (now - lastProgressAt >= STALL_MS) {
+            finishPlayback(`stalled: no playback progress in ${STALL_MS / 1000}s (audio wedged or muted)`);
+            return;
+          }
+          timeoutId = setTimeout(checkStall, 1000);
+        };
+        timeoutId = setTimeout(checkStall, 1000);
 
         audio.play().catch((playError: unknown) => {
           if (playError instanceof DOMException && playError.name === 'NotAllowedError') {
