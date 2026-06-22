@@ -496,11 +496,16 @@ export function InterviewChat({
         return w.ManagedMediaSource;
       })();
 
-      // iOS Safari's (Managed)MediaSource streaming path hangs "loading" forever
-      // for a detached <audio> element, so on mobile we skip streaming and use
-      // the reliable blob fallback below (the persistent, gesture-unlocked
-      // audioRef). Slightly slower first-audio on mobile, but it actually plays.
+      // iOS 17+ exposes ManagedMediaSource which works with DOM-attached
+      // <audio playsInline> elements. On those devices we CAN stream (first
+      // audio arrives ~500 ms after the request instead of waiting for the
+      // entire MP3). On iOS 16 and below, new Audio() creates a detached
+      // element that hangs "loading" indefinitely with MediaSource, so we
+      // fall back to the reliable blob path there.
+      const hasManagedMediaSource =
+        typeof window !== 'undefined' && 'ManagedMediaSource' in window;
       const preferBlobAudio =
+        !hasManagedMediaSource &&
         typeof navigator !== 'undefined' &&
         (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
           (typeof window !== 'undefined' && window.innerWidth < 768));
@@ -517,7 +522,22 @@ export function InterviewChat({
         const responseBody: ReadableStream<Uint8Array> = response.body;
         const mediaSource = new MediaSourceCtor();
         const audioUrl = URL.createObjectURL(mediaSource);
-        const audio = new Audio(audioUrl);
+        // iOS 17+ (ManagedMediaSource): use the persistent gesture-unlocked
+        // <audio> element from audioRef. ManagedMediaSource requires a
+        // DOM-attached element (playsInline); new Audio() creates a detached
+        // element that hangs indefinitely on iOS. On desktop, new Audio() is
+        // fine and keeps streaming isolated from the shared element.
+        const audio =
+          hasManagedMediaSource && audioRef.current
+            ? audioRef.current
+            : new Audio(audioUrl);
+        if (audio === audioRef.current) {
+          // Set src on the reused element (new Audio(url) does this in the
+          // constructor; audioRef needs an explicit assignment).
+          audio.src = audioUrl;
+          audio.muted = false;
+          audio.volume = 1.0;
+        }
         // Hint to ManagedMediaSource (iOS) that the element should keep
         // buffering even if briefly backgrounded. Harmless on other
         // browsers — the property is a standard HTMLMediaElement setter.
@@ -531,19 +551,25 @@ export function InterviewChat({
         };
 
         await new Promise<void>((resolve) => {
+          // Named handlers so they can be removed — critical when audio is
+          // audioRef.current (reused across calls). Without removal, each
+          // streaming TTS call would accumulate 'ended'/'error' listeners.
           const finish = (): void => {
+            audio.removeEventListener('ended', finish);
+            audio.removeEventListener('error', onStreamError);
             setIsSpeaking(false);
             revokeOnce();
             resolve();
+          };
+          const onStreamError = (): void => {
+            console.warn('[TTS] audio element errored during streaming playback');
+            finish();
           };
 
           // 'ended' resolves the outer Promise — the panel queue depends
           // on this firing only at true end of playback.
           audio.addEventListener('ended', finish);
-          audio.addEventListener('error', () => {
-            console.warn('[TTS] audio element errored during streaming playback');
-            finish();
-          });
+          audio.addEventListener('error', onStreamError);
 
           mediaSource.addEventListener('sourceopen', () => {
             let sourceBuffer: SourceBuffer;
