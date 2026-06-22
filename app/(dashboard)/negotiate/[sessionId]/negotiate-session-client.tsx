@@ -183,10 +183,46 @@ function ResultsPanel({ result }: { result: EndSessionApiResponse }): React.JSX.
   );
 }
 
+// ── Coach Marker Parser ───────────────────────────────────────────────────────
+
+/**
+ * Splits a recruiter message into alternating dialogue and coach annotation
+ * segments. Segments with type 'coach' should be rendered as orange training
+ * commentary; segments with type 'text' are the recruiter's spoken dialogue.
+ */
+interface TextSegment { type: 'text'; content: string }
+interface CoachSegment { type: 'coach'; content: string }
+type MessageSegment = TextSegment | CoachSegment;
+
+function parseCoachMarkers(raw: string): MessageSegment[] {
+  const MARKER_RE = /\{\{coach:([\s\S]*?)\}\}/g;
+  const segments: MessageSegment[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = MARKER_RE.exec(raw)) !== null) {
+    const before = raw.slice(lastIndex, match.index).trim();
+    if (before) segments.push({ type: 'text', content: before });
+    const annotation = match[1].trim();
+    if (annotation) segments.push({ type: 'coach', content: annotation });
+    lastIndex = MARKER_RE.lastIndex;
+  }
+
+  const remaining = raw.slice(lastIndex).trim();
+  if (remaining) segments.push({ type: 'text', content: remaining });
+
+  return segments;
+}
+
 // ── Message Bubble ────────────────────────────────────────────────────────────
 
 function MessageBubble({ message }: { message: NegotiationMessage }): React.JSX.Element {
   const isUser = message.role === 'user';
+  const segments = isUser ? null : parseCoachMarkers(message.content);
+  // For user messages (or recruiter messages with no coach markers), fall back
+  // to rendering content as plain text.
+  const hasCoachAnnotations = !isUser && segments !== null && segments.some(s => s.type === 'coach');
+
   return (
     <div className={cn('flex gap-4', isUser ? 'flex-row-reverse' : 'flex-row')}>
       <div className={cn(
@@ -195,16 +231,44 @@ function MessageBubble({ message }: { message: NegotiationMessage }): React.JSX.
       )}>
         {isUser ? 'You' : 'HR'}
       </div>
-      <div className={cn(
-        'max-w-[75%] rounded-2xl px-6 py-4 text-lg leading-relaxed',
-        isUser
-          ? 'bg-orange-500/20 text-[#3D3229] dark:text-orange-50 rounded-tr-sm'
-          : 'bg-white dark:bg-slate-800 border border-[#3D3229]/10 dark:border-slate-700 text-[#3D3229] dark:text-slate-100 rounded-tl-sm'
-      )}>
-        {message.content}
-        <div className={cn('text-base mt-2 text-[#3D3229]/50 dark:text-slate-400', isUser ? 'text-right' : 'text-left')}>
-          {format(new Date(message.created_at), 'h:mm a')}
+
+      <div className={cn('max-w-[75%] space-y-2', isUser && 'items-end flex flex-col')}>
+        {/* Recruiter dialogue bubble */}
+        <div className={cn(
+          'rounded-2xl px-6 py-4 text-lg leading-relaxed',
+          isUser
+            ? 'bg-orange-500/20 text-[#3D3229] dark:text-orange-50 rounded-tr-sm'
+            : 'bg-white dark:bg-slate-800 border border-[#3D3229]/10 dark:border-slate-700 text-[#3D3229] dark:text-slate-100 rounded-tl-sm'
+        )}>
+          {hasCoachAnnotations && segments
+            ? segments.filter(s => s.type === 'text').map((s, i) => (
+                <span key={i}>{s.content}</span>
+              ))
+            : message.content
+          }
+          <div className={cn('text-base mt-2 text-[#3D3229]/50 dark:text-slate-400', isUser ? 'text-right' : 'text-left')}>
+            {format(new Date(message.created_at), 'h:mm a')}
+          </div>
         </div>
+
+        {/* Coach annotations — orange, labeled, outside the main bubble */}
+        {hasCoachAnnotations && segments && segments
+          .filter((s): s is CoachSegment => s.type === 'coach')
+          .map((s, i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-orange-500/30 bg-orange-500/8 dark:bg-orange-500/10 px-4 py-3 text-base leading-relaxed"
+            >
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-orange-500 mb-1.5 block">
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 4a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1z"/>
+                </svg>
+                Recruiter&apos;s Thinking
+              </span>
+              <span className="text-orange-700 dark:text-orange-300">{s.content}</span>
+            </div>
+          ))
+        }
       </div>
     </div>
   );
