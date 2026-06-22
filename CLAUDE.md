@@ -96,3 +96,10 @@ Rules for the final response:
 - If any test or lint step failed, stop and report failure instead of presenting the work as complete.
 - If the code was changed but not tested, state that it is unverified.
 - Never present unverified code as client-ready.
+
+## Work documentation (WORKLOG + CHANGELOG)
+- Added 2026-06-22 after an audit found no documentation system actually existed, despite it being assumed to be in place.
+- Every work session in this repo must append an entry to `WORKLOG.md` covering: what was done, why, the exact tools/commands run, and their results — before reporting completion to the user.
+- Do not skip an entry for small changes. Do not backfill entries for work that was not verified in that session.
+- When a change is user-facing or notable, also add a corresponding entry to `CHANGELOG.md` under `[Unreleased]` (Keep a Changelog format).
+- CI (`.github/workflows/ci.yml`) runs typecheck, lint, and unit tests on every push/PR to `main`. A red CI run blocks claiming the work is done — fix it before reporting completion, per the verification rules above.
