@@ -46,3 +46,69 @@ tests on push/PR to `main`). `WORKLOG.md` and `CHANGELOG.md` added.
   done here; flagged as a follow-up.
 - No pre-commit hook was added (CI-only enforcement was the chosen approach
   for this round, not local hooks).
+
+---
+
+## 2026-06-22 — Add README.md
+
+**What:** Added a GitHub-facing README: elevator pitch, feature list, tech
+stack table, setup/env var instructions, available scripts, current test
+coverage (stated honestly, not inflated), project structure, and pointers to
+the blueprint/audit/worklog docs.
+
+**Why:** No README existed at all. Asked for one for GitHub.
+
+**Tools/commands run:**
+- Read `package.json`, `.env.example` (var names only), `lib/ai/config.ts`,
+  `underfireai-blueprint-v1.md`, and `git remote -v` to source accurate
+  content instead of guessing — cross-checked the blueprint against current
+  code since the blueprint is stale in places (e.g. it still says Cartesia
+  for TTS; current code uses OpenAI TTS + OpenRouter/Groq STT, confirmed
+  earlier this session by reading `lib/tts/openai-tts.ts` / `lib/stt/openrouter-stt.ts`).
+- `git status --short` — confirmed only `README.md` is new/untracked.
+
+**Result:** `README.md` added at repo root.
+
+**Known limitations:**
+- The CI badge in the README points at `cja86104/underfireai`'s Actions
+  page; it will render "no status"/broken until the CI workflow has run at
+  least once on GitHub.
+- No LICENSE file exists in the repo, so the README does not claim one.
+
+---
+
+## 2026-06-22 — Add LICENSE and source-visible notice
+
+**What:** Added a `LICENSE` file with an explicit "all rights reserved"
+proprietary notice, a one-line callout near the top of `README.md`, and a
+full `## License` section at the bottom of the README, both pointing at the
+LICENSE file.
+
+**Why:** User wants the repo public on GitHub (stars/views) without it being
+usable as open source. Public visibility and license terms are independent
+on GitHub — going public does not grant anyone the right to use the code;
+that's controlled by licensing. Chose an explicit proprietary LICENSE over
+no-LICENSE-at-all so the intent reads as deliberate rather than an oversight.
+
+**Tools/commands run:**
+- `git log --all --full-history --diff-filter=A --name-only -- "*.env*"` —
+  confirmed only `.env.example` (a template, no real values) was ever
+  committed; no real secrets in history.
+- Regex scan of full `git log --all -p` for Stripe/OpenAI/JWT-style key
+  patterns — no matches. Not exhaustive (pattern-based, not a dedicated
+  secret scanner).
+- Read both files back in full after writing to confirm exact content.
+
+**Result:** `LICENSE` added. `README.md` updated with the notice + License
+section.
+
+**Known limitations:**
+- This is not legal advice; the LICENSE wording is a standard proprietary
+  notice, not reviewed by an attorney.
+- GitHub's own platform permissions let anyone view/clone/fork a public
+  repo regardless of license — the LICENSE governs legal right to use the
+  code, not technical ability to copy it. That's inherent to "public," not
+  something this change can close.
+- The secret-history scan above is a reasonable-effort grep, not a
+  guarantee. Recommended GitHub's built-in secret scanning (auto-enabled on
+  public repos) as a follow-up, not run here.

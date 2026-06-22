@@ -12,6 +12,8 @@ history, which has carried detailed commit messages since 2026-05-31.
   every push/PR to `main`.
 - `WORKLOG.md` — session-level development log.
 - This file.
+- `README.md`.
+- `LICENSE` — explicit all-rights-reserved proprietary notice.
 
 ### Changed
 - `CLAUDE.md` now requires every work session to update `WORKLOG.md`, and to
