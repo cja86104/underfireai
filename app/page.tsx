@@ -27,10 +27,13 @@ import {
   Lightbulb,
   DollarSign,
   Wand2,
+  Menu,
+  X,
 } from 'lucide-react';
 
 export default function LandingPage(): React.JSX.Element {
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,6 +46,26 @@ export default function LandingPage(): React.JSX.Element {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
+  // Close the mobile menu when the viewport crosses the md (>=768px) breakpoint
+  // (e.g. rotating a phone to landscape or resizing a small browser window) and
+  // when the user presses Escape — keeps focus and DOM state consistent with
+  // the desktop nav, which is rendered alongside it via the md: utilities.
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleResize = (): void => {
+      if (window.innerWidth >= 768) setMobileMenuOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, [mobileMenuOpen]);
 
   const coreFeatures = [
     {
@@ -279,7 +302,7 @@ export default function LandingPage(): React.JSX.Element {
   ];
 
   return (
-    <div className="min-h-screen bg-[#08080a] text-[#fafafa] antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-[#08080a] text-[#fafafa] antialiased overflow-x-hidden pb-20 md:pb-0">
 
       {/* Mouse-tracked glow */}
       <div
@@ -307,8 +330,12 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[#08080a]/85 backdrop-blur-xl border-b border-white/[0.06]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+          <Link
+            href="/"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 group flex-shrink-0"
+          >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
               <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A]">
@@ -318,6 +345,7 @@ export default function LandingPage(): React.JSX.Element {
             <span className="font-bold text-xl tracking-tight text-[#fafafa]">UnderFireAI</span>
           </Link>
 
+          {/* Desktop section links (md+) */}
           <div className="hidden md:flex items-center gap-1">
             {[
               { label: 'Features', href: '#features' },
@@ -335,7 +363,8 @@ export default function LandingPage(): React.JSX.Element {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop auth CTAs (md+) */}
+          <div className="hidden md:flex items-center gap-3">
             <Link href="/login" className="px-4 py-2 text-base text-[#a1a1aa] hover:text-[#fafafa] transition-colors">
               Sign in
             </Link>
@@ -346,11 +375,69 @@ export default function LandingPage(): React.JSX.Element {
               Get Started Free
             </Link>
           </div>
+
+          {/* Mobile menu trigger (<md) — replaces the desktop links + CTAs which
+              together overflow a 375px viewport. The full menu (section anchors,
+              Sign in, Get Started Free) lives in the panel below. */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-lg text-[#fafafa] hover:bg-white/[0.06] transition-colors min-h-[44px] min-w-[44px]"
+          >
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
+
+        {/* Mobile menu panel (<md only). Rendered inside the same fixed nav so
+            it shares the backdrop blur and stays anchored to the top of the
+            viewport. State is managed via mobileMenuOpen; the menu auto-closes
+            on link tap, viewport resize past md, and Escape. */}
+        {mobileMenuOpen && (
+          <div
+            id="mobile-menu"
+            className="md:hidden mt-4 pt-4 border-t border-white/[0.06] space-y-1"
+          >
+            {[
+              { label: 'Features', href: '#features' },
+              { label: 'How It Works', href: '#how-it-works' },
+              { label: 'Pricing', href: '#pricing' },
+              { label: 'FAQ', href: '#faq' },
+            ].map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 text-base text-[#a1a1aa] hover:text-[#fafafa] hover:bg-white/[0.04] rounded-lg transition-colors"
+              >
+                {item.label}
+              </a>
+            ))}
+            <div className="pt-3 mt-3 border-t border-white/[0.06] space-y-2">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 text-base text-[#a1a1aa] hover:text-[#fafafa] hover:bg-white/[0.04] rounded-lg transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 px-6 py-3.5 text-base font-bold rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white shadow-lg shadow-orange-900/30"
+              >
+                Get Started Free
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center pt-28 pb-24 px-6">
+      <section ref={heroRef} className="relative min-h-screen flex items-center pt-24 pb-16 md:pt-28 md:pb-24 px-6">
         <div className="relative z-10 max-w-7xl mx-auto w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -455,7 +542,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Core Features */}
-      <section id="features" className="relative py-28 px-6">
+      <section id="features" className="relative py-16 md:py-28 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Core Features</p>
@@ -504,7 +591,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Interview Types */}
-      <section className="relative py-24 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
+      <section className="relative py-14 md:py-24 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Interview Types</p>
@@ -537,7 +624,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Resume Intelligence */}
-      <section className="relative py-28 px-6">
+      <section className="relative py-16 md:py-28 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -616,7 +703,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Company Types */}
-      <section className="relative py-24 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
+      <section className="relative py-14 md:py-24 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Company-Specific Prep</p>
@@ -649,7 +736,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="relative py-28 px-6">
+      <section id="how-it-works" className="relative py-16 md:py-28 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">How It Works</p>
@@ -690,7 +777,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="relative py-28 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
+      <section id="pricing" className="relative py-16 md:py-28 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">Pricing</p>
@@ -772,7 +859,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="relative py-28 px-6">
+      <section id="faq" className="relative py-16 md:py-28 px-6">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-orange-500 font-bold tracking-widest text-sm mb-5 uppercase">FAQ</p>
@@ -796,7 +883,7 @@ export default function LandingPage(): React.JSX.Element {
       </section>
 
       {/* CTA */}
-      <section className="relative py-28 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/60">
+      <section className="relative py-16 md:py-28 px-6 bg-gradient-to-b from-transparent to-[#0f0f12]/60">
         <div className="max-w-4xl mx-auto">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-400/8 rounded-3xl blur-3xl" />
@@ -882,6 +969,21 @@ export default function LandingPage(): React.JSX.Element {
           </div>
         </div>
       </footer>
+
+      {/* Sticky mobile CTA bar — visible only on <md viewports. Gives
+          non-logged-in mobile visitors a persistent path to convert without
+          having to scroll back to the top nav after a long page. Hidden on
+          md+ so the desktop layout is unchanged. The root <div> has
+          pb-20 md:pb-0 above to reserve room for this bar on mobile. */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-4 py-3 bg-[#08080a]/95 backdrop-blur-xl border-t border-white/[0.06]">
+        <Link
+          href="/register"
+          className="flex items-center justify-center gap-2 w-full px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#8B5A2B] to-[#5D3A1A] text-white text-base font-bold shadow-xl shadow-orange-900/30"
+        >
+          Get Started Free
+          <ArrowRight className="h-5 w-5" />
+        </Link>
+      </div>
     </div>
   );
 }

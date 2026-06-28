@@ -112,3 +112,69 @@ section.
 - The secret-history scan above is a reasonable-effort grep, not a
   guarantee. Recommended GitHub's built-in secret scanning (auto-enabled on
   public repos) as a follow-up, not run here.
+
+
+---
+
+## 2026-06-27 — Mobile landing-page UX fix (`app/page.tsx`)
+
+**Reported by:** customer (not logged in — issue therefore on the public
+landing page, not anywhere behind auth).
+
+**Diagnosis:** The fixed top nav at `app/page.tsx:309` packed logo +
+`Sign in` + `Get Started Free` (≈500px of content) into a 375px-wide
+mobile viewport. The root container's `overflow-x-hidden` clipped the
+right edge of the CTA off-screen instead of producing a scrollbar — what
+a customer would describe as "the layout looks off on mobile." The four
+section-anchor links (`Features`, `How It Works`, `Pricing`, `FAQ`) were
+`hidden md:flex` with **no hamburger replacement**, so mobile visitors
+also had no way to navigate the page from the nav.
+
+**Changes (mobile-only — desktop unchanged):**
+1. Added a hamburger trigger (`<md` only, `min-h-[44px]` tap target,
+   `aria-expanded` / `aria-controls`) that toggles a panel inside the
+   same fixed nav with the four section links + Sign in + Get Started
+   Free. Panel auto-closes on link tap, viewport resize past `md`, and
+   `Escape`.
+2. Both the desktop section-link group and the desktop auth-CTA group
+   were already in the markup; added `hidden md:flex` to the CTA group
+   so it no longer renders below `md`. Desktop (`md+`) DOM is unchanged.
+3. Tightened mobile vertical section padding on every long section:
+   `py-28` → `py-16 md:py-28`, `py-24` → `py-14 md:py-24`. Saves
+   ≈96px × 7 sections = ≈670px of mobile scroll. Desktop padding
+   preserved via `md:` prefix.
+4. Added a sticky mobile-only CTA bar (`md:hidden fixed bottom-0`) with
+   `Get Started Free`, plus `pb-20 md:pb-0` on the root container so the
+   bar never overlays the footer. Desktop is untouched.
+
+**Tools / commands run this session:**
+- `grep` / `sed` / `python3` for read-only audit of `app/`, `components/`
+- Edits applied via `bash` + `python3` heredoc (per CLAUDE.md "no Write/Edit
+  on this mount" rule).
+- `node_modules/.bin/tsc --noEmit` → exit 0, no output.
+- `node_modules/.bin/eslint app/page.tsx` → exit 0, no output.
+- `node_modules/.bin/vitest run` → 2 files, 23 tests, all pass.
+- E2E (`e2e/landing.spec.ts`) NOT run this session — Playwright requires
+  a running Next dev server, which the sandbox cannot reliably boot
+  inside the 45s shell window. The test assertions
+  (`Train Under Fire` H1, `UnderFireAI` wordmark in nav, `Sign in` link
+  with `href=/login`) all still resolve under Playwright's default
+  desktop viewport (1280×720), where the new `hidden md:flex` desktop
+  CTAs remain visible. Worth re-running in CI before deploy.
+
+**Files changed:**
+- `app/page.tsx` (nav rewrite, useState + escape/resize effect, section
+  padding tightening, sticky mobile CTA, imports of `Menu` / `X`).
+- `.gitignore` — added `*.bak` so the agent's `app/page.tsx.bak` scratch
+  file (which the sandbox mount won't let `rm`) stays out of git. The
+  backup is truncated to 1 byte; not tracked.
+
+**Known limitations:**
+- Mobile rendering not verified in an actual mobile browser this
+  session — verified statically (file reads + diff) and via lint /
+  typecheck / unit tests. Visual confirmation on a real device after
+  deploy is recommended.
+- The e2e landing test was not run here (see above). CI runs it on
+  push, so the gate is intact before any merge.
+- The `pricing` page anchor and `/login` / `/register` routes are
+  unchanged.
