@@ -466,7 +466,7 @@ export default function LandingPage(): React.JSX.Element {
                 <span className="text-[#fafafa]">Master Your Interviews</span>
                 <br />
                 <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 bg-clip-text text-transparent">
-                  WE PUT YOU UNDER FIRE FIRST
+                  WE PUT YOU<br className="hidden sm:block" />{' '}UNDER FIRE<br className="hidden sm:block" />{' '}FIRST
                 </span>
               </h1>
 

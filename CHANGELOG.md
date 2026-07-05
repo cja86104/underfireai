@@ -29,3 +29,7 @@ history, which has carried detailed commit messages since 2026-05-31.
   Fire." / "So the real thing feels easy."); added a desaturated,
   scrimmed background photo behind the hero content. `e2e/landing.spec.ts`
   updated to match the new headline.
+- Hero background photo brightened (opacity 0.22 -> 0.44, lighter scrim)
+  and the "Hero card" mock chat/analysis panel removed entirely so the
+  background photo is fully visible; hero content is now a single
+  centered column instead of a two-column grid.
