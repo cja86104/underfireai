@@ -24,3 +24,8 @@ history, which has carried detailed commit messages since 2026-05-31.
   the page is ~670px shorter on mobile; added a sticky mobile-only
   Get Started Free bar pinned to the viewport bottom. Desktop layout
   (`md+`) is unchanged.
+- Landing page hero (`app/page.tsx`) headline changed to "Master Your
+  Interviews" / "WE PUT YOU UNDER FIRE FIRST" (previously "Train Under
+  Fire." / "So the real thing feels easy."); added a desaturated,
+  scrimmed background photo behind the hero content. `e2e/landing.spec.ts`
+  updated to match the new headline.

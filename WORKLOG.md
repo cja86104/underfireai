@@ -178,3 +178,76 @@ also had no way to navigate the page from the nav.
   push, so the gate is intact before any merge.
 - The `pricing` page anchor and `/login` / `/register` routes are
   unchanged.
+
+---
+
+## 2026-07-05 — Hero headline copy change + background photography
+
+**What:** In `app/page.tsx`, changed the hero `<h1>` from "Train Under
+Fire." / "So the real thing feels easy." to "Master Your Interviews" /
+"WE PUT YOU UNDER FIRE FIRST" (same two-line gradient-accent styling,
+text only). Added a section-scoped photo backdrop behind the hero content
+(a desaturated, heavily-scrimmed Unsplash photo of a professional interview
+setting, `photo-1573497701240-345a300b8d36`, free under the Unsplash
+License), layered under the existing mouse-tracked glow / gradient orbs /
+grid overlay so hero copy contrast is unaffected. Updated
+`e2e/landing.spec.ts` to assert the new H1 text instead of the old copy.
+No other sections, routes, or metadata were touched (scope was explicitly
+limited to the landing page hero by the requester).
+
+**Why:** Requested landing-page copy + visual refresh; nothing else was to
+be touched.
+
+**Tools/commands run:**
+- `npx eslint app/page.tsx e2e/landing.spec.ts` — exit 0, no output (clean).
+- `npm run typecheck` (`tsc --noEmit`) — pre-existing failures only, all in
+  `e2e/landing.spec.ts`, `playwright.config.ts`,
+  `tests/components/interview-chat-voice-banner.test.tsx`,
+  `tests/lib/ai/response-sanitizer.test.ts`, and `vitest.config.ts`, all
+  "Cannot find module" for `@playwright/test`, `vitest`,
+  `@testing-library/react`, `@vitejs/plugin-react`. Confirmed these packages
+  are listed in `package.json` devDependencies but are absent from this
+  sandbox's `node_modules` (this session's environment has no registry
+  network access — confirmed separately via `npm run lint`, which fails
+  trying to download a platform SWC binary with `EAI_AGAIN
+  registry.npmjs.org`). None of the typecheck errors are in `app/page.tsx`,
+  the file actually changed. Not fixed in this session — flagged as a
+  known limitation below.
+- `npm run lint` (`next lint`) — could not run; fails downloading
+  `@next/swc-linux-x64-gnu` (no network in this sandbox). Ran `eslint`
+  directly instead (see above) as the closest available substitute.
+- `npx vitest run` / `npx playwright test` — could not run; both packages
+  are missing from `node_modules` in this sandbox (see above).
+- `git stash` (attempted, to diff typecheck output against the pre-change
+  state) — failed partway through with a permissions error on this
+  Windows-mounted repo (`unable to create '.git/index.lock'`), leaving a
+  stale, unremovable `.git/index.lock` and a corrupted `.git/index`
+  (renamed to `.git/index.corrupt-backup` in this session so it's not
+  silently used). Working-tree files were not affected. `git status`
+  will not work in this repo until the leftover `.git/index.lock` is
+  deleted (this sandbox could not remove it — repeated `rm`/`os.remove`
+  both returned `Operation not permitted`) and the index is rebuilt
+  (`git read-tree HEAD` once the lock is gone).
+
+**Result:** Hero headline and background updated as requested; e2e
+assertion kept in sync; ESLint clean on both changed files.
+
+**Known limitations:**
+- Full `npm run lint`, `npm run typecheck` (fully clean), `vitest`, and
+  `playwright` runs were not completed in this sandbox due to missing
+  network access / missing devDependencies — user indicated they will run
+  lint and typecheck themselves locally.
+- `git` is currently unusable in this checkout until `.git/index.lock` is
+  deleted by the user (outside this sandbox, where file permissions are
+  normal) and `.git/index.corrupt-backup` is either restored or discarded
+  via `git read-tree HEAD`.
+- Background image is hot-linked from `images.unsplash.com` (already
+  whitelisted in this repo's CSP `img-src` and `next.config.ts`
+  `images.remotePatterns`) rather than stored locally in `public/` — no
+  `public/` directory exists in this repo yet. This sandbox could not
+  make outbound HTTP requests to confirm the exact image bytes resolve
+  (only `mcp__workspace__web_fetch`, which returned the page HTML/meta
+  successfully but not a renderable body for the raw image request); the
+  URL was extracted directly from Unsplash's live photo page
+  (`https://unsplash.com/photos/five-people-sitting-at-table-and-talking-jzonFmreWok`),
+  confirmed "Free to use under the Unsplash License."

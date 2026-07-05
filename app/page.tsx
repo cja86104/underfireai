@@ -18,7 +18,6 @@ import {
   Clock,
   TrendingUp,
   Eye,
-  Volume2,
   MessageSquare,
   Sparkles,
   Building2,
@@ -437,9 +436,26 @@ export default function LandingPage(): React.JSX.Element {
       </nav>
 
       {/* Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center pt-24 pb-16 md:pt-28 md:pb-24 px-6">
+      <section ref={heroRef} className="relative min-h-screen flex items-center pt-24 pb-16 md:pt-28 md:pb-24 px-6 overflow-hidden">
+        {/* Photo backdrop: real interview-panel photography, desaturated and
+            scrimmed so the hero copy stays fully legible. Sits behind the
+            existing mouse-tracked glow / gradient orbs / grid overlay (all
+            fixed, page-wide, z-0) — this one is section-scoped. */}
+        <div className="absolute inset-0 z-0" aria-hidden="true">
+          <div
+            className="absolute inset-0 bg-cover grayscale opacity-[0.44]"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1573497701240-345a300b8d36?auto=format&fit=crop&w=2400&q=80')",
+              backgroundPosition: '68% 35%',
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#08080a] via-[#08080a]/85 to-[#08080a]/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#08080a]/20 via-transparent to-[#08080a]" />
+        </div>
+
         <div className="relative z-10 max-w-7xl mx-auto w-full">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="max-w-3xl">
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 mb-8">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
@@ -447,10 +463,10 @@ export default function LandingPage(): React.JSX.Element {
               </div>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight mb-7">
-                <span className="text-[#fafafa]">Train Under Fire.</span>
+                <span className="text-[#fafafa]">Master Your Interviews</span>
                 <br />
                 <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 bg-clip-text text-transparent">
-                  So the real thing feels easy.
+                  WE PUT YOU UNDER FIRE FIRST
                 </span>
               </h1>
 
@@ -474,68 +490,6 @@ export default function LandingPage(): React.JSX.Element {
               <p className="text-base text-[#71717a]">
                 No subscriptions &middot; Buy interview credits &middot; Use at your pace
               </p>
-            </div>
-
-            {/* Hero card */}
-            <div className="hidden lg:block">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/12 to-amber-400/8 rounded-3xl blur-2xl" />
-                <div className="relative bg-[#18181b]/95 backdrop-blur-xl rounded-3xl border border-white/10 p-7 shadow-2xl shadow-black/40">
-                  <div className="flex items-center gap-4 pb-5 border-b border-white/[0.06]">
-                    <div className="relative">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8B5A2B] to-[#5D3A1A] flex items-center justify-center text-2xl font-bold text-white">
-                        AI
-                      </div>
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#18181b]" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-lg text-[#fafafa]">Technical Interviewer</p>
-                      <p className="text-base text-[#71717a]">Senior Engineering &middot; Personality: Hidden</p>
-                    </div>
-                    <div className="ml-auto px-3 py-1.5 rounded-full bg-orange-500/12 text-sm font-semibold text-orange-400">
-                      Discover it
-                    </div>
-                  </div>
-
-                  <div className="py-6 space-y-4">
-                    <div className="bg-white/[0.05] rounded-2xl rounded-tl-sm p-5 max-w-[92%]">
-                      <p className="text-base text-[#fafafa] leading-relaxed">
-                        &ldquo;Tell me about a time you had to make a critical technical decision
-                        with incomplete information. Walk me through your thought process.&rdquo;
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-[#71717a]">
-                      <div className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
-                      STAR Analysis: Listening for Situation...
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-white/[0.06]">
-                    <div className="flex items-center gap-3 bg-white/[0.04] rounded-xl px-5 py-3.5">
-                      <Mic className="h-5 w-5 text-orange-400" />
-                      <span className="text-base text-[#71717a]">Press to respond with voice...</span>
-                      <div className="ml-auto flex items-center gap-1.5">
-                        <Volume2 className="h-4 w-4 text-orange-400" />
-                        <span className="text-sm text-orange-400 font-semibold">Voice Mode</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-4 gap-3">
-                    {[
-                      { label: 'Clarity', score: 87, color: 'text-green-400' },
-                      { label: 'Structure', score: 72, color: 'text-amber-400' },
-                      { label: 'Impact', score: 91, color: 'text-green-400' },
-                      { label: 'Confidence', score: 68, color: 'text-orange-400' },
-                    ].map((item) => (
-                      <div key={item.label} className="bg-white/[0.04] rounded-xl p-3 text-center">
-                        <p className={`text-xl font-bold ${item.color}`}>{item.score}</p>
-                        <p className="text-sm text-[#71717a]">{item.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

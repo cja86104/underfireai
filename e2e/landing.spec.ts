@@ -31,9 +31,9 @@ test.describe('Landing page', () => {
     // Document title is set by app/layout.tsx Metadata.title.default.
     await expect(page).toHaveTitle(/UnderFireAI/);
 
-    // Hero H1 lives in app/page.tsx around the "Train Under Fire." span.
+    // Hero H1 lives in app/page.tsx around the "Master Your Interviews" span.
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
-      'Train Under Fire'
+      'Master Your Interviews'
     );
 
     // Brand wordmark in the nav.
