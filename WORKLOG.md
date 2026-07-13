@@ -316,3 +316,87 @@ obstructing it; ESLint and `tsc` both clean on `app/page.tsx`.
 - `npx vitest run` / `npx playwright test` still not runnable in this
   sandbox (packages missing from `node_modules`) — not needed for this
   CSS/JSX-only change, but noting it's still the case.
+
+---
+
+## 2026-07-13 — Audit checklist walk: resume vulnerability-scan dedupe (first unfixed finding)
+
+**What:** Walked `underfireai-audit-checklist-v1.md` top-down per project
+instructions ("keep verifying until you find the first thing wrong").
+Sections 1 and the start of Section 2 (prompt-injection subsection,
+session-constraints validation) all verified as previously fixed and still
+correct. The first confirmed, unfixed finding was Section 2 Cost leaks:
+`/api/resume/upload` triggers `generateAndSaveVulnerabilityScan` (a paid
+Mistral API call) unconditionally on every upload, with no dedupe — a user
+re-uploading the same resume N times pays for N Mistral scans. This matched
+what `memory/project_audit_progress.md` had flagged as the next item in the
+hardening pass.
+
+Fixed by adding a SHA-256 content hash to `user_resumes`:
+- New migration `supabase/migrations/20260713000000_add_resume_file_hash.sql`
+  — adds `user_resumes.file_hash TEXT`, a partial index on
+  `(user_id, file_hash)`, and a column comment.
+- `types/database.ts` — added `file_hash` to the `user_resumes` Row/Insert/
+  Update types (hand-edited; `db:generate` requires a live Supabase project
+  connection not available in this session — flagged below).
+- `app/api/resume/upload/route.ts` — computes
+  `createHash('sha256').update(buffer).digest('hex')` on the raw uploaded
+  bytes, stores it on insert, and passes it to
+  `generateAndSaveVulnerabilityScan(user.id, resume.id, fileHash)`.
+- `lib/resume/insights-service.ts` — `generateAndSaveVulnerabilityScan` now
+  takes an optional third `fileHash` param. When present, it checks whether
+  any of the user's *other* resumes with the same hash already has a
+  vulnerability scan from the last 24h; if so, that scan's result is copied
+  onto the new `resume_insights` row instead of calling
+  `scanResumeVulnerabilities` again. Deliberately opt-in: the manual
+  `/api/resume/scan-vulnerabilities` endpoint (including its `forceRescan`
+  path) doesn't pass a hash, so its existing per-resume-id 24h cache and
+  force-rescan semantics are untouched.
+
+**Why:** Live-production cost leak with no functional downside to fixing —
+identical resume content no longer needs re-scanning. Scoped narrowly (only
+engages when a caller explicitly opts in with a hash) to avoid any risk of
+silently stale-ing the manual rescan flow.
+
+**Tools/commands run:**
+- `npx tsc --noEmit` (full project) — exit 0, no errors, both before adding
+  the test file and again after.
+- `npx next lint --file app/api/resume/upload/route.ts --file lib/resume/insights-service.ts`
+  — "No ESLint warnings or errors."
+- `npx next lint --file tests/lib/resume/resume-vulnerability-dedupe.test.ts`
+  — "No ESLint warnings or errors."
+- `npx vitest run tests/lib/resume/resume-vulnerability-dedupe.test.ts` — new
+  test file, 3/3 passing (mocks `@/lib/supabase/server` and
+  `@/lib/resume/vulnerability-scanner` to verify: identical-hash-within-24h
+  reuses the prior scan without calling the scanner; no-match hash runs a
+  fresh scan; omitted hash — the manual-rescan shape — always runs a fresh
+  scan).
+- `npx vitest run` (full suite) — 3 files, 26/26 passing, no regressions.
+
+**Result:** The specific cost leak named in the audit checklist is closed.
+Audit walk stopped here per the checklist's own stop rule ("Fix, then stop.
+Wait for continue before the next one.") — Sections 3–12 not yet
+re-verified this session.
+
+**Known limitations:**
+- `types/database.ts` was hand-edited rather than regenerated via
+  `npm run db:generate`, because that command requires a live connection to
+  the Supabase project (`--project-id nodkmtwchiivlwjktzis`) which isn't
+  reachable from this sandbox. The hand-edit was scoped to exactly the new
+  column across Row/Insert/Update and the file was read back in full to
+  confirm; it should still be re-generated for real once this migration is
+  applied to the live database, to catch any drift.
+- The migration itself has not been applied to any real Postgres instance
+  in this session (no `supabase db push` / live DB access here) — only
+  reviewed by reading it back. It needs to run against staging/production
+  before this code path is live; until then `file_hash` inserts would fail
+  against the current production schema.
+- Did not re-verify Sections 3–12 of the checklist this session (per the
+  stop-between-sections rule) — those remain as last verified in
+  `memory/project_audit_progress.md` (2026-05-12) until a future session
+  resumes there.
+- `git status`/`git log`/`git diff` worked in this session (contrary to a
+  note in the 2026-07-05 entry above that git was unusable) but printed a
+  warning about being unable to unlink `.git/index.lock` — did not
+  investigate further since it didn't block any read-only git command used
+  here; worth a look before this session's changes are committed.

@@ -160,10 +160,21 @@ export async function generateAndSaveAlignmentAnalysis(
 
 /**
  * Generate and save vulnerability scan for a resume
+ *
+ * @param fileHash - Optional SHA-256 hash of the raw uploaded file bytes
+ *   (see app/api/resume/upload/route.ts). When provided, this is an
+ *   opt-in dedupe path: if another of the user's resumes with the same
+ *   hash already has a vulnerability scan from the last 24 hours, that
+ *   result is copied for the new resume_id instead of calling the Mistral
+ *   API again. This only applies to the auto-triggered scan-on-upload
+ *   flow — callers that omit fileHash (e.g. the manual
+ *   /api/resume/scan-vulnerabilities endpoint, including its `forceRescan`
+ *   path) always run a fresh scan, unchanged from prior behaviour.
  */
 export async function generateAndSaveVulnerabilityScan(
   userId: string,
-  resumeId?: string
+  resumeId?: string,
+  fileHash?: string
 ): Promise<ResumeInsight | null> {
   const supabase = await createClient();
 
@@ -195,6 +206,69 @@ export async function generateAndSaveVulnerabilityScan(
 
   if (!resume?.rawText) {
     return null;
+  }
+
+  // Dedupe: if the caller supplied a content hash, look for a vulnerability
+  // scan already run in the last 24h against any OTHER resume row with the
+  // same hash (a byte-identical re-upload creates a new user_resumes row
+  // each time, so resume_id alone can't catch this — only the hash can).
+  if (fileHash) {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: matchingResumes, error: matchError } = await supabase
+      .from('user_resumes')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('file_hash', fileHash)
+      .gte('uploaded_at', twentyFourHoursAgo);
+
+    if (matchError) {
+      console.error('Error checking for duplicate resume uploads:', matchError);
+    }
+
+    const matchingResumeIds = (matchingResumes ?? []).map((r) => r.id);
+
+    if (matchingResumeIds.length > 0) {
+      const { data: existingScan, error: existingScanError } = await supabase
+        .from('resume_insights')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('insight_type', 'vulnerability')
+        .in('resume_id', matchingResumeIds)
+        .gte('created_at', twentyFourHoursAgo)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingScanError) {
+        console.error('Error looking up existing vulnerability scan for dedupe:', existingScanError);
+      }
+
+      if (existingScan) {
+        const { data: copied, error: copyError } = await supabase
+          .from('resume_insights')
+          .insert({
+            user_id: userId,
+            resume_id: resume.id,
+            session_id: null,
+            insight_type: 'vulnerability',
+            alignment_score: null,
+            discrepancies: [],
+            confirmations: [],
+            vulnerabilities: existingScan.vulnerabilities,
+            vulnerability_score: existingScan.vulnerability_score,
+            resume_suggestions: [],
+          })
+          .select()
+          .single();
+
+        if (!copyError && copied) {
+          return mapInsightFromDb(copied);
+        }
+        console.error('Error saving deduped vulnerability scan, falling back to a fresh scan:', copyError);
+        // Fall through to running a real scan below.
+      }
+    }
   }
 
   // Run vulnerability scan

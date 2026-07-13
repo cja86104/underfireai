@@ -937,6 +937,7 @@ export type Database = {
       user_resumes: {
         Row: {
           experience_years: number | null
+          file_hash: string | null
           file_url: string | null
           id: string
           parsed_data: Json | null
@@ -949,6 +950,7 @@ export type Database = {
         }
         Insert: {
           experience_years?: number | null
+          file_hash?: string | null
           file_url?: string | null
           id?: string
           parsed_data?: Json | null
@@ -961,6 +963,7 @@ export type Database = {
         }
         Update: {
           experience_years?: number | null
+          file_hash?: string | null
           file_url?: string | null
           id?: string
           parsed_data?: Json | null

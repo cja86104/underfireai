@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 import { createClient, getCurrentUser, getSubscriptionStatus } from '@/lib/supabase/server';
 import { createChatCompletion, type ChatMessage } from '@/lib/ai/chat-client';
 import { AI_MODELS, MODEL_PARAMS } from '@/lib/ai/config';
@@ -140,6 +141,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     let rawText = '';
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    // Content hash of the raw bytes — used below to dedupe repeated
+    // byte-identical uploads so the background vulnerability scan (a paid
+    // Mistral API call) doesn't re-run on content we've already scanned.
+    const fileHash = createHash('sha256').update(buffer).digest('hex');
 
     // Magic-byte verification: reject files whose binary header does not match
     // the claimed MIME type before passing to pdf-parse / mammoth. Blocks the
@@ -349,6 +355,7 @@ Return ONLY the JSON object, no markdown or explanation.`;
         target_role: targetRole ?? null,
         target_company_type: null,
         file_url: filePath,
+        file_hash: fileHash,
       })
       .select('id')
       .single();
@@ -365,9 +372,11 @@ Return ONLY the JSON object, no markdown or explanation.`;
     const subscription = await getSubscriptionStatus();
     const isPaidUser = subscription.hasPurchased;
 
-    // Trigger vulnerability scan asynchronously for paid users
+    // Trigger vulnerability scan asynchronously for paid users. fileHash is
+    // passed so a byte-identical re-upload reuses a scan from the last 24h
+    // instead of paying for another Mistral call (audit finding, §2 cost leaks).
     if (isPaidUser) {
-      generateAndSaveVulnerabilityScan(user.id, resume.id).catch((err: unknown) => {
+      generateAndSaveVulnerabilityScan(user.id, resume.id, fileHash).catch((err: unknown) => {
         console.error('Background vulnerability scan error:', err);
       });
     }

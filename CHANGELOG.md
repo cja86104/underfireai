@@ -8,12 +8,23 @@ history, which has carried detailed commit messages since 2026-05-31.
 ## [Unreleased]
 
 ### Added
+- SHA-256 `file_hash` column on `user_resumes` (migration
+  `20260713000000_add_resume_file_hash.sql`), used to dedupe repeated
+  resume uploads.
 - CI pipeline (GitHub Actions) running typecheck, lint, and unit tests on
   every push/PR to `main`.
 - `WORKLOG.md` — session-level development log.
 - This file.
 - `README.md`.
 - `LICENSE` — explicit all-rights-reserved proprietary notice.
+
+### Fixed
+- Resume upload no longer pays for a fresh Mistral vulnerability scan on
+  every re-upload of byte-identical content — `generateAndSaveVulnerabilityScan`
+  now reuses a same-hash scan from the last 24h when the upload route
+  supplies a `file_hash` (audit checklist §2 cost-leak finding). The
+  manual `/api/resume/scan-vulnerabilities` endpoint, including its
+  `forceRescan` option, is unaffected.
 
 ### Changed
 - `CLAUDE.md` now requires every work session to update `WORKLOG.md`, and to
