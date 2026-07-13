@@ -19,6 +19,12 @@ history, which has carried detailed commit messages since 2026-05-31.
 - `LICENSE` — explicit all-rights-reserved proprietary notice.
 
 ### Fixed
+- Live interview system prompt (single-interviewer and panel mode) now
+  explicitly forbids the interviewer from coaching the candidate
+  (answering on their behalf, supplying model answers, rewriting their
+  response). Technical/coding sessions additionally forbid the
+  interviewer from writing, dictating, or fixing the candidate's code
+  (audit checklist §2 content-safety finding).
 - Resume upload no longer pays for a fresh Mistral vulnerability scan on
   every re-upload of byte-identical content — `generateAndSaveVulnerabilityScan`
   now reuses a same-hash scan from the last 24h when the upload route

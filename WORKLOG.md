@@ -400,3 +400,80 @@ re-verified this session.
   warning about being unable to unlink `.git/index.lock` — did not
   investigate further since it didn't block any read-only git command used
   here; worth a look before this session's changes are committed.
+
+---
+
+## 2026-07-13 (continued) — Audit checklist walk: interviewer anti-coaching / no-solving guardrails
+
+**What:** Continued the same audit-checklist session (Section 2 Content
+safety, the two items right after Cost leaks was addressed earlier today).
+Confirmed by reading the code that:
+- `generateInterviewSystemPrompt` (`lib/ai/chat-client.ts`) had no explicit
+  instruction forbidding the interviewer from coaching the candidate — only
+  a general "stay in character" line, nothing addressing the specific
+  adversarial case the checklist calls out ("what should I say here?").
+- The live interview chat route (`app/api/interview/[sessionId]/chat/route.ts`)
+  had zero awareness of whether a session has a coding challenge attached
+  (`interview_sessions.challenge_id`, only ever set when
+  `interview_type === 'technical'`, per `app/api/interview/create/route.ts`).
+  Nothing in the system prompt stopped the interviewer persona from writing
+  or dictating the candidate's solution if asked, in either single-interviewer
+  or panel mode.
+
+Fixed:
+- `lib/ai/chat-client.ts` — added instruction #11 to the "Interviewer
+  Instructions" list: never coach the candidate, never answer on their
+  behalf, never supply model answers or rewrite their response. Added a new
+  optional `hasCodingChallenge` param; when true, appends instruction #12
+  forbidding the interviewer from writing, dictating, completing, or fixing
+  the candidate's code.
+- `app/api/interview/[sessionId]/chat/route.ts` — added `challenge_id` to
+  the session select, computed `hasCodingChallenge = !!session.challenge_id`,
+  and passed it into `generateInterviewSystemPrompt`.
+- `lib/ai/interview/panel.ts` — added the same general anti-coaching rule to
+  `buildPanelSystemPrompt`'s Rules list (panel sessions never have a
+  `challenge_id`, confirmed by reading `create/route.ts`, so no coding-specific
+  clause is needed there). Exported `buildPanelSystemPrompt` (previously
+  module-private) so it's directly unit-testable without mocking the LLM call.
+- New tests: `tests/lib/ai/generate-interview-system-prompt.test.ts` (3
+  tests — anti-coaching always present; coding clause absent by default;
+  coding clause present when `hasCodingChallenge: true`) and
+  `tests/lib/ai/panel-system-prompt.test.ts` (1 test — anti-coaching present
+  in the panel prompt).
+
+**Why:** Live-production content-safety gap. A candidate could ask the
+interviewer chat (not the code editor) to just write the solution, or ask
+what they should say, and nothing in the prompt told the model to refuse —
+undermining the coding-challenge assessment and the general interview
+practice value.
+
+**Tools/commands run:**
+- `npx tsc --noEmit` (full project) — exit 0, no errors.
+- `npx next lint --file <5 changed/added files>` — "No ESLint warnings or
+  errors."
+- `npx vitest run` (full suite) — 5 files, 30/30 passing (up from 26/26
+  after the earlier fix this session; +4 new tests).
+
+**Result:** Both interviewer prompt paths (single + panel) now explicitly
+forbid coaching the candidate; the technical/coding path additionally
+forbids writing or fixing the candidate's code.
+
+**Known limitations:**
+- This is a prompt-engineering guardrail, not a hard code-level block — it
+  relies on the model following the instruction, same category as every
+  other instruction in this system prompt (e.g. "never break character").
+  The existing `response-sanitizer.ts` defense-in-depth pass does not
+  currently detect "wrote code for the candidate" as a category to strip;
+  that would require a different kind of check (e.g. detecting code-fence
+  blocks in interviewer output) and was not in scope for this fix.
+  Flagging as a possible follow-up, not implemented here.
+- Not verified with a live LLM call in this session (no OpenRouter/DeepSeek
+  API access here) — verification was static (prompt content assertions),
+  not an actual adversarial "please write my code" drill against a running
+  model, which the checklist's own wording asks for ("Drill a test session").
+- Continued top-down per the checklist's stop rule after this: next items
+  in Section 2 Content safety are the salary-negotiation disclaimer
+  (already verified fixed in a prior session) and the sanitizer audit
+  (already reviewed today, judged adequate). Not yet reached: the remaining
+  Cost-leak items (max_tokens enforcement, panel-mode per-turn call count,
+  scoring-endpoint double-call guard) and the Provider-rule grep.

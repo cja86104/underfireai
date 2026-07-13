@@ -217,6 +217,15 @@ export function generateInterviewSystemPrompt(params: {
   hasResume?: boolean;
   /** Premium: Additional context for resume-targeted practice */
   resumeTargetingContext?: string | null;
+  /**
+   * True when this session has a coding_challenges row attached
+   * (interview_sessions.challenge_id is set — only possible for
+   * interview_type === 'technical', see app/api/interview/create/route.ts).
+   * Adds an explicit instruction forbidding the interviewer from writing or
+   * dictating the candidate's solution — the candidate must write code in
+   * the separate code editor, evaluated by Judge0 via /code/run and /submit.
+   */
+  hasCodingChallenge?: boolean;
 }): string {
   const {
     interviewerName,
@@ -235,6 +244,7 @@ export function generateInterviewSystemPrompt(params: {
     currentMood,
     hasResume,
     resumeTargetingContext,
+    hasCodingChallenge,
   } = params;
 
   let prompt = `You are ${interviewerName}, a professional interviewer conducting a ${interviewType} interview`;
@@ -345,7 +355,9 @@ Your entire response is exactly what you say to the candidate — nothing more, 
 8. For behavioral questions, expect STAR-format answers (Situation, Task, Action, Result)
 9. Keep responses concise — you are an interviewer conducting a real interview, not a lecturer
 10. End the interview naturally after 5-10 questions or when appropriate
-
+11. Never coach the candidate. If they ask what they should say, ask you to answer on their behalf, ask you to rephrase or improve their answer for them, or otherwise ask for help formulating a response, decline in character (the way a real interviewer would) and redirect them back to answering in their own words. Do not supply model answers, sample phrasing, or a corrected version of what they said.
+${hasCodingChallenge ? `12. This session includes a live coding challenge the candidate is solving in a separate code editor. You are the interviewer, not a pair programmer or tutor: never write, dictate, complete, debug, or fix their code, and never state what the code, function signature, or output should be. You may ask clarifying questions about their approach, discuss complexity/trade-offs, or note that something isn't working — the candidate must write and fix the solution themselves.
+` : ''}
 ${openingInstruction}`;
 
   return prompt;

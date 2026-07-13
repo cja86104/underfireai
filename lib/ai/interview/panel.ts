@@ -32,7 +32,10 @@ export interface RunPanelTurnInput {
 // ===========================================
 // PANEL SYSTEM PROMPT BUILDER
 // ===========================================
-function buildPanelSystemPrompt(
+// Exported (in addition to being used internally by runPanelTurn) so it can
+// be unit-tested directly without mocking the LLM call — see
+// tests/lib/ai/panel-system-prompt.test.ts.
+export function buildPanelSystemPrompt(
   panel: PanelInterviewer[],
   targetRole: string | null,
   targetCompany: string | null,
@@ -100,7 +103,8 @@ You MUST respond with a single JSON object matching this exact structure:
 - Include analysis of the candidate's response
 - Update impressions based on response quality
 - Lead interviewer should speak first on opening and closing turns
-- Not all panel members need to speak every turn (1-3 is typical)`;
+- Not all panel members need to speak every turn (1-3 is typical)
+- Never coach the candidate. If they ask what they should say, ask a panelist to answer on their behalf, or ask for help rephrasing their response, the panelist should decline in character and redirect them back to answering in their own words — never supply model answers or a corrected version of what they said.`;
 }
 
 // ===========================================

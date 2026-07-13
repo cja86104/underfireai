@@ -78,7 +78,7 @@ export async function POST(
     // the previous two-roundtrip pattern.
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')
-      .select('id, status, user_id, interview_type, max_user_messages, panel_state, resume_targeting_context')
+      .select('id, status, user_id, interview_type, max_user_messages, panel_state, resume_targeting_context, challenge_id')
       .eq('id', sessionId)
       .eq('user_id', user.id)
       .single();
@@ -98,6 +98,11 @@ export async function POST(
     }
 
     const isPanelMode = session.interview_type === 'panel';
+    // Only 'technical' sessions can have a challenge_id (see
+    // app/api/interview/create/route.ts) — this flags the live-coding
+    // system-prompt guardrail so the interviewer never writes the
+    // candidate's solution for them.
+    const hasCodingChallenge = !!session.challenge_id;
 
     // Get current user message count
     const { count: userMessageCount } = await supabase
@@ -417,6 +422,7 @@ export async function POST(
       currentMood: interviewer.currentMood,
       hasResume,
       resumeTargetingContext: resumeTargetingContext?.promptContext ?? null,
+      hasCodingChallenge,
     });
 
     // Build message history for AI
