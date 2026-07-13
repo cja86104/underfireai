@@ -56,6 +56,23 @@ history, which has carried detailed commit messages since 2026-05-31.
   relied entirely on `@supabase/ssr`'s own defaults, which include no
   `Secure` flag at all, so the session cookie could legally be sent over
   plain HTTP (audit checklist §7 finding).
+- `/api/interview/create`'s `trait_overrides` now only accepts the 6 known
+  personality fields (`directness`, `depth_preference`, `warmth`,
+  `patience`, `technical_focus`, `skepticism`) — previously any key with a
+  numeric value was applied directly and stored in the `personality_base`
+  JSONB column with no whitelist. `null`/array payloads now return a clean
+  400 instead of crashing (audit checklist §8 finding).
+
+### Removed
+- 12 dead component files (~4,300 lines), confirmed via cross-reference
+  analysis and git history to have been scaffolded in the initial commit
+  and never wired into any page: `components/animation/animated-background.tsx`,
+  `animated-components.tsx`; `components/gamification/score-chart.tsx`,
+  `streak-display.tsx`; `components/interview/feedback-panel.tsx`,
+  `score-card.tsx`, `timer-display.tsx`; `components/interviewer/BackgroundGenerator.tsx`,
+  `InterviewerCard.tsx`, `PersonalityConfig.tsx`; `components/profile/skills-editor.tsx`
+  (and the now-empty `components/profile/` directory); `components/resume/resume-preview.tsx`.
+  Barrel `index.ts` files trimmed to match (audit checklist §11 finding).
 
 ### Changed
 - `CLAUDE.md` now requires every work session to update `WORKLOG.md`, and to

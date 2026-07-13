@@ -785,3 +785,369 @@ gap. `sameSite: 'lax'` behavior is unchanged (already matched the
   vs. Supabase Dashboard tenant settings, mid-interview token refresh,
   logout cookie invalidation, CORS/CSRF cross-origin check) have not yet
   been walked this session.
+
+### 2026-07-13 — §8 Input Validation: `trait_overrides` had no key whitelist
+
+**What:** Added an explicit whitelist check to `app/api/interview/create/route.ts`
+so `trait_overrides` may only contain the 6 known `PersonalityBase` keys
+(`directness`, `depth_preference`, `warmth`, `patience`, `technical_focus`,
+`skepticism`). Also rejects `trait_overrides: null` or an array with a
+clean 400 instead of crashing.
+
+**Why:** The checklist explicitly calls this out: "trait_overrides keys
+whitelisted to the 6 personality fields." The existing code did
+`Object.entries(trait_overrides)` and applied every key present onto the
+computed `personality` object with no whitelist:
+```
+const overrideEntries = Object.entries(trait_overrides) as [keyof PersonalityBase, number][];
+for (const [key, value] of overrideEntries) {
+  if (typeof value === 'number') {
+    (personality as unknown as Record<string, number>)[key] = clamp(value);
+  }
+}
+```
+Any key with a numeric value — not just the 6 valid ones — got written
+straight into `personality`, which is then stored verbatim in the
+`personality_base` JSONB column, polluting it with fields the rest of the
+app never expects there. Separately, `trait_overrides: null` (a valid JSON
+value, distinct from the field being omitted, which is what the
+destructuring default `= {}` actually guards against) would make
+`Object.entries(null)` throw, surfacing only as an opaque 500 via the
+route's generic catch block — a robustness gap, not a security hole, but
+worth closing with the same fix.
+
+While walking the rest of §8, re-verified the specific routes the checklist
+names as backlog candidates and found all already have solid ad-hoc
+validation matching the checklist's own asks: `/api/job-description` caps
+`rawText` at 50k chars (explicit reject, not silent truncation) and
+`sourceUrl` at 2k; `/api/negotiate/create` bounds both amounts to
+`(0, 1_000_000]` with `Number.isFinite` checks and `experience_years` to
+`[0, 60]`; `/api/interviewer/create` clamps all personality sliders via the
+same `clamp()` pattern and validates every enum field
+(`interview_type`, `archetype`, `company_style`, `communication_style`,
+`voice_id`) against a whitelist before use. Also confirmed
+`/api/interview/create`'s `difficulty` (integer 1–10), `archetype_mix`
+(array, max 2, each key checked against `INTERVIEWER_ARCHETYPES`), and
+`constraints` (array, max 10 × 200 chars) are already validated — only
+`trait_overrides` had the gap. `session_length` and `interview_type` are
+native Postgres ENUM types (`supabase/migrations/20250214000000_session_length.sql`,
+`20250121000000_initial_schema.sql`), so an invalid value can never be
+persisted even though the route doesn't pre-validate it with a friendly
+400 — worst case is a generic 500 from the existing catch-all, not data
+corruption; not treated as a failure. Also confirmed the one existing Zod
+consumer (`app/api/webhooks/route.ts`) already returns
+`validation.error.flatten().fieldErrors` on failure — the structured,
+non-leaking shape the checklist asks for, not the raw Zod error tree.
+
+**Tools/commands run:**
+- `npx tsc --noEmit -p tsconfig.json` (full project) — exit 0, no errors.
+- `npx next lint --file app/api/interview/create/route.ts` — "No ESLint
+  warnings or errors."
+- `npx next lint --file tests/app/api/interview/create-trait-overrides.test.ts`
+  — "No ESLint warnings or errors" (after removing an unused mock
+  parameter that first tripped `@typescript-eslint/no-unused-vars`, and
+  fixing a TS2556 spread-into-zero-arg-mock error caught by `tsc`).
+- New test `tests/app/api/interview/create-trait-overrides.test.ts` (4
+  tests, `// @vitest-environment node`): mocks `@/lib/supabase/server` and
+  `@/lib/ai/backstory-generator`. Asserts an unknown key is rejected with
+  400 before any DB/AI call is made, `null` and array payloads are
+  rejected with 400 instead of crashing, and a payload with only
+  whitelisted keys proceeds past this specific check (fails later at a
+  deliberately-mocked interviewer-insert error, proving it wasn't blocked
+  by the new validation).
+- `npx vitest run` (full suite) — 10 files, 44/44 passing (up from 40/40
+  before this fix; +4 new tests).
+
+**Result:** `trait_overrides` can no longer inject arbitrary keys into the
+stored `personality_base` JSONB, and a `null`/array payload now returns a
+clean 400 instead of an unhandled exception.
+
+**Known limitations:**
+- The checklist's broader §8 ask ("add Zod schemas to every route that
+  parses a JSON body") remains a backlog item, not fixed — the checklist
+  itself frames this as "the backlog item," and every route checked this
+  session already has adequate ad-hoc validation covering the specific
+  concerns raised (see above), so there is no concrete exploitable gap
+  driving a wholesale Zod migration right now. Worth doing eventually for
+  consistency/maintainability, not because current routes are unsafe.
+  Consistent with `underfireai-blueprint-v1.md` §12.1's existing "Zod
+  validation gap" open issue.
+- Query-string validation for list endpoints (`/api/webhooks`,
+  `/api/interview/recap`) was not walked this session.
+- Continuing top-down. §9–§12 not yet re-verified this session.
+
+### 2026-07-13 — §9 Rate Limiting: fully implemented in code, but inert in production
+
+**What:** No code change. Verified that `lib/rate-limit.ts`'s Upstash-backed
+sliding-window rate limiter is soundly implemented (per-route policies for
+tts, stt, codeRun, codeSubmit, resumeUpload, chat, coaching, analyze,
+jdParse, webhookTest all match the checklist's recommended ceilings), but
+confirmed with Chris that `RATE_LIMIT_ENABLED` and `UPSTASH_REDIS_URL` /
+`UPSTASH_REDIS_TOKEN` are **not set in the live Vercel production
+environment**. Per `checkRateLimit()`'s own logic, this means every single
+rate-limited endpoint currently has **zero abuse protection in production**
+right now — exactly the risk the checklist calls "the biggest open risk"
+for this section.
+
+**Why not fixed with a code change:** the implementation is already
+correct and complete; the gap is purely a missing external
+service/environment configuration (an Upstash Redis database + three env
+vars in Vercel), not a code bug. Chris confirmed he'll provision Upstash
+and set the env vars himself (`RATE_LIMIT_ENABLED=true`,
+`UPSTASH_REDIS_URL`, `UPSTASH_REDIS_TOKEN` — exact names already documented
+in `.env.example` and the header comment of `lib/rate-limit.ts`). Offered a
+Postgres-based stopgap limiter as an alternative that wouldn't require a
+new SaaS signup; Chris chose to set up Upstash directly instead.
+
+**Exposure while this remains unset:** any authenticated user can currently
+loop Judge0 code execution (pay-per-submission via RapidAPI), Cartesia/
+OpenAI TTS, Mistral resume-vulnerability scans, Mistral coaching/analysis
+calls, and DeepSeek JD parsing with no per-minute/per-hour ceiling. The
+webhook test endpoint (`/api/webhooks/[webhookId]/test`) can be looped to
+fire requests at an arbitrary user-supplied URL — usable as a DDoS
+reflector against a third party using UnderFireAI's own server as the
+origin.
+
+**Tools/commands run:** none — no code changed. Verified by reading
+`lib/rate-limit.ts` in full and confirming with Chris directly that the
+Vercel env vars are unset (cannot be checked from this sandbox).
+
+**Result:** No production change yet. Documented as an open, live,
+confirmed gap.
+
+**Known limitations:**
+- This is a live, currently-active abuse-cost exposure until Chris
+  completes the Upstash setup and confirms the env vars are live in
+  Vercel. Recorded in `underfireai-blueprint-v1.md` §12.1 alongside the
+  timezone and httpOnly backlog items.
+- Not yet re-verified: the remaining §9 items requiring Supabase Dashboard
+  access (Auth's built-in signup/password-reset rate limits) — cannot be
+  checked from this sandbox either.
+
+### 2026-07-13 — §10 CORS/Headers: domain not actually on the HSTS preload list
+
+**What:** No code change. Verified `next.config.ts`'s CSP and security headers
+line-by-line against §10 and found everything else already correct:
+`script-src`'s `unsafe-inline`/`unsafe-eval` is an acknowledged, non-failure
+tradeoff (Next/React/GSAP/Three requirement); `connect-src` correctly omits
+any TTS-provider origin because `lib/tts/openai-tts.ts` calls
+`api.openai.com` server-side only (the browser only ever talks to our own
+`/api/tts`, matching the existing Judge0 pattern); `img-src` still needs
+`images.unsplash.com` (confirmed still referenced in `app/page.tsx`);
+`frame-src`/`frame-ancestors 'none'`, `form-action 'self'`,
+`Referrer-Policy`, `X-Frame-Options`/`X-Content-Type-Options`,
+`poweredByHeader: false`, and COOP/CORP same-origin are all present and
+correct; `Permissions-Policy` already has `microphone=(self)` (needed for
+the mobile STT `getUserMedia`/`MediaRecorder` flow in
+`/api/interview/[sessionId]/transcribe`) with `camera=()` still denied —
+already updated for STT, contrary to the checklist's assumption that this
+was still a future concern. Grepped the whole repo for
+`Access-Control-Allow-Origin` — no route sets a wildcard or any manual CORS
+header (Next.js API routes are same-origin only by default, as desired).
+The waitlist Edge Function the checklist names
+(`supabase/functions/waitlist-signup/index.ts`) no longer exists at all —
+the whole feature was already dropped (matches the DB migration
+`20260424000002` that dropped the waitlist table), so its CORS check is
+moot.
+
+**The one real, verified gap:** the `Strict-Transport-Security` header
+correctly includes `preload`, but querying the actual HSTS Preload List API
+confirms `underfireai.com` has never been submitted:
+```
+GET https://hstspreload.org/api/v2/status?domain=underfireai.com
+→ { "name": "underfireai.com", "status": "unknown", "bulk": false, "preloadedDomain": "" }
+```
+Sending the `preload` directive in the header is necessary but not
+sufficient — browsers only actually enforce HSTS-on-first-visit for
+domains baked into their shipped preload list via a one-time manual
+submission at hstspreload.org, which has not happened. Existing/repeat
+visitors are unaffected (the header itself already forces HTTPS on every
+response after their first visit), so this is a narrower gap than the
+`RATE_LIMIT_ENABLED` finding — it only affects a user's very first-ever
+connection to the domain before any HTTPS response has been received.
+
+**Why not fixed with a code change:** submission is a manual, one-time
+action on hstspreload.org (visit the site, confirm eligibility, click
+submit) — there is no API for actually submitting, only for checking
+status, and it's tied to Chris's ownership of the domain rather than
+anything in this repo.
+
+**Tools/commands run:**
+- `grep -rn "Access-Control-Allow-Origin"` across the repo — no matches in
+  application code.
+- Live check: `GET https://hstspreload.org/api/v2/status?domain=underfireai.com`
+  — confirmed not submitted (`status: "unknown"`).
+
+**Result:** No code change. Documented as an open, low-severity action item.
+
+**Known limitations:**
+- Cannot verify the live production server is actually serving the
+  `Strict-Transport-Security` header as configured (would need a raw HTTP
+  HEAD request against the deployed site, not just the `next.config.ts`
+  source) — the fetch tool available in this session only surfaces parsed
+  page metadata, not raw response headers.
+- Continuing top-down. §11–§12 not yet re-verified this session.
+
+### 2026-07-13 — §11 Dead Code Sweep: removed 12 confirmed-unused components
+
+**What:** Deleted 12 component files (~4,300 lines) and trimmed/removed their
+barrel `index.ts` re-exports:
+- `components/animation/animated-background.tsx`, `animated-components.tsx`
+- `components/gamification/score-chart.tsx`, `streak-display.tsx`
+- `components/interview/feedback-panel.tsx`, `score-card.tsx`, `timer-display.tsx`
+- `components/interviewer/BackgroundGenerator.tsx`, `InterviewerCard.tsx`, `PersonalityConfig.tsx`
+- `components/profile/skills-editor.tsx` (and the now-empty `components/profile/` directory)
+- `components/resume/resume-preview.tsx`
+
+`components/interviewer/index.ts` and `components/profile/index.ts` were
+deleted outright since removing their contents left them fully empty with
+zero remaining exports and nothing importing the bare barrel path.
+`components/animation/index.ts`, `components/gamification/index.ts`,
+`components/interview/index.ts`, and `components/resume/index.ts` were
+rewritten to drop only the dead re-export lines, keeping every export that
+is genuinely still used (`gsap-provider`, `badge-grid`,
+`InterviewSetupForm`/`InterviewChat`/etc., `ResumeUploadForm`/etc.).
+
+**Why:** First verified the checklist's 5 "Known dead or deprecated" items
+were already resolved in prior sessions (`reset_monthly_interviews`,
+`use_interview_credit` RPC, legacy Stripe subscription handlers,
+`RATE_LIMITS` object in `lib/ai/config.ts`, and the `'premium'` enum value
+— all either already dropped via migration or never actually referenced in
+any runtime code path; confirmed via grep, not assumption). The "suspected
+dead" component sweep is where the real finding was. A cross-reference
+script comparing every component export name against the rest of the
+codebase (excluding each component's own barrel re-export line) found ~15
+exports across ~10 files with zero real usage. Manually re-verified every
+"used" hit from the first pass to rule out false positives from generic
+name collisions (several files define their own unrelated local
+`ScoreCard`/`ScoreRing`/`ScoreBadge`/`ScoreTrend` helpers, and
+`coding-challenge.tsx`'s "Reveal Hint" button text isn't an import of the
+`Reveal` animation component) — after correcting for those, the real dead
+list grew to 12 files / ~35 exports. Confirmed the root cause with git
+history and a direct code read: every one of these files dates to the
+literal `Initial commit` (2026-01-28), and the pages that would consume
+them were built afterward with bespoke inline markup instead (confirmed
+concretely for both `InterviewerCard` — `app/(dashboard)/interviewers/page.tsx`
+hand-writes its own card JSX — and the `gamification/` components —
+`app/(dashboard)/progress/page.tsx` computes its own streak/score values
+and renders them through generic stat-card primitives instead of importing
+`StreakDisplay`/`ScoreChart`). Reviewed the full list with Chris before
+deleting anything, given the scope was much larger than a typical
+single-fix change this session.
+
+**Tools/commands run:**
+- `npx depcheck` — confirmed zero unused npm dependencies (the checklist's
+  three named suspects — `@react-three/fiber`, `lenis`, `date-fns` — are
+  all genuinely in use).
+- `npx knip` — attempted, crashed on an out-of-memory error in this sandbox
+  (`RangeError: Array buffer allocation failed`), unrelated to the repo;
+  fell back to a custom cross-reference script instead.
+- `npx tsc --noEmit -p tsconfig.json` (full project, after deletion) — exit
+  0, no errors.
+- `npx next lint` (full project, no `--file` filter) — "No ESLint warnings
+  or errors."
+- `npx vitest run` (full suite) — 10 files, 44/44 passing, unchanged from
+  before the cleanup (no test referenced any of the deleted files).
+- `npx next build` — did not complete in this sandbox; fails immediately
+  on `next/font/google` trying to fetch Inter from
+  `fonts.googleapis.com`, which this sandbox has no network access to.
+  This is a pre-existing sandbox limitation unrelated to this change (the
+  fetch failure happens before any bundling of application code), not a
+  regression — could not be verified end-to-end as a full production
+  build in this session.
+
+**Result:** ~4,300 lines of dead component code removed; every remaining
+barrel export is confirmed genuinely used somewhere in the app.
+
+**Known limitations:**
+- Could not run a full `next build` in this sandbox (network-restricted,
+  unrelated to the change). Recommend Chris runs `npm run build` locally
+  or watches the next Vercel deploy closely as the final confirmation,
+  though `tsc`/lint/tests passing clean gives high confidence.
+- Did not exhaustively check the remaining §11 "suspected dead" items this
+  session: unused `app/api/**` routes not called by any client/server
+  code, and the (now-resolved, per earlier verification) `account` vs
+  `settings` route question. `app/(dashboard)/account/` was confirmed to
+  no longer exist at all (only `/settings` and the unrelated
+  `/api/account/delete` route remain) — the checklist's own text was
+  stale on this point.
+
+### 2026-07-13 — §12 Sensitive Data in Logs: full pass, no findings
+
+**What:** No code change. Walked every named hotspot in §12 against current
+code:
+- `app/api/stripe/webhook/route.ts` — every log line references only IDs
+  (`session.id`, `paymentIntent.id`, `charge.id`, `userId`, `product`,
+  dispute reason/status/amount) or a caught error's `.message`; grepped for
+  full-object dump patterns (`console.log(session)`, `console.log(body)`,
+  etc.) across the whole route with zero matches. No email, card data, or
+  full Stripe object ever logged.
+- `app/api/resume/upload/route.ts` — all `console.error`/`console.warn`
+  calls log caught `Error` objects or a Mammoth conversion-messages array
+  (structural docx warnings, not document content); `file.name` and parsed
+  resume text are never logged.
+- `lib/ai/chat-client.ts` — the only 3 `console.*` calls in the file are in
+  a resume/JD analysis retry helper and log `error.message` only; the main
+  `createChatCompletion()` path (which sends the full interview transcript
+  + system prompt to OpenRouter) has zero logging of the request/response
+  body.
+- `lib/tts/openai-tts.ts` (current TTS provider, supersedes the checklist's
+  `cartesia-tts.ts` reference) — logs only a voice-key fallback notice and
+  HTTP status codes; TTS input text is never logged.
+- `lib/webhooks/webhook-service.ts` — grepped for every use of `secret`;
+  confirmed it's only ever passed as an HMAC key parameter, never
+  interpolated into a log line.
+- API keys: grepped for every secret env var name appearing inside a
+  `console.*` call — the only 2 hits (`app/api/tts/route.ts`,
+  `.../transcribe/route.ts`) log the fixed diagnostic string
+  `"OPENAI_API_KEY not configured"` / `"OPENROUTER_API_KEY not configured"`
+  — the env var *name*, never its value.
+- Bearer tokens: grepped for every `Authorization: Bearer ${apiKey}`
+  construction (4 files) and confirmed none of them are also passed to a
+  `console.*` call anywhere (also grepped for any `console.*` logging a
+  `headers` object at all — zero matches).
+- `app/error.tsx` and `app/(dashboard)/error.tsx` — both render only
+  `error.digest` (Next.js's intentionally-opaque, safe-to-display
+  reference id) in a small "Error ID"/"Reference" line; neither renders
+  `error.message` or `error.stack` to the user. The `console.error(...,
+  error)` calls run client-side in a `useEffect` — for server-originated
+  errors, Next.js has already redacted `error` to `{message, digest}` by
+  the time it reaches a client error boundary in production, so nothing
+  sensitive is newly exposed by also logging it to the browser console;
+  for client-originated errors, the browser already has the full error
+  regardless.
+- One initially-suspicious grep hit
+  (`lib/code-execution/language-wrappers.ts` — `console.log(JSON.stringify(...))`)
+  turned out to be a string template for the wrapper code sent to Judge0's
+  sandboxed runtime — it executes inside the candidate's remote code
+  execution, never on our own server, so it's out of scope for this
+  section entirely (nothing to do with Vercel's own logs).
+
+**Result:** No findings. Every named §12 hotspot, plus a broader grep for
+full-object-dump patterns across all 199 `console.*` calls in `app/` and
+`lib/`, came back clean.
+
+**Known limitations:** did not manually read all 199 `console.*` call
+sites individually — relied on targeted regex passes for the specific risk
+patterns the checklist calls out (secret env vars, Authorization headers,
+full request/session/body object dumps) plus a full read of every named
+hotspot file. A residual, low-probability chance remains that some
+call site outside those patterns logs something sensitive in a way this
+sweep didn't anticipate.
+
+---
+
+**This closes out the full top-to-bottom walk of `underfireai-audit-checklist-v1.md`
+v1 for this session.** Summary of the pass: 7 concrete code fixes shipped
+(§2 resume-scan dedupe + anti-coaching prompts, §4 webhook RLS admin-client
+fix, §5 middleware fail-closed, §6 upload Content-Length limit, §7 explicit
+Secure/SameSite cookies, §8 trait_overrides whitelist), one major live
+production gap identified and handed to Chris to close externally (§9 rate
+limiting never enabled — no code fix needed, implementation was already
+correct), one minor external action item (§10 HSTS preload submission),
+one substantial cleanup (§11: 12 dead component files removed, ~4,300
+lines), two items explicitly deferred to a future session per Chris's
+own call (timezone streak logic, §7 httpOnly), and two sections (§1, §12)
+came back as full clean passes on re-verification. See
+`project_audit_progress.md` memory for the full narrative and
+`underfireai-blueprint-v1.md` §12.1 for the standing Open Issues list.

@@ -350,6 +350,38 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // trait_overrides whitelist: only the 6 known PersonalityBase fields may
+    // be set. Without this, `Object.entries(trait_overrides)` below would
+    // apply ANY key present in the request body directly onto the computed
+    // `personality` object, which is then stored verbatim in the
+    // `personality_base` JSONB column — polluting it with fields the rest
+    // of the app never expects there (audit checklist §8: "trait_overrides
+    // keys whitelisted to the 6 personality fields"). Also guards against
+    // `trait_overrides: null`/an array, which would otherwise throw inside
+    // `Object.entries()` further down and only be caught by the generic
+    // try/catch as an opaque 500.
+    const VALID_PERSONALITY_KEYS: (keyof PersonalityBase)[] = [
+      'directness', 'depth_preference', 'warmth', 'patience', 'technical_focus', 'skepticism',
+    ];
+    if (
+      trait_overrides === null ||
+      typeof trait_overrides !== 'object' ||
+      Array.isArray(trait_overrides)
+    ) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'trait_overrides must be an object' },
+        { status: 400 }
+      );
+    }
+    for (const key of Object.keys(trait_overrides)) {
+      if (!VALID_PERSONALITY_KEYS.includes(key as keyof PersonalityBase)) {
+        return NextResponse.json(
+          { error: 'Validation error', message: `Unknown trait_overrides key: ${key}` },
+          { status: 400 }
+        );
+      }
+    }
+
     const supabase = await createClient();
     let finalInterviewerId = interviewer_id;
     const panelInterviewers: { id: string; name: string; archetypeKey: InterviewerArchetype; roleLabel: string; isLead: boolean }[] = [];
