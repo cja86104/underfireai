@@ -41,6 +41,12 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
           );
         },
       },
+      // See matching comment in lib/supabase/server.ts (audit checklist §7
+      // finding). Must stay identical to server.ts and lib/client.ts.
+      cookieOptions: {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      },
     }
   );
 

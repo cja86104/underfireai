@@ -68,6 +68,21 @@ export async function createClient() {
           }
         },
       },
+      // @supabase/ssr's DEFAULT_COOKIE_OPTIONS ships with no `secure` flag at
+      // all (audit checklist §7 finding: cookies were sent without the
+      // Secure attribute, meaning they could legally be transmitted over
+      // plain HTTP). The whole app already forces HTTPS everywhere (HSTS
+      // with preload + `upgrade-insecure-requests` in next.config.ts), so
+      // this is a pure hardening no-op in production and only needs to be
+      // disabled for http://localhost in local dev. Must be kept identical
+      // to the cookieOptions in middleware.ts and lib/client.ts — the
+      // browser client (lib/client.ts) also writes these same cookie names
+      // via document.cookie on every sign-in/sign-up/sign-out/token-refresh,
+      // so a mismatched config here would just get overwritten client-side.
+      cookieOptions: {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      },
     }
   );
 }

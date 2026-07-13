@@ -697,3 +697,91 @@ the Server-Actions-only `bodySizeLimit` config.
   spot-checked (1-hour TTL, no public URL, ownership via userId path
   segment — all confirmed correct; `getResumeSignedUrl` confirmed dead code)
   but not exhaustively re-walked item-by-item beyond that.
+
+### 2026-07-13 — §7 Sessions/Cookies: auth cookies had no explicit `Secure` attribute
+
+**What:** Added explicit `cookieOptions: { secure: process.env.NODE_ENV === 'production', sameSite: 'lax' }`
+to all three Supabase client factories: `lib/supabase/server.ts` (`createClient`),
+`lib/supabase/middleware.ts` (`updateSession`), and `lib/client.ts` (browser
+`createClient`).
+
+**Why:** The checklist asks to verify cookies carry `Secure: true` in
+production and `SameSite: 'Lax'` minimum. None of the three call sites
+passed a `cookieOptions` override, so every cookie write relied entirely on
+`@supabase/ssr`'s own `DEFAULT_COOKIE_OPTIONS`
+(`node_modules/@supabase/ssr/dist/main/utils/constants.js`), which is
+`{ path: '/', sameSite: 'lax', httpOnly: false, maxAge: 400 days }` — no
+`secure` key at all. `sameSite: 'lax'` already satisfied the checklist's
+"minimum," but the missing `secure` flag meant the session cookie could
+legally be transmitted over plain HTTP. The whole app already forces HTTPS
+site-wide (HSTS `max-age=63072000; includeSubDomains; preload` +
+`upgrade-insecure-requests` in `next.config.ts`), so explicitly setting
+`secure: true` in production is a pure hardening no-op with zero
+functional downside; it's gated off in non-production so local
+`http://localhost` dev keeps working.
+
+All three call sites had to be updated together, not just the server ones:
+`lib/client.ts`'s browser client is what actually performs sign-in,
+sign-up, sign-out, and automatic token refresh, writing the same cookie
+names via `document.cookie`. Since `@supabase/ssr` recomputes
+`{ ...DEFAULT_COOKIE_OPTIONS, ...cookieOptions }` independently on every
+write, a browser-side write with a different (or default) `cookieOptions`
+would silently overwrite the server's hardened cookie on the very next
+client-driven auth event.
+
+Also confirmed while walking §7: `httpOnly` is `false` in
+`DEFAULT_COOKIE_OPTIONS` too, directly contradicting the checklist's stated
+assumption ("Supabase SSR does this by default"). This is a real gap but
+NOT fixed this session — forcing `httpOnly: true` server-side alone would
+not meaningfully help, because `lib/client.ts`'s browser client can only
+write cookies via `document.cookie`, which cannot set the `HttpOnly` flag;
+the browser client's very next write (sign-in, sign-up, refresh) would
+silently clobber the httpOnly flag anyway. A real fix requires moving every
+client-driven auth action (sign-in, sign-up, sign-out, password reset, and
+the SDK's automatic token refresh) into server-side Route Handlers so only
+the server ever touches the cookie — a genuine architecture change, not a
+smallest-safe-change patch, and it's also the officially documented
+`@supabase/ssr` pattern for Next.js App Router apps (matching Supabase's
+own starter templates), so it isn't a misconfiguration Chris introduced.
+Flagged for a product/architecture decision rather than fixed blind, same
+treatment as the streak-logic timezone item.
+
+**Tools/commands run:**
+- `npx tsc --noEmit -p tsconfig.json` (full project) — exit 0, no errors.
+- `npx next lint --file lib/supabase/server.ts --file lib/supabase/middleware.ts --file lib/client.ts`
+  — "No ESLint warnings or errors."
+- `npx next lint --file tests/lib/supabase/cookie-options.test.ts` — "No
+  ESLint warnings or errors."
+- New test `tests/lib/supabase/cookie-options.test.ts` (3 tests,
+  `// @vitest-environment node`): mocks `@supabase/ssr`'s `createServerClient`
+  and `createBrowserClient` to capture their call arguments (and mocks
+  `next/headers`'s `cookies()`), then asserts all three of
+  `lib/supabase/server.ts`, `lib/supabase/middleware.ts`, and
+  `lib/client.ts` pass the identical `{ secure, sameSite: 'lax' }`
+  `cookieOptions` object — directly protecting the "must stay in sync"
+  invariant described above.
+- `npx vitest run` (full suite) — 9 files, 40/40 passing (up from 37/37
+  before this fix; +3 new tests).
+
+**Result:** The Supabase session cookie now carries an explicit `Secure`
+attribute in production across every code path that writes it (server,
+middleware, and browser client), closing the checklist's Secure/SameSite
+gap. `sameSite: 'lax'` behavior is unchanged (already matched the
+"minimum" requirement) but is now explicit rather than implicit.
+
+**Known limitations:**
+- `httpOnly: false` remains unresolved — flagged above as a backlog/product
+  decision, not fixed. The session's access/refresh JWTs also remain
+  readable via `supabase.auth.getSession()` client-side regardless of the
+  cookie's httpOnly flag (the SDK needs the token in JS to attach
+  `Authorization` headers), so httpOnly alone would only close one narrow
+  attack vector (raw `document.cookie` reads), not the full XSS-exfiltration
+  surface — the app's actual primary defense there is the CSP already
+  verified in §10.
+- Not verified against a real production HTTPS deployment/browser devtools
+  session — verified via mocked `@supabase/ssr` call-argument capture, not
+  an observed `Set-Cookie` header in a live browser.
+- Continuing top-down. §7 items 3–7 (localStorage grep, session duration
+  vs. Supabase Dashboard tenant settings, mid-interview token refresh,
+  logout cookie invalidation, CORS/CSRF cross-origin check) have not yet
+  been walked this session.

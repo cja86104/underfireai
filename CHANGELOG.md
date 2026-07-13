@@ -51,6 +51,11 @@ history, which has carried detailed commit messages since 2026-05-31.
   buffered into memory before the existing 5MB `file.size` check could
   reject it — `next.config.ts`'s `serverActions.bodySizeLimit` does not
   apply to Route Handlers (audit checklist §6 finding).
+- Supabase auth cookies (`lib/supabase/server.ts`, `lib/supabase/middleware.ts`,
+  `lib/client.ts`) now explicitly set `Secure` in production — previously
+  relied entirely on `@supabase/ssr`'s own defaults, which include no
+  `Secure` flag at all, so the session cookie could legally be sent over
+  plain HTTP (audit checklist §7 finding).
 
 ### Changed
 - `CLAUDE.md` now requires every work session to update `WORKLOG.md`, and to

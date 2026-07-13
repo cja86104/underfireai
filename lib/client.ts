@@ -38,7 +38,18 @@ export function createClient(): SupabaseClient<Database> {
     throw new Error('Supabase environment variables are not configured');
   }
 
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+  // See matching comment in lib/supabase/server.ts (audit checklist §7
+  // finding: cookies had no explicit `secure` flag). Must stay identical to
+  // server.ts and middleware.ts — this browser client is what actually
+  // writes the session cookie via document.cookie on sign-in/sign-up/
+  // sign-out/token-refresh, so a mismatch here would silently overwrite
+  // the server's cookieOptions on the next client-driven auth event.
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    },
+  });
 }
 
 /**
