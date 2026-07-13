@@ -554,3 +554,85 @@ and the manual test button) now actually reaches the configured URL.
 - Continued top-down per the stop rule after this. Have not yet re-verified
   the rest of Section 4 (indexes, remaining constraints/triggers, enum edge
   cases) or Sections 5–12.
+
+---
+
+## 2026-07-13 (continued 3) — Audit checklist walk: §4 wrap-up + §5 middleware fails closed on Supabase outage
+
+**What:** Finished the remainder of Section 4 (all PASS, no further fixes
+needed): every named index confirmed present (`idx_sessions_user_status`,
+`idx_messages_session_created`, `idx_interview_purchases_user`/`_created`,
+the two `webhook_deliveries` partial indexes, `idx_resume_insights_type`);
+the "consider adding (session_id, overall_score)" suggestion is moot — grepped
+and confirmed nothing sorts by `overall_score`; the panel session-count
+trigger split (`20260424000001_fix_panel_session_count_trigger.sql`) already
+correctly credits every panelist exactly once, not just the lead; the
+`check_max_webhooks_per_user` trigger is `BEFORE INSERT` so the 6th webhook
+is correctly blocked at exactly 5 existing rows, no off-by-one; enum checks
+(`subscription_tier='premium'` only appears in a type union, never written;
+`session_status='abandoned'` is never set by any route — confirmed dead,
+not a bug; `session_length` has a DB `DEFAULT 'standard'`) all as expected.
+One open design question surfaced, not fixed: `update_user_progress_on_session_complete`'s
+streak logic (`DATE(last_session_at) = CURRENT_DATE - INTERVAL '1 day'`)
+uses the database session's timezone (effectively UTC), not each user's
+local calendar day — a real edge case the checklist anticipated, but fixing
+it properly needs a `profiles.timezone` column and reworked streak logic,
+which is a larger, more disruptive change than fits the audit's
+"smallest safe change" pattern; flagging for a deliberate follow-up
+decision rather than fixing blind.
+
+Moved to Section 5 (Middleware matcher). The matcher pattern itself was
+already re-verified correct during Section 1 earlier this session. Found
+one real gap on the explicit checklist item "does it fail-closed on
+Supabase errors? If Supabase is unreachable, does the app log out the user
+or continue with stale cookies?": `lib/supabase/middleware.ts` called
+`await supabase.auth.getUser()` with no try/catch. If Supabase itself were
+unreachable (network blip, regional outage), that rejection would propagate
+as an unhandled middleware error on essentially every request site-wide —
+the route matcher excludes only static assets and the Stripe webhook, so
+this covers public marketing pages too, which don't need auth at all. A
+transient Supabase hiccup would have taken the whole site down with 500s
+instead of degrading gracefully.
+
+**Fixed:** `lib/supabase/middleware.ts` — wrapped `auth.getUser()` in
+try/catch; on failure, logs the error and treats the request as
+unauthenticated (`user = null`). This means protected routes correctly
+redirect to `/login` (the safe default during an outage) while public
+routes keep rendering instead of 500ing.
+
+**Why:** Reliability gap explicitly called out by the checklist — a
+transient auth-provider issue should degrade the app, not crash it
+entirely.
+
+**Tools/commands run:**
+- `npx tsc --noEmit` (full project) — exit 0, no errors.
+- `npx next lint --file lib/supabase/middleware.ts --file tests/lib/supabase/middleware.test.ts`
+  — "No ESLint warnings or errors."
+- New test `tests/lib/supabase/middleware.test.ts` (3 tests; needed a
+  `// @vitest-environment node` override at the top of the file — the
+  default jsdom environment in this repo's `vitest.config.ts` throws
+  `request.headers must be an instance of Headers` when `NextResponse.next()`
+  touches a real `next/server` `NextRequest`, a known Next-edge-runtime vs.
+  jsdom `Headers` realm mismatch, unrelated to the fix itself): mocks
+  `@supabase/ssr`'s `createServerClient` so `auth.getUser()` rejects,
+  asserts a protected route (`/dashboard`) still redirects to `/login`
+  instead of throwing, asserts a public route (`/`) is left alone, and a
+  control test confirms normal (non-erroring) unauthenticated behavior is
+  unchanged.
+- `npx vitest run` (full suite) — 7 files, 35/35 passing (up from 32/32
+  before this fix; +3 new tests).
+
+**Result:** A Supabase outage now degrades the app (protected pages bounce
+to login) instead of crashing every route.
+
+**Known limitations:**
+- Not tested against a real Supabase outage — verified via a mocked
+  rejection, not observed against live infrastructure (not something safely
+  reproducible against production).
+- The database-session-timezone streak-logic question (above) is flagged,
+  not fixed — needs a product decision (add a user timezone column? accept
+  UTC-day streaks as-is?) before implementing.
+- Continuing top-down. Section 6 (Upload/Download security) has not yet
+  been re-verified this session (it was read once, in passing, while fixing
+  the resume-hash dedupe earlier — but not walked item-by-item against the
+  full checklist list for §6).

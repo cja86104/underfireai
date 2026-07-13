@@ -44,9 +44,23 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // If Supabase itself is unreachable (network blip, regional outage), an
+  // uncaught rejection here would surface as an unhandled middleware error
+  // on every single request site-wide — including public marketing pages
+  // that don't need auth at all — since the matcher covers almost every
+  // route. Fail closed instead: treat the request as unauthenticated. That
+  // correctly bounces protected routes to /login (the safe default during
+  // an outage) while public pages keep rendering normally instead of the
+  // whole app 500ing until Supabase recovers.
+  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user'] = null;
+  try {
+    const {
+      data: { user: fetchedUser },
+    } = await supabase.auth.getUser();
+    user = fetchedUser;
+  } catch (error) {
+    console.error('Supabase auth.getUser() failed in middleware — treating request as unauthenticated:', error);
+  }
 
   // UnderFireAI protected routes
   const protectedRoutes = [

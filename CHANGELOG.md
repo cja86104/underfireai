@@ -19,6 +19,13 @@ history, which has carried detailed commit messages since 2026-05-31.
 - `LICENSE` — explicit all-rights-reserved proprietary notice.
 
 ### Fixed
+- Auth middleware (`lib/supabase/middleware.ts`) now fails closed if
+  Supabase itself is unreachable — previously an unhandled rejection
+  from `auth.getUser()` would have surfaced as a middleware error on
+  nearly every route (public pages included) during a Supabase outage.
+  Now treats the request as unauthenticated, so protected routes bounce
+  to `/login` and public routes keep rendering (audit checklist §5
+  finding).
 - Outbound webhook delivery (`session.completed` events and the manual
   "Send test webhook" button) was silently sending zero real HTTP
   requests — `webhook_deliveries` INSERT/UPDATE were going through the
