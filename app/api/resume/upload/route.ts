@@ -103,6 +103,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Reject oversized payloads by Content-Length BEFORE request.formData()
+    // buffers the whole multipart body into memory. The in-handler
+    // `file.size > 5MB` check below runs only after formData() has already
+    // fully received and parsed the request — for an attacker sending an
+    // arbitrarily large body, that means the expensive buffering happens
+    // regardless of the eventual rejection. Next.js's `serverActions.bodySizeLimit`
+    // config (set in next.config.ts) does NOT apply here; that setting is
+    // scoped to Server Actions only, not Route Handlers like this one, so
+    // without this check the only backstop is whatever the hosting platform
+    // enforces at the infrastructure level. 8MB gives headroom over the 5MB
+    // file limit for multipart boundary overhead and the other form fields
+    // (target_role, replace_id) without allowing a large-scale abuse payload
+    // through. Content-Length can be absent (chunked encoding) or spoofed by
+    // a malicious client, so this is a defense-in-depth check, not a complete
+    // guarantee — the file.size check below remains the authoritative limit.
+    const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && Number(contentLength) > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'Upload too large (max 5MB file)' },
+        { status: 413 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const targetRole = formData.get('target_role') as string | null;

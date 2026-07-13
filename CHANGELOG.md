@@ -45,6 +45,12 @@ history, which has carried detailed commit messages since 2026-05-31.
   supplies a `file_hash` (audit checklist §2 cost-leak finding). The
   manual `/api/resume/scan-vulnerabilities` endpoint, including its
   `forceRescan` option, is unaffected.
+- Resume upload route (`app/api/resume/upload/route.ts`) now rejects
+  requests over 8MB by `Content-Length` before `request.formData()` reads
+  the body, closing a gap where an oversized multipart body would be fully
+  buffered into memory before the existing 5MB `file.size` check could
+  reject it — `next.config.ts`'s `serverActions.bodySizeLimit` does not
+  apply to Route Handlers (audit checklist §6 finding).
 
 ### Changed
 - `CLAUDE.md` now requires every work session to update `WORKLOG.md`, and to

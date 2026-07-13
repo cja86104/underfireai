@@ -819,6 +819,7 @@ Landing page, animated hero (GSAP + parallax), pricing section, FAQ, privacy, te
 - **pg_cron no-op** — Monthly reset job still runs but calls the deprecated no-op function. Safe but clutter. Disable in Supabase Dashboard when convenient.
 - **Coding challenge library is thin** — 5 seeded challenges only. Production should expand to 30+ covering all difficulties and categories before more users hit technical mode.
 - **Interviewer prompt consistency across types** — Ensure `buildCompanionSystemPrompt` passes through constraints, resume-targeting context, and panel-specific instructions cleanly for each interview_type. Audit on any prompt pipeline change.
+- **Streak logic uses UTC calendar days, not user-local** — `update_user_progress_on_session_complete` (trigger on `interview_sessions`) computes `current_streak`/`longest_streak` via `DATE(last_session_at) = CURRENT_DATE - INTERVAL '1 day'`, which resolves against the database session's timezone (effectively UTC), not each user's local calendar day. A user practicing late at night in a non-UTC timezone could see their streak break or double-count across what is, for them, the same calendar day. Flagged during the 2026-07-13 audit-checklist walk (§4). Fixing properly needs a per-user timezone (new `profiles.timezone` column, captured client-side) and reworked streak logic — deliberately not done as a blind fix; needs a product decision on whether UTC-day streaks are acceptable or worth the schema change.
 
 ### 12.2 Parked Features (out of scope unless explicitly revived)
 

@@ -636,3 +636,64 @@ to login) instead of crashing every route.
   been re-verified this session (it was read once, in passing, while fixing
   the resume-hash dedupe earlier — but not walked item-by-item against the
   full checklist list for §6).
+
+### 2026-07-13 — §6 Upload/Download Security: missing application-level body-size limit on resume upload
+
+**What:** Added an 8MB `Content-Length` pre-check to
+`app/api/resume/upload/route.ts`, returning HTTP 413 before
+`request.formData()` is called.
+
+**Why:** `next.config.ts`'s `experimental.serverActions.bodySizeLimit: '10mb'`
+only applies to Next.js Server Actions, not Route Handlers. This route is a
+Route Handler, so it had no application-level protection: an attacker could
+send an arbitrarily large multipart body, and `request.formData()` would
+fully buffer the entire body into memory before the existing in-handler
+`file.size > 5MB` check ever ran. The existing check was real but came too
+late to prevent the buffering cost. 8MB gives headroom over the 5MB file
+ceiling for multipart boundary overhead and the other form fields
+(`target_role`, `replace_id`) without allowing large-scale abuse payloads
+through. Content-Length can be absent (chunked encoding) or spoofed, so this
+is defense-in-depth, not a complete guarantee — the existing `file.size`
+check remains the authoritative limit once the body is actually parsed.
+
+Also confirmed while walking §6: `getResumeSignedUrl` (in `lib/storage.ts`)
+is genuinely unused/dead code, not a bug — signed URLs are generated
+elsewhere in the actual download path with a 1-hour TTL, no public bucket
+access, and ownership enforced via the `userId` segment of the storage path.
+No fix needed there.
+
+**Tools/commands run:**
+- `npx tsc --noEmit -p tsconfig.json` (full project) — exit 0, no errors.
+- `npx next lint --file app/api/resume/upload/route.ts` — "No ESLint
+  warnings or errors."
+- `npx next lint --file tests/app/api/resume/upload-size-limit.test.ts` —
+  "No ESLint warnings or errors."
+- New test `tests/app/api/resume/upload-size-limit.test.ts` (2 tests,
+  `// @vitest-environment node`): mocks `pdf-parse`, `mammoth`,
+  `@/lib/supabase/server`, `@/lib/rate-limit`, `@/lib/ai/chat-client`,
+  `@/lib/storage`, `@/lib/resume/insights-service`. Asserts (1) a request
+  with a faked 9MB `Content-Length` header is rejected with 413 without
+  `uploadResume`/`createChatCompletion`/`generateAndSaveVulnerabilityScan`
+  ever being called, and (2) a real, small multipart request (no `file`
+  field, auto-computed small Content-Length) is not blocked by the
+  size check and instead reaches the pre-existing "No file provided" 400
+  validation — proving the new check doesn't false-positive on normal
+  traffic.
+- `npx vitest run` (full suite) — 8 files, 37/37 passing (up from 35/35
+  before this fix; +2 new tests).
+
+**Result:** Oversized upload requests are now rejected by Content-Length
+before the body is buffered, closing the gap between the Route Handler and
+the Server-Actions-only `bodySizeLimit` config.
+
+**Known limitations:**
+- Content-Length can be omitted (chunked transfer encoding) or spoofed by a
+  malicious client sending a small header with a larger actual body — this
+  check is a fast-path defense, not a substitute for infrastructure-level
+  limits (e.g. a reverse proxy / platform request-size cap). The in-handler
+  `file.size` check remains the authoritative limit for bodies that do get
+  fully parsed.
+- Continuing top-down. The rest of §6 (download/signed-URL path) was
+  spot-checked (1-hour TTL, no public URL, ownership via userId path
+  segment — all confirmed correct; `getResumeSignedUrl` confirmed dead code)
+  but not exhaustively re-walked item-by-item beyond that.
