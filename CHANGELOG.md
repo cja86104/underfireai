@@ -19,6 +19,13 @@ history, which has carried detailed commit messages since 2026-05-31.
 - `LICENSE` — explicit all-rights-reserved proprietary notice.
 
 ### Fixed
+- Outbound webhook delivery (`session.completed` events and the manual
+  "Send test webhook" button) was silently sending zero real HTTP
+  requests — `webhook_deliveries` INSERT/UPDATE were going through the
+  RLS-scoped client, which has no write policy on that table, so every
+  write was rejected and the actual delivery call was never reached.
+  Now uses the service-role admin client for those writes (audit
+  checklist §4 finding).
 - Live interview system prompt (single-interviewer and panel mode) now
   explicitly forbids the interviewer from coaching the candidate
   (answering on their behalf, supplying model answers, rewriting their

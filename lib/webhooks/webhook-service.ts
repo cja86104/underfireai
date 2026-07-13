@@ -9,7 +9,7 @@
  * - Delivery logging for debugging
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import type { Json } from '@/types/database';
 import crypto from 'crypto';
 
@@ -257,7 +257,16 @@ async function createDeliveryRecord(
   eventType: string,
   payload: WebhookPayload
 ): Promise<string | null> {
-  const supabase = await createClient();
+  // webhook_deliveries has no INSERT policy for anon/authenticated — only
+  // service_role may write it (see migration 20250228000000_webhooks.sql:
+  // "RLS Policies for webhook_deliveries" grants SELECT only, by design).
+  // Using the regular cookie-scoped createClient() here silently fails
+  // every insert under RLS, which meant createDeliveryRecord always
+  // returned null and deliverWebhook() — the actual outbound HTTP POST —
+  // was never reached, for both real session-completed events and the
+  // manual "Send test webhook" button. createAdminClient() bypasses RLS
+  // as intended for this service-side write.
+  const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from('webhook_deliveries')
@@ -286,7 +295,10 @@ async function updateDeliveryRecord(
   result: WebhookDeliveryResult,
   attempts: number
 ): Promise<void> {
-  const supabase = await createClient();
+  // Same reasoning as createDeliveryRecord above: webhook_deliveries has no
+  // UPDATE policy for anon/authenticated, so this write requires the
+  // service-role admin client.
+  const supabase = createAdminClient();
 
   await supabase
     .from('webhook_deliveries')

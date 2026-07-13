@@ -477,3 +477,80 @@ forbids writing or fixing the candidate's code.
   (already reviewed today, judged adequate). Not yet reached: the remaining
   Cost-leak items (max_tokens enforcement, panel-mode per-turn call count,
   scoring-endpoint double-call guard) and the Provider-rule grep.
+
+---
+
+## 2026-07-13 (continued 2) — Audit checklist walk: outbound webhooks completely broken (RLS/client mismatch)
+
+**What:** Continued the same session into Section 4 (Database schema audit).
+While verifying the checklist's own note — "`webhook_deliveries` has no
+INSERT/UPDATE/DELETE policies for users — only the service side writes.
+Verify admin client is used for all mutations" — found that the
+verification FAILS: `createDeliveryRecord` and `updateDeliveryRecord` in
+`lib/webhooks/webhook-service.ts` were using the regular cookie-scoped
+`createClient()` (RLS-enforced as `authenticated`) to INSERT/UPDATE
+`webhook_deliveries`, but that table's RLS only grants a SELECT policy to
+users (migration `20250228000000_webhooks.sql`) — service_role is the only
+role that can write it, by design.
+
+**Impact confirmed by reading the call chain:** `createDeliveryRecord`'s
+insert would be rejected by RLS → `error` is set → the function returns
+`null` → both callers (`sendSessionCompletedWebhook`, used when a real
+interview session completes, and `sendTestWebhook`, the "Send test webhook"
+button in webhook settings) check `if (!deliveryId) return { success: false
+}` and bail out *before* `deliverWebhook()` — the function that actually
+does the outbound `fetch()` to the user's configured URL — is ever called.
+In other words: the entire outbound-webhooks feature has been sending zero
+real HTTP requests, silently, for every user and every event, including the
+manual test button. This is a full, live, silent feature outage, not a
+theoretical risk.
+
+**Fixed:** `lib/webhooks/webhook-service.ts` — both `createDeliveryRecord`
+and `updateDeliveryRecord` now use `createAdminClient()` (service-role,
+bypasses RLS) instead of `createClient()`. The `webhooks` table lookups in
+`getWebhooksForEvent` and `sendTestWebhook` are unchanged (still use the
+regular client) — those work fine under RLS since the SELECT policy is
+scoped to the row's own `user_id`, which matches the caller in every case.
+
+**Why:** Live-production functional outage on a feature already shipped and
+presumably paid for by some users ("enterprise feature" per the original
+migration comment) — every webhook configured by every user has been
+silently doing nothing.
+
+**Tools/commands run:**
+- `npx tsc --noEmit` (full project) — exit 0, no errors.
+- `npx next lint --file lib/webhooks/webhook-service.ts --file tests/lib/webhooks/webhook-service.test.ts`
+  — "No ESLint warnings or errors" (after removing two initial unused-param
+  warnings by having the mock actually record the insert/update payloads).
+- New test `tests/lib/webhooks/webhook-service.test.ts` (2 tests, mocks
+  `createClient`/`createAdminClient` separately and tags which one handled
+  each call): asserts every `webhook_deliveries` write goes through the
+  admin-tagged client (would have failed pre-fix, since those calls were
+  tagged 'regular'), and that `sendTestWebhook` now actually reaches
+  `fetch()` and returns `success: true` instead of failing at "Failed to
+  create delivery record".
+- `npx vitest run` (full suite) — 6 files, 32/32 passing (up from 30/30
+  before this fix; +2 new tests).
+
+**Result:** Outbound webhook delivery (both real session-completed events
+and the manual test button) now actually reaches the configured URL.
+
+**Known limitations:**
+- Not verified against a real Postgres/Supabase instance in this session —
+  the RLS-rejection mechanism itself was inferred from reading the policy
+  definitions and the client code, not observed via a live failing request.
+  Recommend a manual "Send test webhook" click against a real deployed
+  instance (pre- vs post-deploy) to confirm this really was failing and is
+  now fixed, since that's the cheapest real-world confirmation available.
+- Did not investigate how long this has been broken (would require Vercel
+  log history or `webhook_deliveries` row counts in the live DB — no access
+  here). Worth checking whether any users who configured webhooks have
+  already opened support tickets about "webhooks don't work."
+- The checklist also notes a retry-worker-shaped index
+  (`idx_webhook_deliveries_status`, `idx_webhook_deliveries_next_retry` on
+  `status`) with no corresponding retry worker code anywhere in the repo —
+  confirmed by grep, this is a separate, smaller gap (a half-built retry
+  feature, or dead schema) not addressed in this fix.
+- Continued top-down per the stop rule after this. Have not yet re-verified
+  the rest of Section 4 (indexes, remaining constraints/triggers, enum edge
+  cases) or Sections 5–12.
